@@ -11,7 +11,7 @@ function Login() {
     const handleLogin = async (e) => {
         if (e) e.preventDefault(); // 
             try {
-                const response = await fetch('http://127.0.0.1:5000/authenticate', {
+                const response = await fetch('http://127.0.0.1:5000/authenticate', { //calls the Flask backend endpoint
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password }),
@@ -25,7 +25,7 @@ function Login() {
                 login(user); // Update auth state
                 console.log(user);
 
-                navigate('/home');
+                navigate('/home'); //send them to the home page
             } else {
                 alert(data.message || 'Login failed');
             }

@@ -10,9 +10,10 @@ export const AuthProvider = ({ children }) => {
     
     useEffect(() => {
         const checkSession = async () => {
-        const res = await fetch("http://localhost:5000/check-session", {
+        const res = await fetch("http://localhost:5000/check-session", { //calls the Flask endpoint for checking active sessions
+            //sessions are a Flask feature and all session data should stay in the back end
             method: "GET",
-            credentials: "include",
+            credentials: "include", //needed for CORS and certian permissions
         });
         
         const data = await res.json();
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         const res = await fetch("http://localhost:5000/authenticate", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" }, //send the username and password to the backend to authenticate
             body: JSON.stringify({ username, password }),
             credentials: "include",
         });
