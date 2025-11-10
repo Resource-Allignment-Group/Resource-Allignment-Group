@@ -41,5 +41,6 @@ def logout():
     return jsonify({"message": "logged out"})
 
 
+# make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000)

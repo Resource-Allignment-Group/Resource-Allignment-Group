@@ -5,8 +5,10 @@ from pathlib import Path
 from uuid import UUID
 import logging
 from datetime import datetime
+from PIL import Image
+import io
 
-_client = None
+_client = None  # Needed so that only one client call is made
 
 
 class Database:
@@ -26,59 +28,38 @@ class Database:
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
 
-        if (self.reports_db / "test_log.txt").exists():
-            self.log = logging.basicConfig(
-                filename="test_log.log",
-                filemode="a",
-                level=logging.INFO,
-            )
-        else:
-            self.log = logging.basicConfig(
-                filename="test_log.log", filemode="w", level=logging.INFO
-            )
+    def get_image(self, uuid: UUID):
+        if type(uuid) is not UUID:
+            return f"{uuid} is not a UUID"
 
-    def find_images_for_equipment(self, equipment_uuid: UUID):
-        if type(equipment_uuid) != UUID:  # noqa: E721
-            return "'equipment_uuid' not a UUID"
+        if not (self.images_db / uuid).exists():
+            return f"{uuid} image does not exist"
 
-        equipment = self.equipment_db.find_one({"_id": equipment_uuid})
-        if equipment is None:
-            return "equipment_uuid does not exist"
+        img = Image.open(self.images_db / uuid)
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
 
-        images = []
-        for image_uuid in equipment["images"]:
-            image_path = self.images_db / image_uuid
-            if image_path.exists():
-                images.append(image_path)
-            else:
-                return f"image path {image_uuid} does not exist"
-
-        return images
+        return buffer.getvalue()
 
     def delete_image(self, uuid: UUID):
         os.remove(self.images_db / uuid)
-        return 1
+        return f"Sucessfully removed image {uuid}"
 
-    def find_reports_for_equipment(self, equipment_uuid: UUID):
-        if type(equipment_uuid) != UUID:  # noqa: E721
-            return "'equipment_uuid' not a UUID"
+    def get_report(self, uuid: UUID):
+        if type(uuid) is not UUID:
+            return f"{uuid} is not a UUID"
 
-        equipment = self.equipment_db.find_one({"_id": equipment_uuid})
-        if equipment == None:
-            return "equipment_uuid does not exist"
+        if not (self.images_db / uuid).exists():
+            return f"{uuid} report does not exist"
 
-        reports = []
-        for report_uuid in equipment["reports"]:
-            report_path = self.reports_db / report_uuid
-            if report_path.exists():
-                reports.append(report_path)
-            else:
-                return f"report path {report_uuid} does not exist"
-        return reports
+        with open(self.reports_db / uuid, "rb") as f:
+            report_data = io.BytesIO(f.read())
+
+        return report_data
 
     def delete_report(self, uuid: UUID):
         os.remove(self.reports_db / uuid)
-        return 1
+        return f"{uuid} report has been deleted"
 
     def delete_data(self, uuid: UUID, *, collection: str = None):
         if collection:
@@ -170,11 +151,3 @@ class Database:
                     return f"{uuid} has been sucessfully deleted from reports"
 
             return f"{uuid} could not be found in database"
-
-    def log(self, message: str, level: int):
-        # The 'level' type hint isn't really true, but this does work as logging.INFO==10, logging.DEBUG==10, etc
-        # It it just a Wrapper for integers
-
-        if level >= 50:  # 50 is arbitrary
-            # I think this should send an email once the email finctionality is set up in the code
-            pass
