@@ -7,15 +7,18 @@ import logging
 from datetime import datetime
 from PIL import Image
 import io
+from dotenv import load_dotenv
+
 
 _client = None  # Needed so that only one client call is made
+load_dotenv()
 
 
 class Database:
     def get_client(self):
         global _client
         if _client is None:
-            _client = MongoClient(os.environ["DATABASE_URI"])
+            _client = MongoClient(os.environ.get("DATABASE_URI"))
         return _client
 
     def __init__(self):
@@ -28,132 +31,166 @@ class Database:
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
 
-    #Setters
+    # Setters
     def set_notfication_sender(self, id: UUID, sender: UUID):
-        change_result = self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
+        change_result = self.notifications_db.update_one(
+            {"_id": id}, {"$set": {"sender": sender}}
+        )
         if change_result.acknowledged:
             return f"Sender {sender} has changed for notification {id}"
         else:
             return f"Sender was not changed for notification {id}"
 
     def set_notfication_receiver(self, id: UUID, receiver: UUID):
-        change_result = self.notifications_db.update_one({"_id": id}, {"$set": {"receiver": receiver}})
+        change_result = self.notifications_db.update_one(
+            {"_id": id}, {"$set": {"receiver": receiver}}
+        )
         if change_result.acknowledged:
             return f"Receiver {receiver} has changed for notification {id}"
         else:
             return f"Receiver was not changed for notification {id}"
-    
+
     def set_notfication_result(self, id: UUID, result: str):
-        change_result = self.notifications_db.update_one({"_id": id}, {"$set": {"result": result}})
+        change_result = self.notifications_db.update_one(
+            {"_id": id}, {"$set": {"result": result}}
+        )
         if change_result.acknowledged:
             return f"Result {result} has changed for notification {id}"
         else:
             return f"Result was not changed for notification {id}"
 
     def set_request_active(self, id: UUID, active: bool):
-        change_result = self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
+        change_result = self.requests_db.update_one(
+            {"_id": id}, {"$set": {"active": active}}
+        )
         if change_result.acknowledged:
             return f"Active {active} has changed for request {id}"
         else:
             return f"Active was not changed for request {id}"
 
     def set_request_equipment(self, id: UUID, equipment_id: UUID):
-        change_result = self.requests_db.update_one({"_id": id}, {"$set": {"equipment": equipment_id}})
+        change_result = self.requests_db.update_one(
+            {"_id": id}, {"$set": {"equipment": equipment_id}}
+        )
         if change_result.acknowledged:
             return f"Equipment {equipment_id} has changed for request {id}"
         else:
             return f"Equipment was not changed for request {id}"
-        
+
     def set_request_user(self, id: UUID, user_id: UUID):
-        change_result = self.requests_db.update_one({"_id": id}, {"$set": {"user": user_id}})
+        change_result = self.requests_db.update_one(
+            {"_id": id}, {"$set": {"user": user_id}}
+        )
         if change_result.acknowledged:
             return f"User {user_id} has changed for request {id}"
         else:
             return f"User was not changed for request {id}"
-    
+
     def set_user_username(self, id: UUID, username: str):
-        change_result = self.users_db.update_one({"_id": id}, {"$set": {"username": username}})
+        change_result = self.users_db.update_one(
+            {"_id": id}, {"$set": {"username": username}}
+        )
         if change_result.acknowledged:
             return f"Username {username} has changed for user {id}"
         else:
             return f"Username was not changed for user {id}"
-        
+
     def set_user_password(self, id: UUID, password: str):
-        change_result = self.users_db.update_one({"_id": id}, {"$set": {"password": password}})
+        change_result = self.users_db.update_one(
+            {"_id": id}, {"$set": {"password": password}}
+        )
         if change_result.acknowledged:
             return f"Password {password} has changed for user {id}"
         else:
             return f"Password was not changed for user {id}"
-            
+
     def set_user_role(self, id: UUID, role: str):
         change_result = self.users_db.update_one({"_id": id}, {"$set": {"role": role}})
         if change_result.acknowledged:
             return f"Role {role} has changed for user {id}"
         else:
             return f"Role was not changed for user {id}"
-        
+
     def add_user_equipment(self, user_id: UUID, equipment_id: UUID):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
         if equipment["checked_out"]:
             return f"Equipment {equipment_id} is already checked out"
-        
-        change_result = self.users_db.update_one({"_id": user_id}, {"$push": {"checked_out_equipment": equipment_id}})
+
+        change_result = self.users_db.update_one(
+            {"_id": user_id}, {"$push": {"checked_out_equipment": equipment_id}}
+        )
         if change_result.acknowledged:
-            self.equipment_db.update_one({"_id": equipment_id}, {"$set": {"checked_out": True}})
+            self.equipment_db.update_one(
+                {"_id": equipment_id}, {"$set": {"checked_out": True}}
+            )
             return f"User {user_id} has checked out equipment {equipment_id}"
         else:
             return f"User {user_id} was unable to check out equipment {equipment_id}"
-    
+
     def delete_user_equipment(self, user_id: UUID, equipment_id: UUID):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
         if not equipment["checked_out"]:
             return f"Equipment {equipment_id} is not checked out"
-        
-        change_result = self.users_db.update_one({"_id": user_id}, {"$pull": {"checked_out_equipment": equipment_id}})
+
+        change_result = self.users_db.update_one(
+            {"_id": user_id}, {"$pull": {"checked_out_equipment": equipment_id}}
+        )
         if change_result.acknowledged:
-            self.equipment_db.update_one({"_id": equipment_id}, {"$set": {"checked_out": False}})
+            self.equipment_db.update_one(
+                {"_id": equipment_id}, {"$set": {"checked_out": False}}
+            )
             return f"User {user_id} has released equipment {equipment_id}"
         else:
             return f"User {user_id} was unable to release equipment {equipment_id}"
-                 
+
     def set_equipment_year(self, id: UUID, year: int):
-        change_result = self.equipment_db.update_one({"_id": id}, {"$set": {"year": year}})
+        change_result = self.equipment_db.update_one(
+            {"_id": id}, {"$set": {"year": year}}
+        )
         if change_result.acknowledged:
             return f"Year {year} has changed for equipment {id}"
         else:
-            return f"Year was not changed for equipment {id}"   
-                     
+            return f"Year was not changed for equipment {id}"
+
     def set_equipment_name(self, id: UUID, name: str):
-        change_result = self.equipment_db.update_one({"_id": id}, {"$set": {"name": name}})
+        change_result = self.equipment_db.update_one(
+            {"_id": id}, {"$set": {"name": name}}
+        )
         if change_result.acknowledged:
             return f"Name {name} has changed for equipment {id}"
         else:
-            return f"Name was not changed for equipment {id}"   
-                         
+            return f"Name was not changed for equipment {id}"
+
     def set_equipment_class(self, id: UUID, _class: str):
-        change_result = self.equipment_db.update_one({"_id": id}, {"$set": {"class": _class}})
+        change_result = self.equipment_db.update_one(
+            {"_id": id}, {"$set": {"class": _class}}
+        )
         if change_result.acknowledged:
             return f"Class {_class} has changed for equipment {id}"
         else:
-            return f"Class was not changed for equipment {id}"   
-                         
+            return f"Class was not changed for equipment {id}"
+
     def set_equipment_checked_out(self, id: UUID, checked_out: bool):
-        change_result = self.equipment_db.update_one({"_id": id}, {"$set": {"checked_out": checked_out}})
+        change_result = self.equipment_db.update_one(
+            {"_id": id}, {"$set": {"checked_out": checked_out}}
+        )
         if change_result.acknowledged:
             return f"Checked_out {checked_out} has changed for equipment {id}"
         else:
             return f"Checked_out was not changed for equipment {id}"
-    
+
     def add_image(self, equipment_id: UUID, image: Image):
         img_uuid = uuid4()
         while True:
             if (self.images_db / img_uuid).exists():
-                  img_uuid = uuid4()
+                img_uuid = uuid4()
             else:
-                break  
+                break
         image.save(self.images_db / img_uuid)
 
-        change_result = self.equipment_db.update_one({"_id": equipment_id}, {"$push": {"images": img_uuid}})
+        change_result = self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$push": {"images": img_uuid}}
+        )
         if change_result.acknowledged:
             return f"Image {img_uuid} has been added for {equipment_id}"
         else:
@@ -162,20 +199,21 @@ class Database:
     def add_report(self, equipment_id: UUID, report_content):
         report_uuid = uuid4()
         while True:
-            if (self.reports_db/ report_uuid).exists():
-                  report_uuid = uuid4()
+            if (self.reports_db / report_uuid).exists():
+                report_uuid = uuid4()
             else:
-                break  
-        
+                break
+
         with open(self.reports_db / report_uuid, "w") as f:
             f.write(report_content)
         f.close()
-        change_result = self.equipment_db.update_one({"_id": equipment_id}, {"$push": {"reports": report_uuid}})
+        change_result = self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
+        )
         if change_result.acknowledged:
             return f"Report {report_uuid} has been added for {equipment_id}"
         else:
             return f"Report {report_uuid} could not be added"
-
 
     def get_image(self, uuid: UUID):
         if type(uuid) is not UUID:
@@ -212,7 +250,7 @@ class Database:
 
     def get_notifications_by_user(self, user_id):
         return self.notifications_db.find({"receiver": user_id})
-    
+
     def delete_data(self, uuid: UUID, *, collection: str = None):
         if collection:
             match collection:
