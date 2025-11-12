@@ -9,31 +9,22 @@ function Login() {
     const navigate = useNavigate()
 
     const handleLogin = async (e) => {
-        if (e) e.preventDefault(); // 
-            try {
-                const response = await fetch('http://127.0.0.1:5000/authenticate', { //calls the Flask backend endpoint
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password }),
-                    credentials: "include"
-            });
-
-            const data = await response.json();
-
-            if (data.message) {
-                const user = { user: username };
-                login(user); // Update auth state
-                console.log(user);
-
-                navigate('/home'); //send them to the home page
-            } else {
-                alert(data.message || 'Login failed');
-            }
-            } catch (error) {
-            console.error('Login error:', error);
-            alert('Something went wrong');
-            }
-    };
+  if (e) e.preventDefault();
+  try {
+    const success = await login(username, password); // call login function in AuthProvider.js
+    if(success){
+      navigate('/home'); 
+    } 
+    
+    else {
+      alert('Invalid username or password'); //can make these non alert is decided
+    }
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('Something went wrong');
+  }
+};
 
     return(        
     <div className="login-container">

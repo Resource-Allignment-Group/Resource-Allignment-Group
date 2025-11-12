@@ -4,54 +4,69 @@ import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate()
-    
-    useEffect(() => {
-        const checkSession = async () => {
-        const res = await fetch("http://localhost:5000/check-session", { //calls the Flask endpoint for checking active sessions
-            //sessions are a Flask feature and all session data should stay in the back end
-            method: "GET",
-            credentials: "include", //needed for CORS and certian permissions
-        });
-        
-        const data = await res.json();
-        
-        if (data.user) {
-            setUser({ username: data.user });
-        }
-        
-        setIsLoading(false);
-        };
-        
-        checkSession();
-    }, []);
-    
-    const login = async (username, password) => {
-        const res = await fetch("http://localhost:5000/authenticate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" }, //send the username and password to the backend to authenticate
-            body: JSON.stringify({ username, password }),
-            credentials: "include",
-        });
-        if (res.ok) {
-            const data = await res.json();
-            setUser({ username });
-            navigate('/home')
-            return true;
-        }
-        
-        else{return false}
-    };
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const logout = async () => {
-        await fetch("http://localhost:5000/logout", {
-            method: "POST",
-            credentials: "include",
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/check-session", { //checks to see if user is loged in with Flask sessions
+          method: "GET",
+          credentials: "include", 
         });
+
+        const data = await res.json();
+        setUser(data.user ? { username: data.user } : null);
+      } 
+      
+      catch (err) {
+        console.error("Session check failed", err);
         setUser(null);
+      } 
+      
+      finally {
+        setIsLoading(false);
+      }
+
     };
+    checkSession();
+  }, []);
+
+  const login = async (username, password) => {
+    try {
+      const res = await fetch("http://localhost:5000/authenticate", { //logis in the user and starts their session
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: "include", 
+      });
+      
+      const data = await res.json();
+      if (data.message === "success") {
+        setUser({ username });
+        return true;
+      }
+
+      return false;
+    } 
+    catch (err) {
+      console.error("Login failed", err);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch("http://localhost:5000/logout", { //Logs the user out, will need tro impliment into pack end
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout failed", err);
+    } finally {
+      setUser(null);
+    }
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading }}>
@@ -60,4 +75,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext)
