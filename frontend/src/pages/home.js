@@ -19,11 +19,15 @@ function Home(){
                             <li><a href="">Reports</a></li>  {/*Add link */}
                         </ul>
                     </div>
-                        <div className="profile" onClick={() =>navigate("/profile")}>
-                            {/* We can make this better in the future bt just a p[lace holder] */}
-                            <p>&#x1F464;</p>
-                        </div>
                      
+                    <div className="nav-right">
+                    <div className='notification'>
+                        <p>&#x1F514;</p>
+                    </div>
+                    <div className="profile" onClick={() => navigate("/profile")}>
+                        <p>&#x1F464;</p>
+                    </div>
+                    </div>
                 </nav>
 
                 <div className="search-bar">

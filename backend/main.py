@@ -37,10 +37,7 @@ def authenticate():
 
 @app.route("/check-session", methods=["GET"])
 def check_session():
-    print("checking session")
-    print(session)
     user = session.get("user")
-    print(user)
 
     if user:
         return jsonify({"user": user})
