@@ -8,6 +8,9 @@ class User:
         self.role = role
         self.email = email
         self.inbox = []
-
+        
     def fill_inbox(self, db: Database):
         notifications = db.get_notifications_by_user(self.id)
+        
+        for n in notifications.sort("date", -1):
+            self.inbox.append(n)
