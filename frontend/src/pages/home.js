@@ -1,9 +1,15 @@
 import '../styles/home.css';
 import { useNavigate } from 'react-router-dom';
+import EquipmentPopup from '../Popup';
+import { useState } from 'react';
 
 function Home(){
     const navigate = useNavigate()
+    const [activatePopup, setActivatePopup] = useState(false)
 
+    function AddEquipment(equipmentInformation){
+        console.log("Added equipment", equipmentInformation)
+    }
     return(
         <div className="home-container">
             <div className="sidebar">
@@ -14,7 +20,7 @@ function Home(){
                 <nav className="navbar">
                     <div className='nav-links'>
                         <ul className="nav-links">
-                            <li><a href="">Add Equipment</a></li> {/*Add link */}
+                            <li><a href="#" onClick={() => setActivatePopup(true)}>Add Equipment</a></li> {/*Add link */}
                             <li><a href="">Notifications</a></li> {/*Add link */}
                             <li><a href="">Reports</a></li>  {/*Add link */}
                         </ul>
@@ -38,6 +44,13 @@ function Home(){
                    <p>Equipment</p>
                 </div>
             </div>
+
+        {activatePopup && (
+        <EquipmentPopup
+          onClose={() => setActivatePopup(false)}
+          onSubmit={AddEquipment}
+        />
+      )}
         </div>
   );
 }
