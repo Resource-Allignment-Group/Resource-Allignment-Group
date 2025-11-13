@@ -1,0 +1,3 @@
+DATABASE_URI=mongodb+srv://bcraig:ZQHTDUgLK3plipmC@ram.ywxt11j.mongodb.net/
+FLASK_DEBUG=TRUE
+FLASK_SECRET_KEY=liausdhflwerio8yfljshdlfho8we7fgwle90fywe98fhbweoufpiwe
