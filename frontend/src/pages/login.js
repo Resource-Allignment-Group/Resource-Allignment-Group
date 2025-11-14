@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../Authentication"
+import "../styles/login.css"
 
 function Login() {
     const [username, setUsername] = useState('')
@@ -26,12 +27,22 @@ function Login() {
   }
 };
 
-    return(        
-    <div className="login-container">
-        <h2>Login</h2>
-        <form onSubmit={handleLogin}>
-            <label htmlFor="username">Username</label>
-            <input
+    return(  
+      <div className="container">
+      <div className="image-side">
+        <img
+          src="" //Need to find an image that we want to use and adds it path here in the 'static folder'
+          alt="Forrest"
+          className="background-image"
+        />
+      </div>
+
+      <div className="login-side">
+        <h2 className="title">Login</h2>
+
+        <form className="form">
+          <label>Email *</label>
+          <input
               type="text"
               id="username"
               placeholder="Enter your username"
@@ -39,8 +50,8 @@ function Login() {
               onChange={(e) => setUsername(e.target.value)}
             />
 
-            <label htmlFor="password">Password</label>
-            <input
+          <label>Password *</label>
+          <input
               type="password"
               id="password"
               placeholder="Enter your password"
@@ -48,10 +59,16 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <button type="submit">Login</button>
-          </form>
-        </div>
-          )
+          <button type="submit" onClick={handleLogin}>Sign In</button>
+
+          <a href="#" className="forgot-password" onClick={() => navigate("/register")}>
+            Forgot password?
+          </a>
+        </form>
+      </div>
+    </div>      
+  )
 }
 
 export default Login
+
