@@ -5,7 +5,7 @@ function Register(){
       <div className="container">
         <div className="image-side">
           <img
-            src=""//Need to find an image that we want to use and adds it path here in the 'static folder'
+            src="/static/mafes-webstie-photos-35.jpg"//Need to find an image that we want to use and adds it path here in the 'static folder'
             alt="Forrest #2"
             className="background-image"
           />

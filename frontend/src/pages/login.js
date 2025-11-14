@@ -31,8 +31,8 @@ function Login() {
       <div className="container">
       <div className="image-side">
         <img
-          src="" //Need to find an image that we want to use and adds it path here in the 'static folder'
-          alt="Forrest"
+          src="/static/mafes-webstie-photos-66.jpg" //Need to find an image that we want to use and adds it path here in the 'static folder'
+          alt="Ship Yard"
           className="background-image"
         />
       </div>
