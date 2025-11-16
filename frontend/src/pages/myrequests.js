@@ -1,11 +1,11 @@
 import "../styles/default.css";
 import { useState } from "react";
 
-// Import componets that will make up the profile page
+// Import componets that will make up the my requests page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function Profile() {
+function MyRequests() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 
 	return (
@@ -18,16 +18,17 @@ function Profile() {
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
+					activeTab="My Requests"
 				/>
 
-				{/* The title and brief description of the profile page  */}
+				{/* The title and brief description of the my requests page  */}
 				<div className="hero-section">
-					<h2>Account Settings</h2>
-					<p>Manage your personal information</p>
+					<h2>My Requests</h2>
+					<p>View and manage your equipment requests</p>
 				</div>
 			</div>
 		</div>
 	);
 }
 
-export default Profile;
+export default MyRequests;

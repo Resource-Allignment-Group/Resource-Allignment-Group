@@ -1,11 +1,11 @@
 import "../styles/default.css";
 import { useState } from "react";
 
-// Import componets that will make up the profile page
+// Import componets that will make up the notifications page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function Profile() {
+function Notifications() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 
 	return (
@@ -20,14 +20,14 @@ function Profile() {
 					onMenuToggle={() => setSidebarOpen(true)}
 				/>
 
-				{/* The title and brief description of the profile page  */}
+				{/* The title and brief description of the notifications page  */}
 				<div className="hero-section">
-					<h2>Account Settings</h2>
-					<p>Manage your personal information</p>
+					<h2>Notifications</h2>
+					<p>View all incoming notifications</p>
 				</div>
 			</div>
 		</div>
 	);
 }
 
-export default Profile;
+export default Notifications;
