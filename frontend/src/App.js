@@ -11,6 +11,11 @@ import Profile from "./pages/profile";
 import { AuthProvider } from "./Authentication";
 import ProtectedRoute from "./ProtectedRoute";
 import Register from "./pages/register";
+import MyRequests from "./pages/myrequests";
+import MyEquipment from "./pages/myequipment";
+import Dashboard from "./pages/dashboard";
+import UserManagement from "./pages/usermanagement";
+import Notifications from "./pages/notifications";
 
 function App() {
 	return (
@@ -36,8 +41,46 @@ function App() {
 							</ProtectedRoute>
 						}
 					/>
-					<Route path="/home" element={<Home />} />
-					{/*Will make the home route protected in a later commit*/}
+					<Route
+						path="/myrequests"
+						element={
+							<ProtectedRoute>
+								<MyRequests />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/myequipment"
+						element={
+							<ProtectedRoute>
+								<MyEquipment />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/dashboard"
+						element={
+							<ProtectedRoute>
+								<Dashboard />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/usermanagement"
+						element={
+							<ProtectedRoute>
+								<UserManagement />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/notifications"
+						element={
+							<ProtectedRoute>
+								<Notifications />
+							</ProtectedRoute>
+						}
+					/>
 				</Routes>
 			</AuthProvider>
 		</Router>

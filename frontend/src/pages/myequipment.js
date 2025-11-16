@@ -1,11 +1,11 @@
 import "../styles/default.css";
 import { useState } from "react";
 
-// Import componets that will make up the profile page
+// Import componets that will make up the my equipment page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function Profile() {
+function MyEquipment() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 
 	return (
@@ -18,16 +18,17 @@ function Profile() {
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
+					activeTab="My Equipment"
 				/>
 
-				{/* The title and brief description of the profile page  */}
+				{/* The title and brief description of the my equipment page  */}
 				<div className="hero-section">
-					<h2>Account Settings</h2>
-					<p>Manage your personal information</p>
+					<h2>My Equipment</h2>
+					<p>Equipment currently checked out to you</p>
 				</div>
 			</div>
 		</div>
 	);
 }
 
-export default Profile;
+export default MyEquipment;
