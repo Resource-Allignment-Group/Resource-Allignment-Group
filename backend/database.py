@@ -179,6 +179,16 @@ class Database:
         else:
             return f"Checked_out was not changed for equipment {id}"
 
+    def get_user_by_username(self, username: str):
+        querry = {"username": username}
+        if self.users_db.count_documents(querry) != 1:
+            print(self.users_db.count_documents(querry))
+            return f"More then one user had the username {username}"
+
+        # Pymongo returns a cursor object so must convert to a list
+        # This line gets the user object
+        return list(self.users_db.find(querry))[0]
+
     def add_image(self, equipment_id: UUID, image: Image):
         img_uuid = uuid4()
         while True:
