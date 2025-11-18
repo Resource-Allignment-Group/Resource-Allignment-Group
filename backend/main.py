@@ -39,6 +39,7 @@ def authenticate():
         else:
             session["user"] = username
             session["role"] = user_information["role"]
+            session["id"] = str(user_information["_id"]) #Will get error if not type casted
             return jsonify({"message": "success"})
     
     else:
@@ -60,7 +61,23 @@ def logout():
     session.pop("user", None)
     return jsonify({"message": "logged out"})
 
-
+@app.route("/register", methods=["POST"])
+def register():
+    print("in")
+    data = request.json
+    email, password, admin_email = data["email"], data["password"], data["admin_email"]
+    hashed_password = hash_password(password=password)
+    result = db.add_user(email=email, password=hashed_password)
+    print(result)
+    if result["result"]:
+        #send a notification to admin and update user management
+        _id = db.get_user_by_username(username=email)
+        print(_id)
+        db.set_user_role(id=_id["_id"], role="u")
+        return jsonify({"message": "success"})
+    else:
+        return jsonify({"message": result["message"]})
+    
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000)

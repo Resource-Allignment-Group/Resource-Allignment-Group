@@ -111,6 +111,29 @@ class Database:
         else:
             return f"Role was not changed for user {id}"
 
+    def add_user(self, email: str, password):
+
+        if self.users_db.count_documents({"username": email}) != 0: #Checks to make sure username does not already exist
+            return {
+                "result": False,
+                "message": f"Username {email} already exists"
+            }
+        
+        result = self.users_db.insert_one({"username": email, 
+                                  "password": password, 
+                                  "role": "p",
+                                  "checked_out_equipment": [] }
+                                  )
+        
+        if result.acknowledged:
+            return {"result": True, 
+                    "message": f"User {email} has sucessfully been added to the system"
+            }
+        else:
+            return {"result": False,
+                    "message": f"User {email} has not been added to the system"
+            }
+    
     def add_user_equipment(self, user_id: UUID, equipment_id: UUID):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
         if equipment["checked_out"]:
@@ -181,7 +204,7 @@ class Database:
 
     def get_user_by_username(self, username: str):
         querry = {"username": username}
-        if self.users_db.count_documents(querry) != 1:
+        if self.users_db.count_documents(querry) > 1:
             print(self.users_db.count_documents(querry))
             return f"More then one user had the username {username}"
 
