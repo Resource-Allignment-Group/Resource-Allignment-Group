@@ -205,7 +205,6 @@ class Database:
     def get_user_by_username(self, username: str):
         querry = {"username": username}
         if self.users_db.count_documents(querry) > 1:
-            print(self.users_db.count_documents(querry))
             return f"More then one user had the username {username}"
 
         # Pymongo returns a cursor object so must convert to a list

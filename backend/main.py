@@ -63,12 +63,10 @@ def logout():
 
 @app.route("/register", methods=["POST"])
 def register():
-    print("in")
     data = request.json
     email, password, admin_email = data["email"], data["password"], data["admin_email"]
     hashed_password = hash_password(password=password)
     result = db.add_user(email=email, password=hashed_password)
-    print(result)
     if result["result"]:
         #send a notification to admin and update user management
         _id = db.get_user_by_username(username=email)
