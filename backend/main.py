@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from database import Database
 from flask_session import Session
-from helpers import *
+from helpers import check_password, hash_password
 
 
 load_dotenv()
@@ -29,12 +29,18 @@ def authenticate():
     username = data.get("username")
     password = data.get("password")
     user_information = db.get_user_by_username(username=username)
-
+    
     if check_password(
         origional_password=password, hashed_password=user_information["password"]
     ):
-        session["user"] = username
-        return jsonify({"message": "success"})
+        
+        if user_information["role"] == "p":
+            return "Account is still pending approval from admin"
+        else:
+            session["user"] = username
+            session["role"] = user_information["role"]
+            return jsonify({"message": "success"})
+    
     else:
         return jsonify({"message": "invalid credentials"})
 

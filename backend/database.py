@@ -23,7 +23,7 @@ class Database:
 
     def __init__(self):
         self.get_client()
-        self.db = _client["Users"]
+        self.db = _client["RAM_DB"]
         self.users_db = self.db["users"]
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
