@@ -8,13 +8,14 @@ from datetime import datetime
 from PIL import Image
 import io
 from dotenv import load_dotenv
-
+from user import User
+from notifications import Notification
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
 
 
-class Database:
+class DatabaseManager:
     def get_client(self):
         global _client
         if _client is None:
@@ -119,11 +120,14 @@ class Database:
                 "message": f"Username {email} already exists"
             }
         
-        result = self.users_db.insert_one({"username": email, 
-                                  "password": password, 
-                                  "role": "p",
-                                  "checked_out_equipment": [] }
-                                  )
+        result = self.users_db.insert_one({
+                                    "username": email, 
+                                    "password": password, 
+                                    "role": "p",
+                                    "checked_out_equipment": [],
+                                    "inbox": [],
+                                    }
+                                )
         
         if result.acknowledged:
             return {"result": True, 
@@ -202,14 +206,16 @@ class Database:
         else:
             return f"Checked_out was not changed for equipment {id}"
 
-    def get_user_by_username(self, username: str):
+    def get_user_by_username(self, username: str) -> User:
         querry = {"username": username}
         if self.users_db.count_documents(querry) > 1:
             return f"More then one user had the username {username}"
 
         # Pymongo returns a cursor object so must convert to a list
         # This line gets the user object
-        return list(self.users_db.find(querry))[0]
+        new_user = User()
+        new_user.fill_user_information(list(self.users_db.find(querry))[0])
+        return new_user
 
     def add_image(self, equipment_id: UUID, image: Image):
         img_uuid = uuid4()
@@ -282,6 +288,16 @@ class Database:
 
     def get_notifications_by_user(self, user_id):
         return self.notifications_db.find({"receiver": user_id})
+    
+    def get_administrators(self):
+        cursor = self.users_db.find({"role": "a"})
+        user_list = []
+        
+        for user_info in cursor:
+            user = User()
+            user.fill_user_information(user_info)
+            user_list.append(user)
+        return user_list
 
     def delete_data(self, uuid: UUID, *, collection: str = None):
         if collection:
@@ -373,3 +389,25 @@ class Database:
                     return f"{uuid} has been sucessfully deleted from reports"
 
             return f"{uuid} could not be found in database"
+
+
+    def send_notification(self, notification: Notification):
+        note_id = str(uuid4())
+        notification_json = {
+            "_id": note_id,
+            "sender": notification.sender.id,
+            "receiver": notification.receiver.id,
+            "body": notification.body,
+            "date": notification.date
+        }
+        result_user = self.users_db.update_one({"_id": notification.receiver.id}, {"$push": {"inbox": note_id}})
+        result_note = self.notifications_db.insert_one(notification_json)
+        
+        if result_note.acknowledged and result_user.acknowledged:
+            return {"result": True, 
+                    "message": "Notification has sucessfully been added to the system"
+            }
+        else:
+            return {"result": False,
+                    "message": "Notidication has not been added to the system"
+            }
