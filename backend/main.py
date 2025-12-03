@@ -41,7 +41,6 @@ def authenticate():
             session["id"] = str(
                 user.id
             )  # Will get error if not type casted
-            
             return jsonify({"message": "success"})
 
     else:
@@ -81,7 +80,29 @@ def register():
     else:
         return jsonify({"message": result["message"]})
 
+@app.route("/get_user_info", methods=["GET"])
+def get_user_info():
+    #add profile pic retrevial and any other import stuff here
+    user_notifications = db.get_notifications_by_user(user_id=session["id"])
+    i=0
+    for note in user_notifications:
+        i+=1
+    return jsonify({"messages": [], "num_notifications": i})
 
+@app.route("/get_notifications", methods=["GET"])
+def get_notifications():
+    user_notifications = db.get_notifications_by_user(user_id=session["id"])
+    msgs = []
+    for note in user_notifications:
+        msgs.append({
+            "sender": db.get_username_by_id(user_id = str(note["sender"])),
+            "date": note["date"],
+            "body": note["body"],
+            "type": note["type"]
+        })
+
+    print(msgs)
+    return jsonify({"messages": msgs})
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000, use_reloader=False)

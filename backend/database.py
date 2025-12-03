@@ -10,6 +10,7 @@ import io
 from dotenv import load_dotenv
 from user import User
 from notifications import Notification
+from bson.objectid import ObjectId
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
@@ -287,7 +288,11 @@ class DatabaseManager:
         return f"{uuid} report has been deleted"
 
     def get_notifications_by_user(self, user_id):
-        return self.notifications_db.find({"receiver": user_id})
+        return self.notifications_db.find({"receiver": ObjectId(user_id)})
+    
+    def get_username_by_id(self, user_id: UUID):
+        user = self.users_db.find_one({"_id": ObjectId(user_id)})
+        return user["username"]
     
     def get_administrators(self):
         cursor = self.users_db.find({"role": "a"})
@@ -398,7 +403,8 @@ class DatabaseManager:
             "sender": notification.sender.id,
             "receiver": notification.receiver.id,
             "body": notification.body,
-            "date": notification.date
+            "date": notification.date,
+            "type": notification.type
         }
         result_user = self.users_db.update_one({"_id": notification.receiver.id}, {"$push": {"inbox": note_id}})
         result_note = self.notifications_db.insert_one(notification_json)

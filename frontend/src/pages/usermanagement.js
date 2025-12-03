@@ -1,7 +1,5 @@
 import "../styles/default.css";
 import { useState } from "react";
-
-// Import componets that will make up the user management page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 

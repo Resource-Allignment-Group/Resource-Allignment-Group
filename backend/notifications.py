@@ -8,12 +8,13 @@ from uuid import UUID
 from datetime import datetime
 
 class Notification():
-    def __init__(self, id: UUID = None, sender: User = None, receiver: str = None, date: datetime = None, body: str = None ):
+    def __init__(self, id: UUID = None, sender: User = None, receiver: str = None, date: datetime = None, body: str = None, _type: str =None ):
         self.id = id
         self.sender = sender
         self.receiver = receiver
         self.date = date
         self.body = body
+        self.type = _type
 
 class Notification_Manager:
     def __init__(self, db):
@@ -45,5 +46,5 @@ class Notification_Manager:
         message = "The user %s is attempting to make a new account", new_user.username
         for admin in self.db.get_administrators():
             print(admin.username)
-            new_note = Notification(sender=new_user, receiver=admin, date=datetime.now(), body=message)
+            new_note = Notification(sender=new_user, receiver=admin, date=datetime.now(), body=message, _type="a")
             self.db.send_notification(notification=new_note)
