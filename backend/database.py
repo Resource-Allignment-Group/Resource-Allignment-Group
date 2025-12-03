@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from user import User
 from notifications import Notification
 from bson.objectid import ObjectId
+from equipment import Equipment
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
@@ -114,31 +115,56 @@ class DatabaseManager:
             return f"Role was not changed for user {id}"
 
     def add_user(self, email: str, password):
+        if (
+            self.users_db.count_documents({"username": email}) != 0
+        ):  # Checks to make sure username does not already exist
+            return {"result": False, "message": f"Username {email} already exists"}
 
-        if self.users_db.count_documents({"username": email}) != 0: #Checks to make sure username does not already exist
-            return {
-                "result": False,
-                "message": f"Username {email} already exists"
+        result = self.users_db.insert_one(
+            {
+                "username": email,
+                "password": password,
+                "role": "p",
+                "checked_out_equipment": [],
+                "inbox": [],
             }
-        
-        result = self.users_db.insert_one({
-                                    "username": email, 
-                                    "password": password, 
-                                    "role": "p",
-                                    "checked_out_equipment": [],
-                                    "inbox": [],
-                                    }
-                                )
-        
+        )
+
         if result.acknowledged:
-            return {"result": True, 
-                    "message": f"User {email} has sucessfully been added to the system"
+            return {
+                "result": True,
+                "message": f"User {email} has sucessfully been added to the system",
             }
         else:
-            return {"result": False,
-                    "message": f"User {email} has not been added to the system"
+            return {
+                "result": False,
+                "message": f"User {email} has not been added to the system",
             }
-    
+
+    def add_equipment(self, equipment: Equipment):
+        if not isinstance(equipment, Equipment):
+            return "This is not part of the equipment class"
+
+        if (
+            equipment.id is None
+            or self.equipment_db.count_documents(({"_id": equipment.id})) != 0
+        ):
+            equipment.id = str(uuid4())
+
+        print(equipment.id)
+        result = self.equipment_db.insert_one(
+            {
+                "_id": equipment.id,
+                "name": equipment.name,
+                "class": equipment._class,
+                "year": equipment.year,
+                "images": [],
+                "reports": [],
+                "checked_out": False,
+            }
+        )
+        print(result.acknowledged)
+
     def add_user_equipment(self, user_id: UUID, equipment_id: UUID):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
         if equipment["checked_out"]:
@@ -289,15 +315,15 @@ class DatabaseManager:
 
     def get_notifications_by_user(self, user_id):
         return self.notifications_db.find({"receiver": ObjectId(user_id)})
-    
+
     def get_username_by_id(self, user_id: UUID):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["username"]
-    
+
     def get_administrators(self):
         cursor = self.users_db.find({"role": "a"})
         user_list = []
-        
+
         for user_info in cursor:
             user = User()
             user.fill_user_information(user_info)
@@ -395,7 +421,6 @@ class DatabaseManager:
 
             return f"{uuid} could not be found in database"
 
-
     def send_notification(self, notification: Notification):
         note_id = str(uuid4())
         notification_json = {
@@ -404,16 +429,20 @@ class DatabaseManager:
             "receiver": notification.receiver.id,
             "body": notification.body,
             "date": notification.date,
-            "type": notification.type
+            "type": notification.type,
         }
-        result_user = self.users_db.update_one({"_id": notification.receiver.id}, {"$push": {"inbox": note_id}})
+        result_user = self.users_db.update_one(
+            {"_id": notification.receiver.id}, {"$push": {"inbox": note_id}}
+        )
         result_note = self.notifications_db.insert_one(notification_json)
-        
+
         if result_note.acknowledged and result_user.acknowledged:
-            return {"result": True, 
-                    "message": "Notification has sucessfully been added to the system"
+            return {
+                "result": True,
+                "message": "Notification has sucessfully been added to the system",
             }
         else:
-            return {"result": False,
-                    "message": "Notidication has not been added to the system"
+            return {
+                "result": False,
+                "message": "Notidication has not been added to the system",
             }
