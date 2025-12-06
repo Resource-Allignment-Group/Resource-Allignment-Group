@@ -1,8 +1,8 @@
 import "../styles/default.css";
 import "../styles/notificationPage.css"
 import { useState, useEffect } from "react";
-import NotificationItem from "../components/notification";
-import Header from "../components/header";
+import {NotificationItem} from "../components/notification";
+import {Header, setNotificationsNum} from "../components/header";
 import Sidebar from "../components/sidebar";
 
 function Notifications() {
@@ -25,12 +25,37 @@ function Notifications() {
 		fillNotification()
 		}, [])
 	
-	const handleApprove = (notification) => {
-		//Handle this later
+	const handleApprove = async (notification) => {
+		try{
+			const res= await fetch("http://localhost:5000/admin_account_decision", {
+				method: "POST",
+				credentials: "include",
+				body: {"result": true, "notification": notification}
+			})
+			const data = await res.json()
+			// setNotificationsNum(num => num -1) //this doesnt work but I am working on it
+			//change notification to an "inform" class
+		}
+		catch (error){
+			console.log(error)
+			alert("Something went wrong")
+		}
 	}
 
-	const handleReject = (notification) => {
-		//Handle this later
+	const handleReject = async (notification) => {
+		try{
+			const res= await fetch("http://localhost:5000/admin_account_decision", {
+				method: "POST",
+				credentials: "include",
+				body: {"result": false, "notification": notification}
+			})
+			const data = await res.json()
+			//change notification to an inform class
+		}
+		catch (error){
+			console.log(error)
+			alert("Something went wrong")
+		}
 	}
 
 	return (
@@ -57,8 +82,8 @@ function Notifications() {
 							<NotificationItem
 								key={i}
 								notification={n}
-								onApprove={handleApprove}
-								onReject={handleReject}
+								onApprove={handleApprove(n)}
+								onReject={handleReject(n)}
 							/>
 						))
 					) : (

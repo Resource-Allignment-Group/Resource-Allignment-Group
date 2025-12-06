@@ -2,7 +2,7 @@ import bcrypt
 from database import DatabaseManager
 import pandas as pd
 from equipment import Equipment
-from uuid import uuid4
+from bson.objectid import ObjectId
 
 
 def hash_password(password: str):
@@ -50,7 +50,7 @@ def insert_via_spreadsheet():
         )
         name = name.replace("nan, ", "")
         print("name", name)
-        equip = Equipment(uuid=str(uuid4()), name=name, _class=row[1], year=row[4])
+        equip = Equipment(uuid=ObjectId(), name=name, _class=row[1], year=row[4])
         db.add_equipment(
             equipment=equip,
         )
