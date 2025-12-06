@@ -5,7 +5,7 @@ import { useState } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function Dashboard() {
+function Dashboard({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 
 	return (
@@ -19,6 +19,8 @@ function Dashboard() {
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
 					activeTab="Dashboard"
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the dashboard page  */}

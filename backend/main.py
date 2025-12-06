@@ -6,6 +6,7 @@ from database import DatabaseManager
 from flask_session import Session
 from helpers import *
 from notifications import Notification_Manager
+from bson.objectid import ObjectId
 
 load_dotenv()
 
@@ -36,7 +37,7 @@ def authenticate():
         else:
             session["user"] = username
             session["role"] = user.role
-            session["id"] = user.id
+            session["id"] = str(user.id)#Object ID can not be serialized
             return jsonify({"message": "success"})
 
     else:
@@ -80,16 +81,17 @@ def register():
 @app.route("/get_user_info", methods=["GET"])
 def get_user_info():
     # add profile pic retrevial and any other import stuff here
-    inbox_notifications = db.get_inbox_by_user(user_id=session["id"])
+    inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
     i = 0
     for note in inbox_notifications:
+        print(note)
         i += 1
     return jsonify({"messages": [], "num_notifications": i})
 
 
 @app.route("/get_notifications", methods=["GET"])
 def get_notifications():
-    user_notifications = db.get_notifications_by_user(user_id=session["id"])
+    user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
     msgs = []
     for note in user_notifications:
         msgs.append(
@@ -108,10 +110,10 @@ def get_notifications():
 @app.route("/admin_account_decision", methods=["POST"])
 def account_decision():
     data = request.json
-    print(data["notification"])
     if data["result"]:
         res = db.remove_notification_from_inbox()
 
+    return jsonify({"result": 0})
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 import "../styles/default.css";
 import "../styles/notificationPage.css"
 import { useState, useEffect } from "react";
-import {NotificationItem} from "../components/notification";
-import {Header, setNotificationsNum} from "../components/header";
+import NotificationItem from "../components/notification";
+import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function Notifications() {
+function Notifications({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [notifications, setNotifications] = useState([])
 
@@ -30,10 +30,11 @@ function Notifications() {
 			const res= await fetch("http://localhost:5000/admin_account_decision", {
 				method: "POST",
 				credentials: "include",
-				body: {"result": true, "notification": notification}
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({"result": true, "notification": notification})
 			})
 			const data = await res.json()
-			// setNotificationsNum(num => num -1) //this doesnt work but I am working on it
+			setNumNotifications(num => num -1) //this doesnt work but I am working on it
 			//change notification to an "inform" class
 		}
 		catch (error){
@@ -47,7 +48,8 @@ function Notifications() {
 			const res= await fetch("http://localhost:5000/admin_account_decision", {
 				method: "POST",
 				credentials: "include",
-				body: {"result": false, "notification": notification}
+				headers: {"Content-Type": "application/json"},
+				body:JSON.stringify({"result": false, "notification": notification})
 			})
 			const data = await res.json()
 			//change notification to an inform class
@@ -68,6 +70,8 @@ function Notifications() {
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the notifications page  */}

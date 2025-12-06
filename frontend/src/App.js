@@ -16,8 +16,11 @@ import MyEquipment from "./pages/myequipment";
 import Dashboard from "./pages/dashboard";
 import UserManagement from "./pages/usermanagement";
 import Notifications from "./pages/notifications";
+import {useState} from "react"
 
 function App() {
+	const [num_of_notifications, setNumNotifications] = useState(0);
+
 	return (
 		<Router>
 			<AuthProvider>
@@ -28,7 +31,7 @@ function App() {
 						path="/profile"
 						element={
 							<ProtectedRoute>
-								<Profile />
+								<Profile num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>
@@ -37,7 +40,7 @@ function App() {
 						path="/home"
 						element={
 							<ProtectedRoute>
-								<Home />
+								<Home num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>
@@ -45,7 +48,7 @@ function App() {
 						path="/myrequests"
 						element={
 							<ProtectedRoute>
-								<MyRequests />
+								<MyRequests num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>
@@ -53,7 +56,7 @@ function App() {
 						path="/myequipment"
 						element={
 							<ProtectedRoute>
-								<MyEquipment />
+								<MyEquipment num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>
@@ -61,7 +64,7 @@ function App() {
 						path="/dashboard"
 						element={
 							<ProtectedRoute>
-								<Dashboard />
+								<Dashboard num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>
@@ -69,7 +72,7 @@ function App() {
 						path="/usermanagement"
 						element={
 							<ProtectedRoute>
-								<UserManagement />
+								<UserManagement num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>
@@ -77,7 +80,7 @@ function App() {
 						path="/notifications"
 						element={
 							<ProtectedRoute>
-								<Notifications />
+								<Notifications num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
 							</ProtectedRoute>
 						}
 					/>

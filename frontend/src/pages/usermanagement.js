@@ -3,7 +3,7 @@ import { useState } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function UserManagement() {
+function UserManagement({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 
 	return (
@@ -17,6 +17,8 @@ function UserManagement() {
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
 					activeTab="User Management"
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the user management page  */}

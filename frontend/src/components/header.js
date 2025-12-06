@@ -1,9 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-function Header({ sidebarOpen, onMenuToggle, activeTab = null }) {
+function Header({ sidebarOpen, onMenuToggle, num_of_notifications, setNotificationsNum, activeTab = null }) {
 	const navigate = useNavigate();
-	const [num_of_notifications, setNotificationsNum] = useState()
 	useEffect(() => {
 
     const fetchUserInfo = async () => {

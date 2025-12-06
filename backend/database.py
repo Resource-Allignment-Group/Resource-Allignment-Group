@@ -313,8 +313,13 @@ class DatabaseManager:
         return f"{uuid} report has been deleted"
 
     def get_inbox_by_user(self, user_id: ObjectId):
-        notification_ids = self.users_db.find({"_id": user_id})["inbox"]
-        return [self.notifications_db.find({"_id": n["_id"]}) for n in notification_ids]
+        user_doc = self.users_db.find_one({"_id": user_id})
+        if not user_doc:
+            return "User does not exist"
+
+        notification_ids = user_doc.get("inbox", [])
+        print(notification_ids)
+        return [self.notifications_db.find_one({"_id": n})for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
         return self.notifications_db.find({"receiver": ObjectId(user_id)})
