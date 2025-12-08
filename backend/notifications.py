@@ -8,7 +8,7 @@ from uuid import UUID
 from datetime import datetime
 
 class Notification():
-    def __init__(self, id: UUID = None, sender: User = None, receiver: str = None, date: datetime = None, body: str = None, _type: str =None ):
+    def __init__(self, id: UUID = None, sender: str = None, receiver: str = None, date: datetime = None, body: str = None, _type: str =None ):
         self.id = id
         self.sender = sender
         self.receiver = receiver

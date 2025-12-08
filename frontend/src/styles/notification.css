@@ -72,3 +72,13 @@
 .btn-reject:hover {
   background-color: #c82333;
 }
+
+.approved-text {
+  color: green;
+  font-weight: bold;
+}
+
+.rejected-text {
+  color: red;
+  font-weight: bold;
+}

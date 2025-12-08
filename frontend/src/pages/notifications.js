@@ -25,33 +25,19 @@ function Notifications({num_of_notifications, setNumNotifications}) {
 		fillNotification()
 		}, [])
 	
-	const handleApprove = async (notification) => {
-		try{
-			const res= await fetch("http://localhost:5000/admin_account_decision", {
-				method: "POST",
-				credentials: "include",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify({"result": true, "notification": notification})
-			})
-			const data = await res.json()
-			setNumNotifications(num => num -1) //this doesnt work but I am working on it
-			//change notification to an "inform" class
-		}
-		catch (error){
-			console.log(error)
-			alert("Something went wrong")
-		}
-	}
 
-	const handleReject = async (notification) => {
+	const handleNotification = async (notification, result) => {
 		try{
 			const res= await fetch("http://localhost:5000/admin_account_decision", {
 				method: "POST",
 				credentials: "include",
 				headers: {"Content-Type": "application/json"},
-				body:JSON.stringify({"result": false, "notification": notification})
+				body:JSON.stringify({"result": result, "notification": notification})
 			})
 			const data = await res.json()
+			if (result){
+				setNumNotifications(num => num -1) //this doesnt work but I am working on it
+			}
 			//change notification to an inform class
 		}
 		catch (error){
@@ -86,8 +72,8 @@ function Notifications({num_of_notifications, setNumNotifications}) {
 							<NotificationItem
 								key={i}
 								notification={n}
-								onApprove={handleApprove(n)}
-								onReject={handleReject(n)}
+								onApprove={() => handleNotification(n, true)}
+								onReject={() => handleNotification(n, false)}
 							/>
 						))
 					) : (

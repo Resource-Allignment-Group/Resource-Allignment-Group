@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from database import DatabaseManager
 from flask_session import Session
 from helpers import *
-from notifications import Notification_Manager
+from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
 
 load_dotenv()
@@ -70,7 +70,6 @@ def register():
     if result["result"]:
         # send a notification to admin and update user management
         new_user = db.get_user_by_username(username=email)
-        print("new username: ", new_user.username)
         db.set_user_role(id=new_user.id, role="p")
         nm.send_account_approval_message(new_user=new_user)
         return jsonify({"message": "success"})
@@ -84,7 +83,6 @@ def get_user_info():
     inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
     i = 0
     for note in inbox_notifications:
-        print(note)
         i += 1
     return jsonify({"messages": [], "num_notifications": i})
 
@@ -94,24 +92,33 @@ def get_notifications():
     user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
     msgs = []
     for note in user_notifications:
+        print(note)
         msgs.append(
             {
-                "sender": db.get_username_by_id(user_id=str(note["sender"])),
-                "date": note["date"],
+                "sender_username": db.get_username_by_id(user_id=str(note["sender"])),
+                "sender": str(note["sender"]),
+                "receiver": str(note["receiver"]),
+                "date": str(note["date"]),
                 "body": note["body"],
                 "type": note["type"],
+                "_id": str(note["_id"])
             }
         )
-
-    print(msgs)
     return jsonify({"messages": msgs})
 
 
 @app.route("/admin_account_decision", methods=["POST"])
 def account_decision():
     data = request.json
+    note = data["notification"]
+    new_note = Notification(id=ObjectId(note["_id"]), sender=note["sender"], receiver=note["receiver"], date=note["date"], body=note["body"], _type=note["type"])
+    note_res = db.remove_notification_from_inbox(notification=new_note)
     if data["result"]:
-        res = db.remove_notification_from_inbox()
+        user_res = db.set_user_role(id=ObjectId(new_note.sender), role="u")
+    else:
+        pass #Send notification for deckine
+
+    
 
     return jsonify({"result": 0})
 

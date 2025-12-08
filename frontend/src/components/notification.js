@@ -1,17 +1,45 @@
 import "../styles/default.css"; 
 import "../styles/notification.css"
 
- function NewAccountNotification({ notification, onApprove, onReject }) {
+import { useState } from "react";
+
+function NewAccountNotification({ notification, onApprove, onReject }) {
+  const [status, setStatus] = useState(null); 
+
+  const handleApproveClick = () => {
+    setStatus("approved");
+    onApprove(notification);
+  };
+
+  const handleRejectClick = () => {
+    setStatus("rejected");
+    onReject(notification);
+  };
+
   return (
     <div className="notification-item">
       <div className="notification-header">
-        <span className="notification-sender">{notification.sender}</span>
+        <span className="notification-sender">{notification.sender_username}</span>
         <span className="notification-date">{new Date(notification.date).toLocaleString()}</span>
       </div>
+
       <div className="notification-body">{notification.body}</div>
+
       <div className="notification-actions">
-        <button className="btn-approve" onClick={() => onApprove(notification)}>Approve</button>
-        <button className="btn-reject" onClick={() => onReject(notification)}>Reject</button>
+        {status === null && (
+          <>
+            <button className="btn-approve" onClick={handleApproveClick}>Approve</button>
+            <button className="btn-reject" onClick={handleRejectClick}>Reject</button>
+          </>
+        )}
+
+        {status === "approved" && (
+          <p className="approved-text">Approved</p>
+        )}
+
+        {status === "rejected" && (
+          <p className="rejected-text">Rejected</p>
+        )}
       </div>
     </div>
   );
@@ -19,7 +47,7 @@ import "../styles/notification.css"
 
 export default function NotificationItem({notification, onApprove, onReject }) {
   switch (notification.type) {
-    case "a":
+    case "a": //add oher cases hear for each type of notification
       return <NewAccountNotification notification={notification} onApprove={onApprove} onReject={onReject} />;
     default:
       return (

@@ -150,7 +150,6 @@ class DatabaseManager:
         ):
             equipment.id = str(ObjectId)
 
-        print(equipment.id)
         result = self.equipment_db.insert_one(
             {
                 "_id": equipment.id,
@@ -162,7 +161,6 @@ class DatabaseManager:
                 "checked_out": False,
             }
         )
-        print(result.acknowledged)
 
     def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
@@ -234,6 +232,7 @@ class DatabaseManager:
 
     def get_user_by_username(self, username: str) -> User:
         querry = {"username": username}
+        print(username)
         if self.users_db.count_documents(querry) > 1:
             return f"More then one user had the username {username}"
 
@@ -318,7 +317,6 @@ class DatabaseManager:
             return "User does not exist"
 
         notification_ids = user_doc.get("inbox", [])
-        print(notification_ids)
         return [self.notifications_db.find_one({"_id": n})for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
@@ -339,7 +337,13 @@ class DatabaseManager:
         return user_list
 
     def remove_notification_from_inbox(self, notification: Notification):
-        pass
+        result = self.users_db.update_many(
+            {"inbox": notification.id},  
+            {"$pull": {"inbox": notification.id}}
+        )
+        print(notification.id)
+        print(result.acknowledged)
+        return result
 
     def delete_data(self, uuid: ObjectId, *, collection: str = None):
         if collection:
