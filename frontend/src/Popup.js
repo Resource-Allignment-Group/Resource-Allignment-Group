@@ -38,7 +38,7 @@ function EquipmentPopup({onClose, onSubmit}){
             type="text"
             value={equipmentClass}
             onChange={(e) => setEquipmentClass(e.target.value)}
-            placeholder="e.g. Veichle"
+            placeholder="e.g. Vehicle"
         />
 
 

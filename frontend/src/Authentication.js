@@ -1,5 +1,4 @@
 import { useEffect, createContext, useContext, useState } from "react";
-import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(null);
 
@@ -45,6 +44,9 @@ export const AuthProvider = ({ children }) => {
       if (data.message === "success") {
         setUser({ username });
         return true;
+      }
+      else{
+        console.error(data.message);
       }
 
       return false;

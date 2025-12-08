@@ -1,12 +1,48 @@
 import "../styles/default.css";
-import { useState } from "react";
-
-// Import componets that will make up the notifications page
+import "../styles/notificationPage.css";
+import { useState, useEffect } from "react";
+import NotificationItem from "../components/notification";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import NotificationCard from "../components/notificationCard";
 
-function Notifications() {
+function Notifications({ num_of_notifications, setNumNotifications }) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const [notifications, setNotifications] = useState([]);
+
+	useEffect(() => {
+		const fillNotification = async () => {
+			try {
+				const res = await fetch("http://localhost:5000/get_notifications", {
+					credentials: "include",
+				});
+				const data = await res.json();
+				setNotifications(data.messages || []);
+			} catch (error) {
+				console.log(error);
+			}
+		};
+		fillNotification();
+	}, []);
+
+	const handleNotification = async (notification, result) => {
+		try {
+			const res = await fetch("http://localhost:5000/admin_account_decision", {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ result: result, notification: notification }),
+			});
+			const data = await res.json();
+			if (result) {
+				setNumNotifications((num) => num - 1); //this doesnt work but I am working on it
+			}
+			//change notification to an inform class
+		} catch (error) {
+			console.log(error);
+			alert("Something went wrong");
+		}
+	};
 
 	return (
 		<div className="home-container">

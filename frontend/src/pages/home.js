@@ -1,23 +1,14 @@
 import "../styles/default.css";
-import "../styles/home.css";
 import { useState } from "react";
 
 // Import componets that will make up the home page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
-import EquipmentCard from "../components/equipmentCard";
-
-//////////////////////////////////////////////////
-// From the original homepage, will likely be moved to the admin dashboard
-// import EquipmentPopup from "../Popup";
+import HomeEquipmentCard from "../components/homeEquipmentCard";
 
 function Home() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
-
-	//////////////////////////////////////////////////
-	// From the original homepage, will likely be moved to the admin dashboard
-	// const [activatePopup, setActivatePopup] = useState(false);
 
 	// Sample equipment data, will be replaced with backend data later
 	const equipment = [
@@ -69,12 +60,6 @@ function Home() {
 		},
 	];
 
-	//////////////////////////////////////////////////
-	// From the original homepage, will likely be moved to the admin dashboard
-	// function AddEquipment(equipmentInformation) {
-	// console.log("Added equipment", equipmentInformation);
-	// }
-
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -98,7 +83,7 @@ function Home() {
 				<div className="content">
 					{/* Scrollable equipment items are a seperate component */}
 					{equipment.map((item) => (
-						<EquipmentCard
+						<HomeEquipmentCard
 							key={item.id}
 							equipment={item}
 							isExpanded={expandedCard === item.id}
@@ -109,14 +94,6 @@ function Home() {
 					))}
 				</div>
 			</div>
-			{/* //////////////////////////////////////////////////
-			// From the original homepage, will likely be moved to the admin dashboard
-			{activatePopup && (
-				<EquipmentPopup
-					onClose={() => setActivatePopup(false)}
-					onSubmit={AddEquipment}
-				/>
-			)} */}
 		</div>
 	);
 }

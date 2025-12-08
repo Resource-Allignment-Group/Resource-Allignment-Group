@@ -4,9 +4,30 @@ import { useState } from "react";
 // Import componets that will make up the my equipment page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import MyEquipmentCard from "../components/myEquipmentCard";
 
 function MyEquipment() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const [expandedCard, setExpandedCard] = useState(null);
+
+	// Sample equipment data, will be replaced with backend info later
+	const equipment = [
+		{
+			id: 1,
+			name: "Snow Plow Truck - Ford",
+			status: "Checked Out",
+			checkedOutBy: "exampleUser@gmail.com",
+			checkedOutDate: "Nov 12, 2025",
+			category: "Truck",
+			make: "Ford",
+			model: "F-350",
+			assignedFarm: "Blueberry Hill",
+			useFrequency: "Seasonal",
+			replacementCost: "$75,000",
+			description: "Snow removal vehicle for winter maintenance operations.",
+			attachments: 2,
+		},
+	];
 
 	return (
 		<div className="home-container">
@@ -25,6 +46,21 @@ function MyEquipment() {
 				<div className="hero-section">
 					<h2>My Equipment</h2>
 					<p>Equipment currently checked out to you</p>
+				</div>
+
+				{/* Scrollable content  */}
+				<div className="content">
+					{/* Scrollable equipment items are a seperate component */}
+					{equipment.map((item) => (
+						<MyEquipmentCard
+							key={item.id}
+							equipment={item}
+							isExpanded={expandedCard === item.id}
+							onToggle={() =>
+								setExpandedCard(expandedCard === item.id ? null : item.id)
+							}
+						/>
+					))}
 				</div>
 			</div>
 		</div>
