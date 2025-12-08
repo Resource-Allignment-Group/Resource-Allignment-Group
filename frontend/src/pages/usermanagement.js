@@ -1,12 +1,10 @@
 import "../styles/default.css";
 import { useState } from "react";
-
-// Import componets that will make up the user management page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import UserManagementCard from "../components/userManagementCard";
 
-function UserManagement() {
+function UserManagement({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
 
@@ -69,6 +67,8 @@ function UserManagement() {
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
 					activeTab="User Management"
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the user management page  */}

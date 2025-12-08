@@ -54,12 +54,29 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the notifications page  */}
 				<div className="hero-section">
 					<h2>Notifications</h2>
 					<p>View all incoming notifications</p>
+				</div>
+
+				<div className="notifications-list">
+					{notifications.length > 0 ? (
+						notifications.map((n, i) => (
+							<NotificationItem
+								key={i}
+								notification={n}
+								onApprove={() => handleNotification(n, true)}
+								onReject={() => handleNotification(n, false)}
+							/>
+						))
+					) : (
+						<p>No notifications</p>
+					)}
 				</div>
 			</div>
 		</div>

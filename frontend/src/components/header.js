@@ -25,6 +25,22 @@ function Header({
 
 		fetchUserInfo();
 	}, []);
+	useEffect(() => {
+		const fetchUserInfo = async () => {
+			try {
+				const res = await fetch("http://localhost:5000/get_user_info", {
+					credentials: "include",
+				});
+				const data = await res.json();
+				setNotificationsNum(data.num_notifications);
+			} catch (error) {
+				console.error("Fetch error:", error);
+				alert("Something went wrong");
+			}
+		};
+
+		fetchUserInfo();
+	}, []);
 	return (
 		<header className="header">
 			{/* The top part of the header  */}
@@ -44,6 +60,12 @@ function Header({
 						className="notification-icon"
 						onClick={() => navigate("/notifications")}
 					>
+						{num_of_notifications > 0 && (
+							<span className="notification-bubble">
+								{num_of_notifications}
+							</span>
+						)}
+
 						{num_of_notifications > 0 && (
 							<span className="notification-bubble">
 								{num_of_notifications}

@@ -6,7 +6,7 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
 
-function Home() {
+function Home({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
 
@@ -71,6 +71,8 @@ function Home() {
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
 					activeTab="Home"
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the home page  */}

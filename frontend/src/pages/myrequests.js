@@ -6,7 +6,7 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import MyRequestsCard from "../components/myRequestsCard";
 
-function MyRequests() {
+function MyRequests({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
 
@@ -83,6 +83,8 @@ function MyRequests() {
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
 					activeTab="My Requests"
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the my requests page  */}
