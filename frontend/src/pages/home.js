@@ -11,7 +11,7 @@ import EquipmentCard from "../components/equipmentCard";
 // From the original homepage, will likely be moved to the admin dashboard
 // import EquipmentPopup from "../Popup";
 
-function Home() {
+function Home({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
 
@@ -86,6 +86,8 @@ function Home() {
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
 					activeTab="Home"
+					num_of_notifications={num_of_notifications}
+					setNotificationsNum={setNumNotifications}
 				/>
 
 				{/* The title and brief description of the home page  */}
