@@ -37,7 +37,7 @@ def authenticate():
         else:
             session["user"] = username
             session["role"] = user.role
-            session["id"] = str(user.id)#Object ID can not be serialized
+            session["id"] = str(user.id)  # Object ID can not be serialized
             return jsonify({"message": "success"})
 
     else:
@@ -63,7 +63,7 @@ def logout():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    email, password, admin_email = data["email"], data["password"], data["admin_email"]
+    email, password = data["email"], data["password"]  # data["admin_email"]
     hashed_password = hash_password(password=password)
     result = db.add_user(email=email, password=hashed_password)
 
@@ -81,10 +81,9 @@ def register():
 def get_user_info():
     # add profile pic retrevial and any other import stuff here
     inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
-    i = 0
-    for note in inbox_notifications:
-        i += 1
-    return jsonify({"messages": [], "num_notifications": i})
+    return jsonify(
+        {"messages": [], "num_notifications": len(list(inbox_notifications))}
+    )
 
 
 @app.route("/get_notifications", methods=["GET"])
@@ -92,7 +91,6 @@ def get_notifications():
     user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
     msgs = []
     for note in user_notifications:
-        print(note)
         msgs.append(
             {
                 "sender_username": db.get_username_by_id(user_id=str(note["sender"])),
@@ -101,7 +99,7 @@ def get_notifications():
                 "date": str(note["date"]),
                 "body": note["body"],
                 "type": note["type"],
-                "_id": str(note["_id"])
+                "_id": str(note["_id"]),
             }
         )
     return jsonify({"messages": msgs})
@@ -111,16 +109,22 @@ def get_notifications():
 def account_decision():
     data = request.json
     note = data["notification"]
-    new_note = Notification(id=ObjectId(note["_id"]), sender=note["sender"], receiver=note["receiver"], date=note["date"], body=note["body"], _type=note["type"])
+    new_note = Notification(
+        id=ObjectId(note["_id"]),
+        sender=note["sender"],
+        receiver=note["receiver"],
+        date=note["date"],
+        body=note["body"],
+        _type=note["type"],
+    )
     note_res = db.remove_notification_from_inbox(notification=new_note)
     if data["result"]:
         user_res = db.set_user_role(id=ObjectId(new_note.sender), role="u")
     else:
-        pass #Send notification for deckine
-
-    
+        pass  # Send notification for deckine
 
     return jsonify({"result": 0})
+
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":

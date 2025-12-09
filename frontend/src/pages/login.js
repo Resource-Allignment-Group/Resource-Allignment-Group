@@ -62,7 +62,7 @@ function Login() {
           <button type="submit" onClick={handleLogin}>Sign In</button>
 
           <a href="#" className="forgot-password" onClick={() => navigate("/register")}>
-            Forgot password?
+            Sign Up
           </a>
         </form>
       </div>

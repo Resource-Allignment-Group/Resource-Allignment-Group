@@ -232,9 +232,7 @@ class DatabaseManager:
 
     def get_user_by_username(self, username: str) -> User:
         querry = {"username": username}
-        print(username)
         if self.users_db.count_documents(querry) > 1:
-            print(self.users_db.count_documents(querry))
             return f"More then one user had the username {username} with {self.users_db.count_documents(querry)} users"
 
         # Pymongo returns a cursor object so must convert to a list
@@ -318,7 +316,7 @@ class DatabaseManager:
             return "User does not exist"
 
         notification_ids = user_doc.get("inbox", [])
-        return [self.notifications_db.find_one({"_id": n})for n in notification_ids]
+        return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
         return self.notifications_db.find({"receiver": ObjectId(user_id)})
@@ -339,11 +337,8 @@ class DatabaseManager:
 
     def remove_notification_from_inbox(self, notification: Notification):
         result = self.users_db.update_many(
-            {"inbox": notification.id},  
-            {"$pull": {"inbox": notification.id}}
+            {"inbox": notification.id}, {"$pull": {"inbox": notification.id}}
         )
-        print(notification.id)
-        print(result.acknowledged)
         return result
 
     def delete_data(self, uuid: ObjectId, *, collection: str = None):

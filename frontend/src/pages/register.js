@@ -5,7 +5,7 @@ import "../styles/register.css";
 function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [adminEmail, setAdminEmail] = useState('')
+  // const [adminEmail, setAdminEmail] = useState('')
   const navigate = useNavigate() 
   
   const handleRegister = async (e) => {
@@ -17,7 +17,8 @@ function Register() {
         body: JSON.stringify({ 
           "email": email, 
           "password": password,
-          "admin_email": adminEmail }),
+          // "admin_email": adminEmail 
+        }),
         credentials: "include", 
       });
       const data = await res.json();
@@ -63,13 +64,13 @@ function Register() {
           onChange={(e) => setPassword(e.target.value)} 
           />
 
-          <label>Admin ID *</label>
+          {/* <label>Admin ID *</label>
           <input
-          type="text"
+          type="text"      Not needed as it is automatically sent to all admin
           onChange={(e) => setAdminEmail(e.target.value)} 
-          />
+          /> */}
 
-          <button type="submit" onClick={handleRegister}>Login</button>
+          <button type="submit" onClick={handleRegister}>Sign Up</button>
         </form>
       </div>
     </div>
