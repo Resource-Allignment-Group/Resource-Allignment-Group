@@ -1,50 +1,47 @@
 import "../styles/default.css";
-import "../styles/notificationPage.css"
 import { useState, useEffect } from "react";
-import NotificationItem from "../components/notification";
+
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import NotificationCard from "../components/notificationCard";
 
-function Notifications({num_of_notifications, setNumNotifications}) {
+function Notifications({ num_of_notifications, setNumNotifications }) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
-	const [notifications, setNotifications] = useState([])
+	const [notifications, setNotifications] = useState([]);
 
 	useEffect(() => {
 		const fillNotification = async () => {
 			try {
 				const res = await fetch("http://localhost:5000/get_notifications", {
-					credentials: "include"
-				})
-				const data = await res.json()
-				setNotifications(data.messages || [])
+					credentials: "include",
+				});
+				const data = await res.json();
+				setNotifications(data.messages || []);
+			} catch (error) {
+				console.log(error);
 			}
-			catch (error) {
-				console.log(error)
-			}
-		}
-		fillNotification()
-		}, [])
-	
+		};
+		fillNotification();
+	}, []);
 
 	const handleNotification = async (notification, result) => {
-		try{
-			const res= await fetch("http://localhost:5000/admin_account_decision", {
+		try {
+			const res = await fetch("http://localhost:5000/admin_account_decision", {
 				method: "POST",
 				credentials: "include",
-				headers: {"Content-Type": "application/json"},
-				body:JSON.stringify({"result": result, "notification": notification})
-			})
-			const data = await res.json()
-			if (result){
-				setNumNotifications(num => num -1) //this doesnt work but I am working on it
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ result: result, notification: notification }),
+			});
+			const data = await res.json();
+			if (result) {
+				setNumNotifications((num) => num - 1); //this doesnt work but I am working on it
 			}
 			//change notification to an inform class
+		} catch (error) {
+			console.log(error);
+			alert("Something went wrong");
 		}
-		catch (error){
-			console.log(error)
-			alert("Something went wrong")
-		}
-	}
+	};
 
 	return (
 		<div className="home-container">
@@ -66,10 +63,10 @@ function Notifications({num_of_notifications, setNumNotifications}) {
 					<p>View all incoming notifications</p>
 				</div>
 
-				<div className="notifications-list">
+				<div className="content">
 					{notifications.length > 0 ? (
 						notifications.map((n, i) => (
-							<NotificationItem
+							<NotificationCard
 								key={i}
 								notification={n}
 								onApprove={() => handleNotification(n, true)}

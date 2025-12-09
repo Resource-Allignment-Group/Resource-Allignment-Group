@@ -1,0 +1,69 @@
+/* Styles specific to UserManagementCard component */
+
+.user-management-card {
+	background-color: white;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+/* Placeholder for the user's profile icon */
+.user-management-card .user-profile-circle {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	background-color: #d0d0d0;
+}
+
+.user-management-card .user-contact-info {
+	font-size: 14px;
+	color: #666;
+	margin: 0;
+}
+
+.user-management-card .user-role-section {
+	display: flex;
+	align-items: center;
+}
+
+/* The main dropdown component responsible for 
+updating the user's permission/role status*/
+.user-management-card .role-dropdown {
+	padding: 10px 20px;
+	background-color: #082e58;
+	color: white;
+	border: none;
+	border-radius: 20px;
+	font-size: 14px;
+	cursor: pointer;
+	min-width: 150px;
+}
+
+.user-management-card .card-footer {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
+}
+
+.user-management-card .action-buttons {
+	display: flex;
+	gap: 10px;
+}
+
+.user-management-card .btn-danger {
+	padding: 10px 20px;
+	background-color: white;
+	color: #d32f2f;
+	border: 1px solid #d32f2f;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.user-management-card .btn-danger:hover {
+	background-color: #d32f2f;
+	color: white;
+}

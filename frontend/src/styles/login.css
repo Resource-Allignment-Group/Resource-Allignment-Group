@@ -1,67 +1,69 @@
+/* Styles specific to the Login page */
+
 .container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
+	display: flex;
+	height: 100vh;
+	width: 100%;
 }
 
 .image-side {
-  flex: 1;
-  min-width: 0;
-  display: flex;
+	flex: 1;
+	min-width: 0;
+	display: flex;
 }
 
 .background-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 
 .login-side {
-  flex-basis: 35%;
-  background-color: #042B59;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
+	flex-basis: 35%;
+	background-color: #042b59;
+	color: white;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 40px;
 }
 
 .title {
-  margin-bottom: 20px;
+	margin-bottom: 20px;
 }
 
 .form {
-  display: flex;
-  flex-direction: column;
-  width: 80%;
+	display: flex;
+	flex-direction: column;
+	width: 80%;
 }
 
 .form label {
-  margin-bottom: 5px;
+	margin-bottom: 5px;
 }
 
 .form input {
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-  border: none;
+	padding: 10px;
+	margin-bottom: 15px;
+	border-radius: 5px;
+	border: none;
 }
 
 .form button {
-  padding: 12px;
-  background-color: #A0C5FF;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
+	padding: 12px;
+	background-color: #a0c5ff;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 .forgot-password {
-  margin-top: 10px;
-  text-align: left;
-  text-decoration: underline;
-  color: #cfe2ff;
-  font-size: 0.85rem;
-  cursor: pointer;
+	margin-top: 10px;
+	text-align: left;
+	text-decoration: underline;
+	color: #cfe2ff;
+	font-size: 0.85rem;
+	cursor: pointer;
 }

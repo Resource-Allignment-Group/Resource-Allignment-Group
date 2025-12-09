@@ -1,49 +1,55 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { MdDensityMedium } from "react-icons/md";
 
-function Header({ sidebarOpen, onMenuToggle, num_of_notifications, setNotificationsNum, activeTab = null }) {
+function Header({
+	sidebarOpen,
+	onMenuToggle,
+	num_of_notifications,
+	setNotificationsNum,
+	activeTab = null,
+}) {
 	const navigate = useNavigate();
 	useEffect(() => {
+		const fetchUserInfo = async () => {
+			try {
+				const res = await fetch("http://localhost:5000/get_user_info", {
+					credentials: "include",
+				});
+				const data = await res.json();
+				setNotificationsNum(data.num_notifications);
+			} catch (error) {
+				console.error("Fetch error:", error);
+				alert("Something went wrong");
+			}
+		};
 
-    const fetchUserInfo = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/get_user_info", {
-			credentials: "include",
-		});
-        const data = await res.json();
-		setNotificationsNum(data.num_notifications)
-      } catch (error) {
-        console.error("Fetch error:", error);
-        alert("Something went wrong");
-      }
-    };
+		fetchUserInfo();
+	}, []);
 
-    fetchUserInfo();
-  	}, []);
 	return (
 		<header className="header">
 			{/* The top part of the header  */}
 			<div className="header-top">
 				{/* Only display menu icon if the sidebar is closed  */}
-				{/* Replace with menu icon later  */}
 				{!sidebarOpen && (
 					<button className="menu-toggle" onClick={onMenuToggle}>
-						menu
+						<MdDensityMedium />
 					</button>
 				)}
 				<h1>MAFES Equipment Management System</h1>
 
 				{/* Notification and profile items */}
-				{/* Replace with icons later  */}
 				<div className="header-right">
 					<div
 						className="notification-icon"
 						onClick={() => navigate("/notifications")}
 					>
 						{num_of_notifications > 0 && (
-        					<span className="notification-bubble">{num_of_notifications}</span>
-      					)}
-
+							<span className="notification-bubble">
+								{num_of_notifications}
+							</span>
+						)}
 						<p>&#x1F514;</p>
 					</div>
 					<div className="profile-icon" onClick={() => navigate("/profile")}>

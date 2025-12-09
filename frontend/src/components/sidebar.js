@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MdArrowBack } from "react-icons/md";
 
 // This component is used across all pages
 
@@ -24,14 +25,25 @@ function Sidebar({ isOpen, onClose }) {
 
 	return (
 		<div className="sidebar">
-			{/* Replace with arrow icon later  */}
-			<button className="back-button" onClick={onClose}>
-				arrow
-			</button>
+			{/* Make sure core components don't scroll with sidebar */}
+			<div className="sidebar-fixed">
+				<div className="sidebar-header">
+					{/* Back Arrow */}
+					<button className="back-button" onClick={onClose}>
+						<MdArrowBack />
+					</button>
 
-			{/* Search bar for equipment lookup */}
-			<div className="search-box">
-				<input type="text" placeholder="Search" />
+					{/* Top submit button */}
+					<button className="sidebar-submit">Submit</button>
+				</div>
+
+				{/* Divider line */}
+				<hr className="sidebar-divider" />
+
+				{/* Search bar for equipment lookup */}
+				<div className="search-box">
+					<input type="text" placeholder="Search" />
+				</div>
 			</div>
 
 			{/* All of the farm buttons, as a list  */}

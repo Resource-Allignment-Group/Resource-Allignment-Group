@@ -1,4 +1,5 @@
 import "../styles/default.css";
+import "../styles/profile.css";
 import { useState } from "react";
 
 // Import componets that will make up the profile page
@@ -26,6 +27,81 @@ function Profile({num_of_notifications, setNumNotifications}) {
 				<div className="hero-section">
 					<h2>Account Settings</h2>
 					<p>Manage your personal information</p>
+				</div>
+
+				{/* Account settings content */}
+				<div className="content">
+					<div className="settings-card">
+						{/* Left side - Profile section */}
+						<div className="profile-section">
+							<div className="profile-picture-large"></div>
+							<button className="change-picture-btn">Change Picture</button>
+
+							<div className="profile-info">
+								<h3>John Smith</h3>
+								<p>john.smith@gmail.com</p>
+							</div>
+
+							<button className="sign-out-btn">Sign Out</button>
+						</div>
+
+						{/* Right side - Form section */}
+						<div className="form-section">
+							<h3>Personal Details</h3>
+
+							<div className="form-row">
+								<div className="form-field">
+									<label>
+										First Name <span className="required">*</span>
+									</label>
+									<input type="text" placeholder="" />
+								</div>
+
+								<div className="form-field">
+									<label>
+										Last Name <span className="required">*</span>
+									</label>
+									<input type="text" placeholder="" />
+								</div>
+							</div>
+
+							<div className="form-row">
+								<div className="form-field">
+									<label>
+										Email Address <span className="required">*</span>
+									</label>
+									<input type="email" placeholder="" />
+								</div>
+
+								<div className="form-field">
+									<label>Phone Number</label>
+									<input type="tel" placeholder="" />
+								</div>
+							</div>
+
+							<div className="form-row">
+								<div className="form-field">
+									<label>
+										Position within MAFES <span className="required">*</span>
+									</label>
+									<input type="text" placeholder="" />
+								</div>
+
+								<div className="form-field">
+									<label>
+										MAFES Department <span className="required">*</span>
+									</label>
+									<input type="text" placeholder="" />
+								</div>
+							</div>
+
+							{/* Form buttons */}
+							<div className="form-buttons">
+								<button className="btn-save">Save Changes</button>
+								<button className="btn-cancel">Cancel</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -1,0 +1,77 @@
+/* Styles specific to MyRequestsCard component */
+
+.my-requests-card {
+	background-color: white;
+	border-radius: 8px;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+.my-requests-card .status-row {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+/* The badges for Approved, Pending, and Denied */
+.my-requests-card .status-badge {
+	padding: 8px 18px;
+	border-radius: 20px;
+	font-size: 14px;
+	font-weight: 500;
+	min-width: 110px;
+	text-align: center;
+}
+
+/* Classes dependent on the users equipment 
+request notification for styling */
+.my-requests-card .status-approved {
+	background-color: #c8e6c9;
+	color: #2e7d32;
+}
+
+.my-requests-card .status-pending {
+	background-color: #bbdefb;
+	color: #1565c0;
+}
+
+.my-requests-card .status-denied {
+	background-color: #ffcdd2;
+	color: #c62828;
+}
+
+.my-requests-card .card-details {
+	padding: 25px;
+	background-color: #f8f8f8;
+	border-top: 1px solid #e0e0e0;
+}
+
+.my-requests-card .attachment-buttons {
+	display: flex;
+	gap: 15px;
+}
+
+/* Placeholder for file upload link */
+.my-requests-card .link-button {
+	background: none;
+	border: none;
+	color: #1976d2;
+	cursor: pointer;
+	font-size: 14px;
+	text-decoration: underline;
+}
+
+.my-requests-card .btn-primary {
+	padding: 10px 20px;
+	background-color: #082e58;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+	width: fit-content;
+}
+
+.my-requests-card .btn-primary:hover {
+	background-color: #051d36;
+}

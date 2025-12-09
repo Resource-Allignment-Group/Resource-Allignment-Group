@@ -42,14 +42,64 @@ body,
 	scrollbar-width: none;
 }
 
-/* Placeholder class for the sidebar back/close button */
+/* Back arrow to close sidebar */
 .back-button {
 	background: none;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
+
+.back-button svg {
+	font-size: 30px;
+	color: #000000;
+}
+
+.sidebar-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+/* Submit button above search bar */
+.sidebar-submit {
+	width: fit-content;
+	background-color: #4a4a4a;
+	color: white;
+	padding: 10px;
+	font-size: 15px;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-weight: 300;
+}
+
+.sidebar-fixed {
+	position: sticky;
+	top: 0;
+	background: #e3e3e3;
+	z-index: 10;
+	padding-bottom: 1px;
+}
+
+.sidebar-submit:hover {
+	background-color: #3c3c3c;
+}
+
+/* Divider line */
+.sidebar-divider {
+	border: none;
+	height: 1px;
+	background-color: #cfcfcf;
+	margin: 15px 0 15px 0;
 }
 
 .search-box {
 	position: relative;
-	margin-bottom: 30px;
+	margin-bottom: 15px;
 }
 
 .search-box input {
@@ -90,7 +140,7 @@ body,
 }
 
 .farm-item.active {
-	background-color: #003d82;
+	background-color: #082e58;
 	color: white;
 	font-weight: 600;
 }
@@ -128,7 +178,6 @@ body,
 /* Header */
 .header {
 	background-color: white;
-	border-bottom: 1px solid #e0e0e0;
 }
 
 /* Defines a section for the sidebar toggle, title,
@@ -146,8 +195,21 @@ notification and profile buttons */
 /* Placeholder class for the sidebar open button */
 .menu-toggle {
 	position: absolute;
+	background: none;
+	margin: 35px 0px 15px 0px;
+}
+.menu-toggle {
+	position: absolute;
 	left: 20px;
 	background: none;
+	border: none;
+	outline: none;
+	cursor: pointer;
+}
+
+.menu-toggle svg {
+	font-size: 30px;
+	color: #000000;
 }
 
 .header-top h1 {
@@ -169,28 +231,27 @@ and profile buttons are in */
 /* Placeholder class for these icons */
 
 .notification-bubble {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: red;
-  color: white;
-  border-radius: 50%;
-  padding: 2px 6px;
-  font-size: 12px;
-  font-weight: bold;
+	position: absolute;
+	top: -1px;
+	right: -1px;
+	background: red;
+	color: white;
+	border-radius: 50%;
+	padding: 2px 6px;
+	font-size: 12px;
+	font-weight: bold;
 }
 
 .notification-icon,
 .profile-icon {
-  width: 40px;
-  height: 40px;
-  background-color: #aaa;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	position: relative;
 }
 
 /* Navigation items in the header */
@@ -238,4 +299,141 @@ and profile buttons are in */
 .hero-section p {
 	font-size: 16px;
 	opacity: 0.9;
+}
+
+/* THE FOLLOWING IS CONTENT SHARED AMONG SCROLLABLE CARD COMPONENTS */
+
+.content {
+	flex: 1;
+	padding: 10px 25px;
+	background-color: #082e58;
+	overflow-y: auto;
+}
+
+.content::-webkit-scrollbar {
+	display: none;
+}
+
+.content {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.card-header {
+	display: flex;
+	align-items: center;
+	padding: 20px;
+	gap: 20px;
+}
+
+.equipment-image {
+	width: 120px;
+	height: 120px;
+	flex-shrink: 0;
+}
+
+/* Placeholder class for the equipment display image */
+/* WE CAN PROBABLY SET THE DEFAULT HERE */
+.image-placeholder {
+	width: 100%;
+	height: 100%;
+	background-color: #d0d0d0;
+	border-radius: 4px;
+}
+
+.equipment-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.equipment-info h3 {
+	font-size: 18px;
+	margin: 0;
+}
+
+.checkout-info {
+	font-size: 14px;
+	color: #666;
+	margin: 0;
+}
+
+/* Dropdown icon on all equipment/user cards*/
+.expand-button {
+	background: none;
+	border: none;
+	outline: none;
+	cursor: pointer;
+}
+
+.expand-button svg {
+	font-size: 20px;
+	color: #000000;
+	transition: transform 0.1s ease;
+	transform-origin: center;
+}
+
+.expand-button.rotated svg {
+	transform: rotate(90deg);
+}
+
+/* Expanded equipment card details */
+.card-details {
+	padding: 25px;
+	background-color: #f8f8f8;
+	border-top: 1px solid #e0e0e0;
+}
+
+.details-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 25px;
+	margin-bottom: 20px;
+}
+
+.details-column h4 {
+	font-size: 16px;
+	margin-bottom: 15px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid #666;
+}
+
+.detail-row {
+	margin-bottom: 12px;
+}
+
+.detail-row .label {
+	display: block;
+	font-size: 13px;
+	color: #666;
+	margin-bottom: 3px;
+}
+
+.detail-row .value {
+	display: block;
+	font-size: 14px;
+	color: #000;
+}
+
+.description-textarea {
+	width: 100%;
+	min-height: 120px;
+	padding: 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background-color: white;
+	font-size: 14px;
+	line-height: 1.6;
+	resize: vertical;
+	font-family: Arial, sans-serif;
+}
+
+/* Card footer to hold actionable buttons/items */
+.card-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
 }
