@@ -232,8 +232,8 @@ and profile buttons are in */
 
 .notification-bubble {
 	position: absolute;
-	top: -5px;
-	right: -5px;
+	top: -1px;
+	right: -1px;
 	background: red;
 	color: white;
 	border-radius: 50%;
@@ -251,6 +251,7 @@ and profile buttons are in */
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
+	position: relative;
 }
 
 /* Navigation items in the header */

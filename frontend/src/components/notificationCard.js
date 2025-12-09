@@ -1,65 +1,125 @@
-// This component is used on the Notifications page
-// Shows different types of notifications with actions
-
 import "../styles/notificationCard.css";
+import { useState } from "react";
 
-function NotificationCard({ notification }) {
-	// Determine icon based on notification type
-	function getNotificationIcon(type) {
-		if (type === "Request Approved") return "✓";
-		if (type === "Equipment Damage Reported") return "⚠";
-		if (type === "New Equipment Request") return "ℹ";
-		if (type === "New Account Request") return "👤";
-		return "";
-	}
+function NewAccountNotification({
+	notification,
+	onApprove,
+	onReject,
+	onDismiss,
+}) {
+	const [status, setStatus] = useState(null);
 
-	// Determine icon color based on notification type
-	function getIconClass(type) {
-		if (type === "Request Approved") return "notification-icon-success";
-		if (type === "Equipment Damage Reported") return "notification-icon-danger";
-		if (type === "New Equipment Request") return "notification-icon-info";
-		if (type === "New Account Request") return "notification-icon-account";
-		return "";
-	}
+	const handleApproveClick = () => {
+		setStatus("approved");
+		onApprove(notification);
+	};
+
+	const handleRejectClick = () => {
+		setStatus("rejected");
+		onReject(notification);
+	};
 
 	return (
 		<div className="notification-card">
 			<div className="notification-content">
 				{/* Notification icon */}
-				<div
-					className={`notification-icon-circle ${getIconClass(
-						notification.type
-					)}`}
-				>
-					<span>{getNotificationIcon(notification.type)}</span>
+				<div className="notification-icon-circle notification-icon-account">
+					<span>👤</span>
 				</div>
 
 				{/* Notification details */}
 				<div className="notification-info">
-					<h3>{notification.type}</h3>
-					<p>{notification.message}</p>
+					<h3>New Account Request</h3>
+					<p>
+						<strong>{notification.sender_username}</strong> has requested a new
+						account.
+					</p>
 
-					{/* Action buttons if applicable */}
-					{notification.actions && (
+					{/* Action buttons */}
+					{status === null && (
 						<div className="notification-actions">
-							{notification.actions.includes("Approve") && (
-								<button className="btn-success">Approve</button>
-							)}
-							{notification.actions.includes("Deny") && (
-								<button className="btn-danger">Deny</button>
-							)}
-							{notification.actions.includes("View Details") && (
-								<button className="btn-outline">View Details</button>
-							)}
+							<button className="btn-success" onClick={handleApproveClick}>
+								Approve
+							</button>
+							<button className="btn-danger" onClick={handleRejectClick}>
+								Reject
+							</button>
+						</div>
+					)}
+
+					{status === "approved" && (
+						<div className="notification-actions">
+							<p className="notification-status approved">✓ Approved</p>
+						</div>
+					)}
+
+					{status === "rejected" && (
+						<div className="notification-actions">
+							<p className="notification-status rejected">✕ Rejected</p>
 						</div>
 					)}
 				</div>
 
+				<span className="notification-date">
+					{new Date(notification.date).toLocaleString()}
+				</span>
+
 				{/* Dismiss button */}
-				<button className="dismiss-button">✕</button>
+				{onDismiss && (
+					<button
+						className="dismiss-button"
+						onClick={() => onDismiss(notification)}
+					>
+						✕
+					</button>
+				)}
 			</div>
 		</div>
 	);
 }
 
-export default NotificationCard;
+export default function NotificationCard({
+	notification,
+	onApprove,
+	onReject,
+	onDismiss,
+}) {
+	switch (notification.type) {
+		case "a": // New account notification
+			return (
+				<NewAccountNotification
+					notification={notification}
+					onApprove={onApprove}
+					onReject={onReject}
+					onDismiss={onDismiss}
+				/>
+			);
+		default:
+			return (
+				<div className="notification-card">
+					<div className="notification-content">
+						<div className="notification-icon-circle notification-icon-info">
+							<span>ℹ</span>
+						</div>
+						<div className="notification-info">
+							<h3>Notification</h3>
+							<p>{notification.body}</p>
+						</div>
+
+						<span className="notification-date">
+							{new Date(notification.date).toLocaleString()}
+						</span>
+
+						{onDismiss && (
+							<button
+								className="dismiss-button"
+								onClick={() => onDismiss(notification)}
+							>
+								✕
+							</button>
+						)}
+					</div>
+				</div>
+			);
+	}
+}

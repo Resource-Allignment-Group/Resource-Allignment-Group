@@ -1,7 +1,6 @@
 import "../styles/default.css";
-import "../styles/notificationPage.css";
 import { useState, useEffect } from "react";
-import NotificationItem from "../components/notification";
+
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import NotificationCard from "../components/notificationCard";
@@ -64,10 +63,10 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 					<p>View all incoming notifications</p>
 				</div>
 
-				<div className="notifications-list">
+				<div className="content">
 					{notifications.length > 0 ? (
 						notifications.map((n, i) => (
-							<NotificationItem
+							<NotificationCard
 								key={i}
 								notification={n}
 								onApprove={() => handleNotification(n, true)}
