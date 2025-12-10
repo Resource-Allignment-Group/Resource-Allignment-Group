@@ -156,9 +156,14 @@ class DatabaseManager:
                 "name": equipment.name,
                 "class": equipment._class,
                 "year": equipment.year,
+                "farm": equipment.farm,
+                "model": equipment.model,
+                "make": equipment.make,
+                "use": equipment.model,
                 "images": [],
                 "reports": [],
                 "checked_out": False,
+                "description": equipment.description
             }
         )
 
@@ -457,3 +462,6 @@ class DatabaseManager:
                 "result": False,
                 "message": "Notidication has not been added to the system",
             }
+
+    def get_all_equipment(self):
+        return self.equipment_db.find({})

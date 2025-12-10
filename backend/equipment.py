@@ -9,17 +9,28 @@ class Equipment:
         name: str,
         _class: str,
         year: int,
+        farm: str,
+        model: str = None,
+        make: str = None,
+        use: str = None,
         images: list[UUID] = None,
         reports: list[UUID] = None,
         checked_out: bool = False,
+        description: str = None
     ):
         self.id = uuid
         self._class = _class
         self.name = name
         self.year = year
+        self.farm = farm
+        self.make = make
+        self.model = model
+        self.use = use
         self.images = images
         self.reports = reports
         self.checked_out = checked_out
+        self.description = description
+        
 
     def get_images(self, db):
         img_bytes = []

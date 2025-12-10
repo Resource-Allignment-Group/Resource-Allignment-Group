@@ -125,6 +125,31 @@ def account_decision():
 
     return jsonify({"result": 0})
 
+@app.route("/get_equipment", methods=["GET"])
+def get_equipment():
+    equipment_cur = db.get_all_equipment()
+    equip_list = []
+    for equip in equipment_cur:
+        equip_list.append({
+        "id": str(equip["_id"]) ,
+        "name": equip["name"],
+        # "checkedOutBy": "Holder", #Change Later
+        "class": equip["class"],
+        "year": equip["year"],
+        "farm": equip["farm"],
+        "model": equip["model"],
+        "make": equip["make"],
+        "use": equip["use"],
+        "images": equip["images"],
+        "reports": equip["reports"],
+        "checked_out": equip["checked_out"],
+        "description": equip["description"],
+        "attachments": 1, #Change later
+        "replacementCost": 100000 #change lateer
+        })
+    return jsonify(equip_list)
+        
+
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":

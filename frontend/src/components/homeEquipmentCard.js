@@ -6,10 +6,10 @@ import { MdArrowForwardIos } from "react-icons/md";
 function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
-	function getStatusClass(status) {
-		if (status === "Available") return "status-available";
-		if (status === "Checked Out") return "status-checked-out";
-		if (status === "Damaged") return "status-damaged";
+	function getStatusClass(checked_out) {
+		if (checked_out === "Available") return "status-available";
+		if (checked_out === "Checked Out") return "status-checked-out";
+		if (checked_out === "Damaged") return "status-damaged";
 		return "";
 	}
 
@@ -41,7 +41,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
           			It will be stylized depending on the status (checked out, damaged, etc) */}
 					<div className="status-row">
 						<span
-							className={`status-badge ${getStatusClass(equipment.status)}`}
+							className={`status-badge ${getStatusClass(equipment.checked_out)}`}
 						>
 							{equipment.status}
 						</span>
@@ -74,7 +74,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 							</div>
 							<div className="detail-row">
 								<span className="label">Category</span>
-								<span className="value">{equipment.category}</span>
+								<span className="value">{equipment.class}</span>
 							</div>
 							<div className="detail-row">
 								<span className="label">Make</span>
@@ -90,11 +90,11 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 							<h4>Operations</h4>
 							<div className="detail-row">
 								<span className="label">Assigned Farm</span>
-								<span className="value">{equipment.assignedFarm}</span>
+								<span className="value">{equipment.farm}</span>
 							</div>
 							<div className="detail-row">
 								<span className="label">Use Frequency</span>
-								<span className="value">{equipment.useFrequency}</span>
+								<span className="value">{equipment.use}</span>
 							</div>
 							<div className="detail-row">
 								<span className="label">Replacement Cost</span>
