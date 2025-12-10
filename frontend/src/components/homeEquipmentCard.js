@@ -43,7 +43,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 						<span
 							className={`status-badge ${getStatusClass(equipment.checked_out)}`}
 						>
-							{equipment.status}
+							{equipment.checked_out}
 						</span>
 						<label className="checkbox-label">
 							Mark as Unavailable

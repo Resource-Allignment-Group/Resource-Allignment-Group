@@ -142,9 +142,9 @@ def get_equipment():
         "use": equip["use"],
         "images": equip["images"],
         "reports": equip["reports"],
-        "checked_out": equip["checked_out"],
+        "checked_out": "Available",
         "description": equip["description"],
-        "attachments": 1, #Change later
+        "attachments": 0, #Change later
         "replacementCost": 100000 #change lateer
         })
     return jsonify(equip_list)
