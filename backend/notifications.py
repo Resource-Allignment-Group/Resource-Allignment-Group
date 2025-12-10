@@ -6,7 +6,7 @@ import os
 from user import User
 from uuid import UUID
 from datetime import datetime
-
+from bson.objectid import ObjectId
 
 class Notification:
     def __init__(
@@ -62,5 +62,17 @@ class Notification_Manager:
                 date=datetime.now(),
                 body=message,
                 _type="a",
+            )
+            self.db.send_notification(notification=new_note)
+
+    def send_equipment_request(self, id: ObjectId, sender: User, equip_name: str):
+        message = f"{sender.username} wants to sign out {equip_name}"
+        for admin in self.db.administrators():
+            new_note = Notification(
+                sender=sender,
+                receiver=admin,
+                date=datetime.now(),
+                body=message,
+                _type="r",
             )
             self.db.send_notification(notification=new_note)

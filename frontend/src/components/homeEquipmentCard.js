@@ -13,6 +13,25 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 		return "";
 	}
 
+	const handleCheckOut = async () => {
+		try {
+			const res = await fetch("http://localhost:5000/request_equipment", {
+				credentials: "include",
+				body: {
+					"equip_id": equipment.id
+				}
+			});
+			const data = await res.json();
+			if (data.success){
+				alert("Your Request Has Been Sent")
+			}
+			else{
+				alert("Something Went Wrong With Your Request")
+			}
+		} catch (error) {
+			console.log(error);
+		}		
+	}
 	return (
 		<div className="equipment-card">
 			<div className="card-header">
@@ -124,7 +143,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 							<button className="link-button">Upload</button>
 						</div>
 						<div className="action-buttons">
-							<button className="btn-primary">Request Checkout</button>
+							<button className="btn-primary" onClick={handleCheckOut}>Request Checkout</button>
 							<button className="btn-primary">Edit Equipment</button>
 							<button className="btn-danger">Delete</button>
 						</div>

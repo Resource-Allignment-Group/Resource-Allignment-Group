@@ -152,8 +152,13 @@ def get_equipment():
         "replacementCost": 100000 #change lateer
         })
     return jsonify(equip_list)
-        
-
+    
+@app.route("/request_equipment")
+def request_equipment():
+    data = request.json
+    equip_id = data["equip_id"]
+    result = db.set_equipment_checked_out(id=ObjectId(equip_id), checked_out="Requested") #Should move all of these to chars to save database space
+    note_result = nm.sen
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
