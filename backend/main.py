@@ -57,6 +57,8 @@ def check_session():
 @app.route("/logout", methods=["POST"])
 def logout():
     session.pop("user", None)
+    session.pop("role", None)
+    session.pop("id", None)
     return jsonify({"message": "logged out"})
 
 
@@ -130,10 +132,12 @@ def get_equipment():
     equipment_cur = db.get_all_equipment()
     equip_list = []
     for equip in equipment_cur:
+
+        
         equip_list.append({
         "id": str(equip["_id"]) ,
         "name": equip["name"],
-        # "checkedOutBy": "Holder", #Change Later
+        "checkedOutBy": "test@gmail.com" if equip["name"] == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)" else "None", #Change Later
         "class": equip["class"],
         "year": equip["year"],
         "farm": equip["farm"],
@@ -142,7 +146,7 @@ def get_equipment():
         "use": equip["use"],
         "images": equip["images"],
         "reports": equip["reports"],
-        "checked_out": "Available",
+        "checked_out": "Checked Out" if equip["name"] == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)" else "Available",
         "description": equip["description"],
         "attachments": 0, #Change later
         "replacementCost": 100000 #change lateer

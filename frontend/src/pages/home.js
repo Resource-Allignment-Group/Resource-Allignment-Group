@@ -22,20 +22,10 @@ function Home({num_of_notifications, setNumNotifications}) {
 		} catch (error) {
 			console.log(error);
 		}		
-		
-
-
-
-
-
-
-
-
-
 	}
 	useEffect(() => {
-        GetEquipment().then((data) =>{console.log("Equipment returned from backend:", data);
-			 setEquipment(data)}); // <-- sets state
+        GetEquipment().then((data) =>{
+			 setEquipment(data)});
     }, []);
 
 	return (

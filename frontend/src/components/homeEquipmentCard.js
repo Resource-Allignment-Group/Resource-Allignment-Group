@@ -28,13 +28,11 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 					{/* Show who has the equipment checked out
           			If it's not checked out, keep blank line "Empty Text" (not visible) */}
 					<p className="checkout-info">
-						{equipment.checkedOutBy ? (
-							<>
-								<strong>Checked Out By:</strong> {equipment.checkedOutBy}
-							</>
-						) : (
-							<span style={{ visibility: "hidden" }}>Empty Text</span>
-						)}
+					{equipment.checked_out === "Checked Out" && equipment.checkedOutBy && (
+						<>
+						<strong>Checked Out By:</strong> {equipment.checkedOutBy}
+						</>
+					)}
 					</p>
 
 					{/* Show the status badge for the current equipment item

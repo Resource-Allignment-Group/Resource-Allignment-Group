@@ -1,6 +1,8 @@
 import "../styles/default.css";
 import "../styles/profile.css";
 import { useState } from "react";
+import { useAuth } from "../Authentication"
+import { useNavigate } from 'react-router-dom';
 
 // Import componets that will make up the profile page
 import Header from "../components/header";
@@ -8,6 +10,19 @@ import Sidebar from "../components/sidebar";
 
 function Profile({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { logout } = useAuth()
+	const navigate = useNavigate()
+	
+	const handleLogout = async () => {
+		const success = await logout();
+    	if(success){
+      		navigate('/login'); 
+    	} 
+    
+    	else {
+      		alert('Can Not Sign Out'); 
+    	}
+	}
 
 	return (
 		<div className="home-container">
@@ -42,7 +57,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 								<p>john.smith@gmail.com</p>
 							</div>
 
-							<button className="sign-out-btn">Sign Out</button>
+							<button className="sign-out-btn" onClick={handleLogout}>Sign Out</button>
 						</div>
 
 						{/* Right side - Form section */}
