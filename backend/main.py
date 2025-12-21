@@ -93,6 +93,7 @@ def get_notifications():
     user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
     msgs = []
     for note in user_notifications:
+        print("note", note)
         msgs.append(
             {
                 "sender_username": db.get_username_by_id(user_id=str(note.sender)),
@@ -102,6 +103,7 @@ def get_notifications():
                 "body": note.body,
                 "type": note.type,
                 "_id": str(note.id),
+                "equipment_id": str(note.equipment_id),
             }
         )
     return jsonify({"messages": msgs})
@@ -119,7 +121,7 @@ def account_decision():
         body=note["body"],
         _type=note["type"],
     )
-
+    print(note)
     match new_note.type:
         case "a":
             note_res = db.remove_notification_from_inbox(notification=new_note)
@@ -133,7 +135,20 @@ def account_decision():
                 )  # r stand for 'rejected'
             return jsonify({"result": 0})
         case "r":
-            note
+            new_note.equipment_id = ObjectId(note["equipment_id"])
+            if data["result"]:
+                equipment = db.get_equipment_by_id(id=new_note.equipment_id)
+
+                result = db.add_user_equipment(
+                    user_id=ObjectId(new_note.sender),
+                    equipment_id=ObjectId(equipment.id),
+                )
+                print(result)
+                return jsonify({"result": True})
+                # send notification to user that their equipment is theirs
+            else:
+                db.set_equipment_checked_out(id=new_note.id, checked_out=False)
+                return jsonify({"result": True})
 
 
 @app.route("/get_equipment", methods=["GET"])
@@ -180,6 +195,7 @@ def request_equipment():
         id=ObjectId(),
         sender=db.get_user_by_username(username=session["user"]),
         equip_name=data["equip_name"],
+        equipment_id=ObjectId(equip_id),
     )
     if result and note_result:
         return jsonify({"success": True, "message": "this is the success message"})

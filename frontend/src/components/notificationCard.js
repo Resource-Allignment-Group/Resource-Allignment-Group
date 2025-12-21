@@ -10,12 +10,12 @@ function NewRequestNotification({
 	const [status, setStatus] = useState(null)
 
 	const handleApproveClick = () => {
-		setStatus("approved");
+		setStatus("Available");
 		onApprove(notification);
 	};
 
 	const handleRejectClick = () => {
-		setStatus("rejected");
+		setStatus("Checked-Out");
 		onReject(notification);
 	};
 	return (
@@ -33,8 +33,7 @@ function NewRequestNotification({
 				<div className="notification-info">
 					<h3>New Equipment Request</h3>
 					<p>
-						<strong>{notification.sender_username}</strong> has requested a new
-						account.
+						<strong>{notification.body}</strong>
 					</p>
 
 					{/* Action buttons */}
@@ -168,13 +167,14 @@ export default function NotificationCard({
 			);
 		
 		case 'r': // request notification
-			return 
-			<NewRequestNotification
-				notification={notification}
-				onApprove={onApprove}
-				onReject={onReject}
-				onDismiss={onDismiss}
-			/>
+			return (
+				<NewRequestNotification
+					notification={notification}
+					onApprove={onApprove}
+					onReject={onReject}
+					onDismiss={onDismiss}
+				/>
+			)
 		default:
 			return (
 				<div className="notification-card">

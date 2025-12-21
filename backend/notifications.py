@@ -17,6 +17,7 @@ class Notification:
         date: datetime = None,
         body: str = None,
         _type: str = None,
+        equipment_id: ObjectId = None,
     ):
         self.id = id
         self.sender = sender
@@ -24,6 +25,7 @@ class Notification:
         self.date = date
         self.body = body
         self.type = _type
+        self.equipment_id = equipment_id
 
 
 class Notification_Manager:
@@ -63,10 +65,13 @@ class Notification_Manager:
                 date=datetime.now(),
                 body=message,
                 _type="a",
+                equipment_id=None,
             )
             self.db.send_notification(notification=new_note)
 
-    def send_equipment_request(self, id: ObjectId, sender: User, equip_name: str):
+    def send_equipment_request(
+        self, id: ObjectId, sender: User, equip_name: str, equipment_id: ObjectId
+    ):
         message = f"{sender.username} wants to sign out {equip_name}"
         try:
             print("trying")
@@ -78,6 +83,7 @@ class Notification_Manager:
                     date=datetime.now(),
                     body=message,
                     _type="r",
+                    equipment_id=ObjectId(equipment_id),
                 )
                 print(f"sending to {admin}")
                 self.db.send_notification(notification=new_note)

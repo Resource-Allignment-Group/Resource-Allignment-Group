@@ -169,7 +169,7 @@ class DatabaseManager:
 
     def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
-        if equipment["checked_out"]:
+        if equipment["checked_out"] is True:
             return f"Equipment {equipment_id} is already checked out"
 
         change_result = self.users_db.update_one(
@@ -339,6 +339,7 @@ class DatabaseManager:
             date=note["date"],
             body=note["body"],
             _type=note["type"],
+            equipment_id=note["equipment_id"],
         )
 
     def get_username_by_id(self, user_id: str):
@@ -459,6 +460,8 @@ class DatabaseManager:
     def send_notification(self, notification: Notification):
         if notification.id is None:
             notification.id = ObjectId()
+
+        print("note equip id", notification.equipment_id)
         notification_json = {
             "_id": notification.id,
             "sender": notification.sender.id,
@@ -466,6 +469,7 @@ class DatabaseManager:
             "body": notification.body,
             "date": notification.date,
             "type": notification.type,
+            "equipment_id": notification.equipment_id,
         }
         result_user = self.users_db.update_one(
             {"_id": notification.receiver.id}, {"$push": {"inbox": notification.id}}
@@ -482,3 +486,14 @@ class DatabaseManager:
                 "result": False,
                 "message": "Notidication has not been added to the system",
             }
+
+    def get_all_equipment(self):
+        return self.equipment_db.find({})
+
+    def get_equipment_by_id(self, id: ObjectId):
+        print("id", id)
+        equip_info = self.equipment_db.find_one({"_id": id})
+        print("equip_info", equip_info)
+        equip = Equipment()
+        equip.fill_from_json(json_info=equip_info)
+        return equip

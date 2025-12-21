@@ -16,6 +16,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 					credentials: "include",
 				});
 				const data = await res.json();
+				console.log(data)
 				setNotifications(data.messages || []);
 			} catch (error) {
 				console.log(error);
