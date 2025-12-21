@@ -16,10 +16,13 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 	const handleCheckOut = async () => {
 		try {
 			const res = await fetch("http://localhost:5000/request_equipment", {
+				method: "POST",
 				credentials: "include",
-				body: {
-					"equip_id": equipment.id
-				}
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+        			equip_id: equipment.id,
+        			equip_name: equipment.name,
+     			}),
 			});
 			const data = await res.json();
 			if (data.success){

@@ -95,13 +95,13 @@ def get_notifications():
     for note in user_notifications:
         msgs.append(
             {
-                "sender_username": db.get_username_by_id(user_id=str(note["sender"])),
-                "sender": str(note["sender"]),
-                "receiver": str(note["receiver"]),
-                "date": str(note["date"]),
-                "body": note["body"],
-                "type": note["type"],
-                "_id": str(note["_id"]),
+                "sender_username": db.get_username_by_id(user_id=str(note.sender)),
+                "sender": str(note.sender),
+                "receiver": str(note.receiver),
+                "date": str(note.date),
+                "body": note.body,
+                "type": note.type,
+                "_id": str(note.id),
             }
         )
     return jsonify({"messages": msgs})
@@ -119,46 +119,73 @@ def account_decision():
         body=note["body"],
         _type=note["type"],
     )
-    note_res = db.remove_notification_from_inbox(notification=new_note)
-    if data["result"]:
-        user_res = db.set_user_role(id=ObjectId(new_note.sender), role="u")
-    else:
-        pass  # Send notification for deckine
 
-    return jsonify({"result": 0})
+    match new_note.type:
+        case "a":
+            note_res = db.remove_notification_from_inbox(notification=new_note)
+            if data["result"]:
+                user_res = db.set_user_role(
+                    id=ObjectId(new_note.sender), role="u"
+                )  # u for 'user'
+            else:
+                user_res = db.set_user_role(
+                    id=ObjectId(new_note.sender), role="r"
+                )  # r stand for 'rejected'
+            return jsonify({"result": 0})
+        case "r":
+            note
+
 
 @app.route("/get_equipment", methods=["GET"])
 def get_equipment():
     equipment_cur = db.get_all_equipment()
     equip_list = []
     for equip in equipment_cur:
-
-        
-        equip_list.append({
-        "id": str(equip["_id"]) ,
-        "name": equip["name"],
-        "checkedOutBy": "test@gmail.com" if equip["name"] == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)" else "None", #Change Later
-        "class": equip["class"],
-        "year": equip["year"],
-        "farm": equip["farm"],
-        "model": equip["model"],
-        "make": equip["make"],
-        "use": equip["use"],
-        "images": equip["images"],
-        "reports": equip["reports"],
-        "checked_out": "Checked Out" if equip["name"] == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)" else "Available",
-        "description": equip["description"],
-        "attachments": 0, #Change later
-        "replacementCost": 100000 #change lateer
-        })
+        equip_list.append(
+            {
+                "id": str(equip["_id"]),
+                "name": equip["name"],
+                "checkedOutBy": "test@gmail.com"
+                if equip["name"]
+                == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)"
+                else "None",  # Change Later
+                "class": equip["class"],
+                "year": equip["year"],
+                "farm": equip["farm"],
+                "model": equip["model"],
+                "make": equip["make"],
+                "use": equip["use"],
+                "images": equip["images"],
+                "reports": equip["reports"],
+                "checked_out": "Checked Out"
+                if equip["name"]
+                == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)"
+                else "Available",
+                "description": equip["description"],
+                "attachments": 0,  # Change later
+                "replacementCost": 100000,  # change lateer
+            }
+        )
     return jsonify(equip_list)
-    
-@app.route("/request_equipment")
+
+
+@app.route("/request_equipment", methods=["POST"])
 def request_equipment():
     data = request.json
     equip_id = data["equip_id"]
-    result = db.set_equipment_checked_out(id=ObjectId(equip_id), checked_out="Requested") #Should move all of these to chars to save database space
-    note_result = nm.sen
+    result = db.set_equipment_checked_out(
+        id=ObjectId(equip_id), checked_out="Requested"
+    )  # Should move all of these to chars to save database space
+    note_result = nm.send_equipment_request(
+        id=ObjectId(),
+        sender=db.get_user_by_username(username=session["user"]),
+        equip_name=data["equip_name"],
+    )
+    if result and note_result:
+        return jsonify({"success": True, "message": "this is the success message"})
+    else:
+        return jsonify({"success": True, "message": "this is the failure message"})
+
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":

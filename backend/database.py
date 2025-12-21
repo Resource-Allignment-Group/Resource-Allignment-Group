@@ -163,7 +163,7 @@ class DatabaseManager:
                 "images": [],
                 "reports": [],
                 "checked_out": False,
-                "description": equipment.description
+                "description": equipment.description,
             }
         )
 
@@ -324,9 +324,24 @@ class DatabaseManager:
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
-        return self.notifications_db.find({"receiver": ObjectId(user_id)})
+        user = self.users_db.find_one({"_id": ObjectId(user_id)})
+        notes = []
+        for note_id in user["inbox"]:
+            notes.append(self.get_notification_by_id(note_id=note_id))
+        return notes
 
-    def get_username_by_id(self, user_id: ObjectId):
+    def get_notification_by_id(self, note_id):
+        note = self.notifications_db.find_one({"_id": ObjectId(note_id)})
+        return Notification(
+            id=note["_id"],
+            sender=note["sender"],
+            receiver=note["receiver"],
+            date=note["date"],
+            body=note["body"],
+            _type=note["type"],
+        )
+
+    def get_username_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["username"]
 
@@ -342,8 +357,12 @@ class DatabaseManager:
 
     def remove_notification_from_inbox(self, notification: Notification):
         result = self.users_db.update_many(
-            {"inbox": notification.id}, {"$pull": {"inbox": notification.id}}
+            {"inbox": ObjectId(notification.id)},
+            {"$pull": {"inbox": ObjectId(notification.id)}},
         )
+        print(notification.id)
+        print(result.matched_count)  # 5 users had that notification
+        print(result.modified_count)
         return result
 
     def delete_data(self, uuid: ObjectId, *, collection: str = None):
@@ -438,9 +457,10 @@ class DatabaseManager:
             return f"{uuid} could not be found in database"
 
     def send_notification(self, notification: Notification):
-        note_id = ObjectId()
+        if notification.id is None:
+            notification.id = ObjectId()
         notification_json = {
-            "_id": note_id,
+            "_id": notification.id,
             "sender": notification.sender.id,
             "receiver": notification.receiver.id,
             "body": notification.body,
@@ -448,7 +468,7 @@ class DatabaseManager:
             "type": notification.type,
         }
         result_user = self.users_db.update_one(
-            {"_id": notification.receiver.id}, {"$push": {"inbox": note_id}}
+            {"_id": notification.receiver.id}, {"$push": {"inbox": notification.id}}
         )
         result_note = self.notifications_db.insert_one(notification_json)
 
@@ -462,6 +482,3 @@ class DatabaseManager:
                 "result": False,
                 "message": "Notidication has not been added to the system",
             }
-
-    def get_all_equipment(self):
-        return self.equipment_db.find({})

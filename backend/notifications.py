@@ -4,14 +4,14 @@ from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import os
 from user import User
-from uuid import UUID
 from datetime import datetime
 from bson.objectid import ObjectId
+
 
 class Notification:
     def __init__(
         self,
-        id: UUID = None,
+        id: ObjectId = None,
         sender: str = None,
         receiver: str = None,
         date: datetime = None,
@@ -57,6 +57,7 @@ class Notification_Manager:
         for admin in self.db.get_administrators():
             print(admin.username)
             new_note = Notification(
+                id=ObjectId(),
                 sender=new_user,
                 receiver=admin,
                 date=datetime.now(),
@@ -67,12 +68,20 @@ class Notification_Manager:
 
     def send_equipment_request(self, id: ObjectId, sender: User, equip_name: str):
         message = f"{sender.username} wants to sign out {equip_name}"
-        for admin in self.db.administrators():
-            new_note = Notification(
-                sender=sender,
-                receiver=admin,
-                date=datetime.now(),
-                body=message,
-                _type="r",
-            )
-            self.db.send_notification(notification=new_note)
+        try:
+            print("trying")
+            for admin in self.db.get_administrators():
+                new_note = Notification(
+                    id=id,
+                    sender=sender,
+                    receiver=admin,
+                    date=datetime.now(),
+                    body=message,
+                    _type="r",
+                )
+                print(f"sending to {admin}")
+                self.db.send_notification(notification=new_note)
+
+            return 1
+        except:
+            return 0

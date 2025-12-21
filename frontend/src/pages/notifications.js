@@ -30,7 +30,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ result: result, notification: notification }),
+				body: JSON.stringify({ result: result, notification: notification}),
 			});
 			const data = await res.json();
 			if (result) {
