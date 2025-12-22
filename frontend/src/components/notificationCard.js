@@ -155,6 +155,7 @@ export default function NotificationCard({
 	onReject,
 	onDismiss,
 }) {
+	console.log("type", notification.type)
 	switch (notification.type) {
 		case "a": // New account notification
 			return (

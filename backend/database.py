@@ -125,6 +125,7 @@ class DatabaseManager:
                 "reports": [],
                 "checked_out": False,
                 "description": equipment.description,
+                "damaged": equipment.damaged,
             }
         )
 
@@ -246,7 +247,8 @@ class DatabaseManager:
 
     def get_notification_by_id(self, note_id):
         note_info = self.notifications_db.find_one({"_id": ObjectId(note_id)})
-        note = Notification().populate_from_json(json_info=note_info)
+        note = Notification()
+        note.populate_from_json(json_info=note_info)
         return note
 
     def get_username_by_id(self, user_id: str):

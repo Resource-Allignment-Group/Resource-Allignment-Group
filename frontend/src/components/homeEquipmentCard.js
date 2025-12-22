@@ -6,11 +6,25 @@ import { MdArrowForwardIos } from "react-icons/md";
 function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
-	function getStatusClass(checked_out) {
-		if (checked_out === "Available") return "status-available";
-		if (checked_out === "Checked Out") return "status-checked-out";
-		if (checked_out === "Damaged") return "status-damaged";
-		return "";
+	function getEquipmentStatus({ checked_out, damaged }) {
+		if (damaged) {
+			return {
+			label: "Damaged",
+			className: "status-damaged",
+			};
+		}
+
+		if (checked_out) {
+			return {
+			label: "Checked Out",
+			className: "status-checked-out",
+			};
+		}
+
+		return {
+			label: "Available",
+			className: "status-available",
+		};
 	}
 
 	const handleCheckOut = async () => {
@@ -35,6 +49,9 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 			console.log(error);
 		}		
 	}
+
+	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
+	
 	return (
 		<div className="equipment-card">
 			<div className="card-header">
@@ -60,14 +77,16 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 					{/* Show the status badge for the current equipment item
           			It will be stylized depending on the status (checked out, damaged, etc) */}
 					<div className="status-row">
-						<span
-							className={`status-badge ${getStatusClass(equipment.checked_out)}`}
-						>
-							{equipment.checked_out}
+						<span className={`status-badge ${status.className}`}>
+							{status.label}
 						</span>
+
 						<label className="checkbox-label">
 							Mark as Unavailable
-							<input type="checkbox" />
+							<input
+							type="checkbox"
+							//should add an onChange flag that will do something
+							/>
 						</label>
 					</div>
 				</div>

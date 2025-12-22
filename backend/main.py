@@ -96,7 +96,7 @@ def get_notifications():
     user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
     msgs = []
     for note in user_notifications:
-        print("note", note)
+        print(note.type)
         msgs.append(
             {  # need to convert to strings in order to make the json serializable
                 "sender_username": db.get_username_by_id(user_id=str(note.sender)),
@@ -169,6 +169,7 @@ def get_equipment():
                 "description": equip["description"],
                 "attachments": 0,  # Change later
                 "replacementCost": 100000,  # change lateer
+                "damaged": equip["damaged"],
             }
         )
     return jsonify(equip_list)

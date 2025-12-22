@@ -17,6 +17,7 @@ class Equipment:
         reports: list[UUID] = None,
         checked_out: bool = False,
         description: str = None,
+        damaged: bool = False,
     ):
         self.id = uuid
         self._class = _class
@@ -30,6 +31,7 @@ class Equipment:
         self.reports = reports
         self.checked_out = checked_out
         self.description = description
+        self.damaged = damaged
 
     def get_images(self, db):
         img_bytes = []
@@ -67,4 +69,5 @@ class Equipment:
         self.reports = json_info["reports"]
         self.checked_out = json_info["checked_out"]
         self.description = json_info["description"]
+        self.damaged = json_info["damaged"]
         return 1
