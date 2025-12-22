@@ -7,6 +7,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
 	function getEquipmentStatus({ checked_out, damaged }) {
+		console.log(checked_out, damaged	)
 		if (damaged) {
 			return {
 			label: "Damaged",

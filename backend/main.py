@@ -152,26 +152,8 @@ def get_equipment():
     equipment_cur = db.get_all_equipment()
     equip_list = []
     for equip in equipment_cur:
-        equip_list.append(  # should really look through this in order to see what we need and what we don't
-            {
-                "id": str(equip["_id"]),
-                "name": equip["name"],
-                "checkedOutBy": "Need to impliment who is checked out by",  # need to impliment by looking at users who have this in their equipment
-                "class": equip["class"],
-                "year": equip["year"],
-                "farm": equip["farm"],
-                "model": equip["model"],
-                "make": equip["make"],
-                "use": equip["use"],
-                "images": equip["images"],
-                "reports": equip["reports"],
-                "checked_out": equip["checked_out"],
-                "description": equip["description"],
-                "attachments": 0,  # Change later
-                "replacementCost": 100000,  # change lateer
-                "damaged": equip["damaged"],
-            }
-        )
+        equip_list.append(equip.create_dict())
+    print(equip_list[0])
     return jsonify(equip_list)
 
 
@@ -180,7 +162,7 @@ def request_equipment():
     data = request.json
     equip_id = data["equip_id"]
     result = db.set_equipment_checked_out(
-        id=ObjectId(equip_id), checked_out="Requested"
+        id=ObjectId(equip_id), checked_out=True
     )  # Should move all of these to chars to save database space
     note_result = nm.send_equipment_request(
         id=ObjectId(),
@@ -192,6 +174,30 @@ def request_equipment():
         return jsonify({"success": True, "message": "this is the success message"})
     else:
         return jsonify({"success": True, "message": "this is the failure message"})
+
+
+@app.route("/get_user_equipment", methods=["GET"])
+def get_user_equipment():
+    user_equipment = db.get_equipment_by_user(user_id=ObjectId(session["id"]))
+    equip_list = []
+    for equip in user_equipment:
+        equip_list.append(equip.create_dict())
+
+    return jsonify(equip_list)
+
+
+@app.route("/return_equipment", methods=["POST"])
+def return_equipment():
+    data = request.json
+    try:
+        equipment = db.get_equipment_by_id(id=ObjectId(data["equipment_id"]))
+        db.set_equipment_checked_out(id=equipment.id, checked_out=False)
+        db.remove_equipment_from_inbox(
+            equip_id=equipment.id, user_id=ObjectId(session["id"])
+        )
+        return jsonify({"result": True})
+    except Exception as e:
+        return jsonify({"result": False, "message": e})
 
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end

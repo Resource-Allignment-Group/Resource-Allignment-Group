@@ -83,7 +83,6 @@ class Notification_Manager:
     ):
         message = f"{sender.username} wants to sign out {equip_name}"
         try:
-            print("trying")
             for admin in self.db.get_administrators():
                 new_note = Notification(
                     id=id,
@@ -94,7 +93,6 @@ class Notification_Manager:
                     _type="r",
                     equipment_id=ObjectId(equipment_id),
                 )
-                print(f"sending to {admin}")
                 self.db.send_notification(notification=new_note)
 
             return 1

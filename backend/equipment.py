@@ -1,5 +1,6 @@
 from uuid import UUID
 from PIL import Image
+from bson import ObjectId
 
 
 class Equipment:
@@ -56,8 +57,7 @@ class Equipment:
         return report_bytes
 
     def fill_from_json(self, json_info):
-        print(json_info)
-        self.id = json_info["_id"]
+        self.id = ObjectId(json_info["_id"])
         self._class = json_info["class"]
         self.name = json_info["name"]
         self.year = json_info["year"]
@@ -71,3 +71,25 @@ class Equipment:
         self.description = json_info["description"]
         self.damaged = json_info["damaged"]
         return 1
+
+    def create_dict(self):
+        return (  # should really look through this in order to see what we need and what we don't
+            {
+                "id": str(self.id),
+                "name": self.name,
+                "checkedOutBy": "Need to impliment who is checked out by",  # need to impliment by looking at users who have this in their equipment
+                "class": self._class,
+                "year": self.year,
+                "farm": self.farm,
+                "model": self.model,
+                "make": self.make,
+                "use": self.use,
+                "images": self.images,
+                "reports": self.reports,
+                "checked_out": self.checked_out,
+                "description": self.description,
+                "attachments": 0,  # Change later
+                "replacementCost": 100000,  # change lateer
+                "damaged": self.damaged,
+            }
+        )

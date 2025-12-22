@@ -302,10 +302,31 @@ class DatabaseManager:
             }
 
     def get_all_equipment(self):
-        return self.equipment_db.find({})
+        cursor = self.equipment_db.find({})
+        equip_list = []
+        for equip_info in cursor:
+            equip = Equipment()
+            equip.fill_from_json(equip_info)
+            equip_list.append(equip)
+        return equip_list
 
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": id})
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
         return equip
+
+    def get_equipment_by_user(self, user_id: ObjectId):
+        equip_list = []
+
+        for equip_id in self.users_db.find_one({"_id": user_id})[
+            "checked_out_equipment"
+        ]:
+            equip_list.append(self.get_equipment_by_id(id=equip_id))
+        return equip_list
+
+    def remove_equipment_from_inbox(self, equip_id: ObjectId, user_id: ObjectId):
+        self.users_db.update_one(
+            {"_id": user_id},
+            {"$pull": {"checked_out_equipment": equip_id}},
+        )
