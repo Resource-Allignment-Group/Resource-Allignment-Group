@@ -27,6 +27,15 @@ class Notification:
         self.type = _type
         self.equipment_id = equipment_id
 
+    def populate_from_json(self, json_info):
+        self.id = json_info["_id"]
+        self.sender = json_info["sender"]
+        self.receiver = json_info["receiver"]
+        self.date = json_info["date"]
+        self.body = json_info["body"]
+        self._type = json_info["type"]
+        self.equipment_id = json_info["equipment_id"]
+
 
 class Notification_Manager:
     def __init__(self, db):
