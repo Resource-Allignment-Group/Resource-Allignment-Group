@@ -3,7 +3,6 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 from database import DatabaseManager
-from flask_session import Session
 from helpers import *
 from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
@@ -31,7 +30,9 @@ def authenticate():
     username = data.get("username")
     password = data.get("password")
     user = db.get_user_by_username(username=username)
-    if check_password(origional_password=password, hashed_password=user.password):
+    if check_password(
+        origional_password=password, hashed_password=user.password
+    ):  # check with the the hashing algorithm
         if user.role == "p":
             return "Account is still pending approval from admin"
         else:
@@ -46,7 +47,7 @@ def authenticate():
 
 @app.route("/check-session", methods=["GET"])
 def check_session():
-    user = session.get("user")
+    user = session.get("user")  # Makes sure that the user is still logged in
 
     if user:
         return jsonify({"user": user})
@@ -65,14 +66,16 @@ def logout():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    email, password = data["email"], data["password"]  # data["admin_email"]
-    hashed_password = hash_password(password=password)
+    email, password = data["email"], data["password"]
+    hashed_password = hash_password(
+        password=password
+    )  # I belive this uses SHA256 but i would have to check
     result = db.add_user(email=email, password=hashed_password)
 
     if result["result"]:
         # send a notification to admin and update user management
         new_user = db.get_user_by_username(username=email)
-        db.set_user_role(id=new_user.id, role="p")
+        db.set_user_role(id=new_user.id, role="p")  #'p' stands for 'pending'
         nm.send_account_approval_message(new_user=new_user)
         return jsonify({"message": "success"})
     else:
@@ -95,7 +98,7 @@ def get_notifications():
     for note in user_notifications:
         print("note", note)
         msgs.append(
-            {
+            {  # need to convert to strings in order to make the json serializable
                 "sender_username": db.get_username_by_id(user_id=str(note.sender)),
                 "sender": str(note.sender),
                 "receiver": str(note.receiver),
@@ -112,30 +115,23 @@ def get_notifications():
 @app.route("/admin_account_decision", methods=["POST"])
 def account_decision():
     data = request.json
-    note = data["notification"]
-    new_note = Notification(
-        id=ObjectId(note["_id"]),
-        sender=note["sender"],
-        receiver=note["receiver"],
-        date=note["date"],
-        body=note["body"],
-        _type=note["type"],
-    )
-    print(note)
+    note_info = data["notification"]
+    new_note = Notification()
+    new_note.populate_from_json(json_info=note_info)
+
     match new_note.type:
-        case "a":
-            note_res = db.remove_notification_from_inbox(notification=new_note)
+        case "a":  # if it is an account creation notification, update the users role
+            db.remove_notification_from_inbox(notification=new_note)
             if data["result"]:
-                user_res = db.set_user_role(
-                    id=ObjectId(new_note.sender), role="u"
-                )  # u for 'user'
+                db.set_user_role(id=ObjectId(new_note.sender), role="u")  # u for 'user'
             else:
-                user_res = db.set_user_role(
+                db.set_user_role(
                     id=ObjectId(new_note.sender), role="r"
                 )  # r stand for 'rejected'
             return jsonify({"result": 0})
-        case "r":
-            new_note.equipment_id = ObjectId(note["equipment_id"])
+
+        case "r":  # If the notification is a equipment request, update the equipment
+            new_note.equipment_id = ObjectId(note_info["equipment_id"])
             if data["result"]:
                 equipment = db.get_equipment_by_id(id=new_note.equipment_id)
 
@@ -156,14 +152,11 @@ def get_equipment():
     equipment_cur = db.get_all_equipment()
     equip_list = []
     for equip in equipment_cur:
-        equip_list.append(
+        equip_list.append(  # should really look through this in order to see what we need and what we don't
             {
                 "id": str(equip["_id"]),
                 "name": equip["name"],
-                "checkedOutBy": "test@gmail.com"
-                if equip["name"]
-                == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)"
-                else "None",  # Change Later
+                "checkedOutBy": "Need to impliment who is checked out by",  # need to impliment by looking at users who have this in their equipment
                 "class": equip["class"],
                 "year": equip["year"],
                 "farm": equip["farm"],
@@ -172,10 +165,7 @@ def get_equipment():
                 "use": equip["use"],
                 "images": equip["images"],
                 "reports": equip["reports"],
-                "checked_out": "Checked Out"
-                if equip["name"]
-                == "Manure Spreader, None, None, 1990 (MANURE/FERTILIZER)"
-                else "Available",
+                "checked_out": equip["checked_out"],
                 "description": equip["description"],
                 "attachments": 0,  # Change later
                 "replacementCost": 100000,  # change lateer

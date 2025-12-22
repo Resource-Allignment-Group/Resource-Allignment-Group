@@ -28,7 +28,7 @@ class Notification:
         self.equipment_id = equipment_id
 
     def populate_from_json(self, json_info):
-        self.id = json_info["_id"]
+        self.id = ObjectId(json_info["_id"])
         self.sender = json_info["sender"]
         self.receiver = json_info["receiver"]
         self.date = json_info["date"]
@@ -66,7 +66,6 @@ class Notification_Manager:
     def send_account_approval_message(self, new_user: User):
         message = f"The user {new_user.username} is attempting to make a new account"
         for admin in self.db.get_administrators():
-            print(admin.username)
             new_note = Notification(
                 id=ObjectId(),
                 sender=new_user,
