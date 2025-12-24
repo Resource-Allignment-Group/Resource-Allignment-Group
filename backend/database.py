@@ -241,7 +241,7 @@ class DatabaseManager:
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
         if not user_doc:
-            return "User does not exist"
+            return 0
 
         notification_ids = user_doc.get("inbox", [])
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
