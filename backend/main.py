@@ -143,6 +143,7 @@ def account_decision():
 
             if data["result"]:
                 equipment = db.get_equipment_by_id(id=new_note.equipment_id)
+                db.set_notification_status(id=new_note.id, status="a")
                 db.add_user_equipment(
                     user_id=ObjectId(new_note.sender),
                     equipment_id=ObjectId(equipment.id),
@@ -153,6 +154,7 @@ def account_decision():
                 return jsonify({"result": True})
                 # send notification to user that their equipment is theirs
             else:
+                db.set_notification_status(id=new_note.id, status="r")
                 db.set_equipment_checked_out(id=new_note.id, checked_out=False)
                 return jsonify({"result": True})
 
@@ -170,7 +172,6 @@ def get_equipment():
 def request_equipment():
     data = request.json
     equip_id = data["equip_id"]
-
     note_result = nm.send_equipment_request(
         id=ObjectId(),
         sender=db.get_user_by_username(username=session["user"]),
@@ -219,7 +220,7 @@ def get_requests():
             note.to_dict(db.get_username_by_id(user_id=str(note.sender)))
         )
         equipment_list.append(equipment[i].to_dict())
-    print(notifications_list, equipment_list)
+
     return jsonify({"notifications": notifications_list, "equipment": equipment_list})
 
 

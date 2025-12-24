@@ -6,28 +6,31 @@ import os
 from user import User
 from datetime import datetime
 from bson.objectid import ObjectId
+from typing import Literal
 
 
 class Notification:
     def __init__(
         self,
         id: ObjectId = None,
-        sender: str = None,
-        receiver: str = None,
+        sender: ObjectId = None,
+        receiver: ObjectId = None,
         date: datetime = None,
         body: str = None,
         _type: str = None,
         equipment_id: ObjectId = None,
         read: bool = False,
+        status: Literal["a", "r", "p"] = None,
     ):
-        self.id = id
-        self.sender = sender
-        self.receiver = receiver
+        self.id = ObjectId(id)
+        self.sender = ObjectId(sender)
+        self.receiver = ObjectId(receiver)
         self.date = date
         self.body = body
         self.type = _type
-        self.equipment_id = equipment_id
+        self.equipment_id = ObjectId(equipment_id)
         self.read = read
+        self.status = status
 
     def populate_from_json(self, json_info):
         self.id = ObjectId(json_info["_id"])
@@ -38,6 +41,7 @@ class Notification:
         self.type = json_info["type"]
         self.equipment_id = ObjectId(json_info["equipment_id"])
         self.read = json_info["read"]
+        self.status = json_info["status"]
 
     def to_dict(self, sender_username):
         return {  # need to convert to strings in order to make the json serializable
@@ -50,6 +54,7 @@ class Notification:
             "_id": str(self.id),
             "equipment_id": str(self.equipment_id),
             "read": self.read,
+            "status": self.status,
         }
 
 
@@ -91,29 +96,31 @@ class Notification_Manager:
                 _type="a",
                 equipment_id=None,
                 read=False,
+                status=None,
             )
             self.db.send_notification(notification=new_note)
 
     def send_equipment_request(
-        self, id: ObjectId, sender: User, equip_name: str, equipment_id: ObjectId
+        self, id: ObjectId, sender: ObjectId, equip_name: str, equipment_id: ObjectId
     ):
         message = f"{sender.username} wants to sign out {equip_name}"
         try:
             for admin in self.db.get_administrators():
                 new_note = Notification(
                     id=id,
-                    sender=sender,
-                    receiver=admin,
+                    sender=sender.id,
+                    receiver=admin.id,
                     date=datetime.now(),
                     body=message,
                     _type="r",
-                    equipment_id=ObjectId(equipment_id),
+                    equipment_id=equipment_id,
                     read=False,
+                    status="p",
                 )
                 self.db.send_notification(notification=new_note)
-
             return 1
-        except:
+        except Exception as e:
+            print(e)
             return 0
 
     def send_inform_notification(
@@ -131,5 +138,6 @@ class Notification_Manager:
             _type="i",  # inform
             equipment_id=None,
             read=False,
+            status=None,
         )
         self.db.send_notification(notification=notification)
