@@ -5,7 +5,7 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import NotificationCard from "../components/notificationCard";
 
-function Notifications({ num_of_notifications, setNumNotifications }) {
+function Notifications({ num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [notifications, setNotifications] = useState([]);
 
@@ -30,11 +30,11 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ result: result, notification: notification }),
+				body: JSON.stringify({ result: result, notification: notification}),
 			});
 			const data = await res.json();
 			if (result) {
-				setNumNotifications((num) => num - 1); //this doesnt work but I am working on it
+				setNumNotifications((num) => num - 1);
 			}
 			//change notification to an inform class
 		} catch (error) {

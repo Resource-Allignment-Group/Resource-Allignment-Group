@@ -1,5 +1,5 @@
 import "../styles/default.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Import componets that will make up the my equipment page
 import Header from "../components/header";
@@ -9,25 +9,26 @@ import MyEquipmentCard from "../components/myEquipmentCard";
 function MyEquipment({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
+	const [equipment, setEquipment] = useState([]);
 
 	// Sample equipment data, will be replaced with backend info later
-	const equipment = [
-		{
-			id: 1,
-			name: "Snow Plow Truck - Ford",
-			status: "Checked Out",
-			checkedOutBy: "exampleUser@gmail.com",
-			checkedOutDate: "Nov 12, 2025",
-			category: "Truck",
-			make: "Ford",
-			model: "F-350",
-			assignedFarm: "Blueberry Hill",
-			useFrequency: "Seasonal",
-			replacementCost: "$75,000",
-			description: "Snow removal vehicle for winter maintenance operations.",
-			attachments: 2,
-		},
-	];
+	const fillEquipment = async () => {
+		try {
+			const res = await fetch("http://localhost:5000/get_user_equipment", {
+				credentials: "include",
+			});
+			const data = await res.json();
+			return Array.isArray(data) ? data : [];
+		} 
+		catch (error) {
+			console.log(error);
+			return []
+		}
+	}
+	useEffect(() => {
+			fillEquipment().then((data) =>{
+				 setEquipment(data)});
+		}, []);
 
 	return (
 		<div className="home-container">

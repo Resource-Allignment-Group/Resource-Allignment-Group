@@ -42,27 +42,27 @@ function Dashboard({num_of_notifications, setNumNotifications}) {
 						<div className="stats-grid">
 							<div className="stat-card blue">
 								<h4>Total</h4>
-								<p className="stat-number">170</p>
+								<p className="stat-number">168</p>
 							</div>
 
 							<div className="stat-card green">
 								<h4>Available</h4>
-								<p className="stat-number">50</p>
+								<p className="stat-number">167</p>
 							</div>
 
 							<div className="stat-card yellow">
 								<h4>In Use</h4>
-								<p className="stat-number">100</p>
+								<p className="stat-number">1</p>
 							</div>
 
 							<div className="stat-card red">
 								<h4>Damaged</h4>
-								<p className="stat-number">5</p>
+								<p className="stat-number">0</p>
 							</div>
 
 							<div className="stat-card gray">
 								<h4>Unavailable</h4>
-								<p className="stat-number">15</p>
+								<p className="stat-number">0</p>
 							</div>
 						</div>
 

@@ -2,7 +2,6 @@ import pymongo
 import os
 from pymongo import MongoClient
 from pathlib import Path
-import logging
 from datetime import datetime
 from PIL import Image
 import io
@@ -35,83 +34,48 @@ class DatabaseManager:
 
     # Setters
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
-        change_result = self.notifications_db.update_one(
-            {"_id": id}, {"$set": {"sender": sender}}
-        )
-        if change_result.acknowledged:
-            return f"Sender {sender} has changed for notification {id}"
-        else:
-            return f"Sender was not changed for notification {id}"
+        self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
 
     def set_notfication_receiver(self, id: ObjectId, receiver: ObjectId):
-        change_result = self.notifications_db.update_one(
-            {"_id": id}, {"$set": {"receiver": receiver}}
-        )
-        if change_result.acknowledged:
-            return f"Receiver {receiver} has changed for notification {id}"
-        else:
-            return f"Receiver was not changed for notification {id}"
+        self.notifications_db.update_one({"_id": id}, {"$set": {"receiver": receiver}})
 
     def set_notfication_result(self, id: ObjectId, result: str):
-        change_result = self.notifications_db.update_one(
-            {"_id": id}, {"$set": {"result": result}}
-        )
-        if change_result.acknowledged:
-            return f"Result {result} has changed for notification {id}"
-        else:
-            return f"Result was not changed for notification {id}"
+        self.notifications_db.update_one({"_id": id}, {"$set": {"result": result}})
+
+    def set_notification_read(self, id: ObjectId, read: bool):
+        self.notifications_db.update_one({"_id": id}, {"$set": {"read": read}})
 
     def set_request_active(self, id: ObjectId, active: bool):
-        change_result = self.requests_db.update_one(
-            {"_id": id}, {"$set": {"active": active}}
-        )
-        if change_result.acknowledged:
-            return f"Active {active} has changed for request {id}"
-        else:
-            return f"Active was not changed for request {id}"
+        self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
 
     def set_request_equipment(self, id: ObjectId, equipment_id: ObjectId):
-        change_result = self.requests_db.update_one(
-            {"_id": id}, {"$set": {"equipment": equipment_id}}
-        )
-        if change_result.acknowledged:
-            return f"Equipment {equipment_id} has changed for request {id}"
-        else:
-            return f"Equipment was not changed for request {id}"
+        self.requests_db.update_one({"_id": id}, {"$set": {"equipment": equipment_id}})
 
     def set_request_user(self, id: ObjectId, user_id: ObjectId):
-        change_result = self.requests_db.update_one(
-            {"_id": id}, {"$set": {"user": user_id}}
-        )
-        if change_result.acknowledged:
-            return f"User {user_id} has changed for request {id}"
-        else:
-            return f"User was not changed for request {id}"
+        self.requests_db.update_one({"_id": id}, {"$set": {"user": user_id}})
 
     def set_user_username(self, id: ObjectId, username: str):
-        change_result = self.users_db.update_one(
-            {"_id": id}, {"$set": {"username": username}}
-        )
-        if change_result.acknowledged:
-            return f"Username {username} has changed for user {id}"
-        else:
-            return f"Username was not changed for user {id}"
+        self.users_db.update_one({"_id": id}, {"$set": {"username": username}})
 
     def set_user_password(self, id: ObjectId, password: str):
-        change_result = self.users_db.update_one(
-            {"_id": id}, {"$set": {"password": password}}
-        )
-        if change_result.acknowledged:
-            return f"Password {password} has changed for user {id}"
-        else:
-            return f"Password was not changed for user {id}"
+        self.users_db.update_one({"_id": id}, {"$set": {"password": password}})
 
     def set_user_role(self, id: ObjectId, role: str):
-        change_result = self.users_db.update_one({"_id": id}, {"$set": {"role": role}})
-        if change_result.acknowledged:
-            return f"Role {role} has changed for user {id}"
-        else:
-            return f"Role was not changed for user {id}"
+        self.users_db.update_one({"_id": id}, {"$set": {"role": role}})
+
+    def set_equipment_year(self, id: ObjectId, year: int):
+        self.equipment_db.update_one({"_id": id}, {"$set": {"year": year}})
+
+    def set_equipment_name(self, id: ObjectId, name: str):
+        self.equipment_db.update_one({"_id": id}, {"$set": {"name": name}})
+
+    def set_equipment_class(self, id: ObjectId, _class: str):
+        self.equipment_db.update_one({"_id": id}, {"$set": {"class": _class}})
+
+    def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
+        self.equipment_db.update_one(
+            {"_id": id}, {"$set": {"checked_out": checked_out}}
+        )
 
     def add_user(self, email: str, password):
         if (
@@ -147,10 +111,10 @@ class DatabaseManager:
         if (
             equipment.id is None
             or self.equipment_db.count_documents(({"_id": equipment.id})) != 0
-        ):
-            equipment.id = str(ObjectId)
+        ):  # Check to see if it has a valid ID
+            equipment.id = str(ObjectId())
 
-        result = self.equipment_db.insert_one(
+        self.equipment_db.insert_one(
             {
                 "_id": equipment.id,
                 "name": equipment.name,
@@ -164,86 +128,47 @@ class DatabaseManager:
                 "reports": [],
                 "checked_out": False,
                 "description": equipment.description,
+                "damaged": equipment.damaged,
             }
         )
 
     def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
-        if equipment["checked_out"]:
+
+        if equipment["checked_out"] is True:
             return f"Equipment {equipment_id} is already checked out"
 
-        change_result = self.users_db.update_one(
+        self.users_db.update_one(
             {"_id": user_id}, {"$push": {"checked_out_equipment": equipment_id}}
         )
-        if change_result.acknowledged:
-            self.equipment_db.update_one(
-                {"_id": equipment_id}, {"$set": {"checked_out": True}}
-            )
-            return f"User {user_id} has checked out equipment {equipment_id}"
-        else:
-            return f"User {user_id} was unable to check out equipment {equipment_id}"
+
+        self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$set": {"checked_out": True}}
+        )
 
     def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
+
         if not equipment["checked_out"]:
             return f"Equipment {equipment_id} is not checked out"
 
-        change_result = self.users_db.update_one(
+        self.users_db.update_one(
             {"_id": user_id}, {"$pull": {"checked_out_equipment": equipment_id}}
         )
-        if change_result.acknowledged:
-            self.equipment_db.update_one(
-                {"_id": equipment_id}, {"$set": {"checked_out": False}}
-            )
-            return f"User {user_id} has released equipment {equipment_id}"
-        else:
-            return f"User {user_id} was unable to release equipment {equipment_id}"
-
-    def set_equipment_year(self, id: ObjectId, year: int):
-        change_result = self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"year": year}}
+        self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$set": {"checked_out": False}}
         )
-        if change_result.acknowledged:
-            return f"Year {year} has changed for equipment {id}"
-        else:
-            return f"Year was not changed for equipment {id}"
-
-    def set_equipment_name(self, id: ObjectId, name: str):
-        change_result = self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"name": name}}
-        )
-        if change_result.acknowledged:
-            return f"Name {name} has changed for equipment {id}"
-        else:
-            return f"Name was not changed for equipment {id}"
-
-    def set_equipment_class(self, id: ObjectId, _class: str):
-        change_result = self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"class": _class}}
-        )
-        if change_result.acknowledged:
-            return f"Class {_class} has changed for equipment {id}"
-        else:
-            return f"Class was not changed for equipment {id}"
-
-    def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
-        change_result = self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"checked_out": checked_out}}
-        )
-        if change_result.acknowledged:
-            return f"Checked_out {checked_out} has changed for equipment {id}"
-        else:
-            return f"Checked_out was not changed for equipment {id}"
 
     def get_user_by_username(self, username: str) -> User:
-        querry = {"username": username}
-        if self.users_db.count_documents(querry) > 1:
-            return f"More then one user had the username {username} with {self.users_db.count_documents(querry)} users"
-
-        # Pymongo returns a cursor object so must convert to a list
-        # This line gets the user object
         new_user = User()
-        new_user.fill_user_information(list(self.users_db.find(querry))[0])
+        new_user.fill_user_information(
+            list(self.users_db.find({"username": username}))[0]
+        )
+        return new_user
+
+    def get_user_by_id(self, user_id: ObjectId) -> User:
+        new_user = User()
+        new_user.fill_user_information(self.users_db.find_one({"_id": user_id}))
         return new_user
 
     def add_image(self, equipment_id: ObjectId, image: Image):
@@ -297,7 +222,6 @@ class DatabaseManager:
 
     def delete_image(self, uuid: ObjectId):
         os.remove(self.images_db / uuid)
-        return f"Sucessfully removed image {uuid}"
 
     def get_report(self, uuid: ObjectId):
         if type(uuid) is not ObjectId:
@@ -313,7 +237,6 @@ class DatabaseManager:
 
     def delete_report(self, uuid: ObjectId):
         os.remove(self.reports_db / uuid)
-        return f"{uuid} report has been deleted"
 
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
@@ -324,9 +247,20 @@ class DatabaseManager:
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
-        return self.notifications_db.find({"receiver": ObjectId(user_id)})
+        user = self.users_db.find_one({"_id": ObjectId(user_id)})
+        notes = []
+        for note_id in user["inbox"]:
+            notes.append(self.get_notification_by_id(note_id=note_id))
+        return notes
 
-    def get_username_by_id(self, user_id: ObjectId):
+    def get_notification_by_id(self, note_id):
+        print(note_id)
+        note_info = self.notifications_db.find_one({"_id": ObjectId(note_id)})
+        note = Notification()
+        note.populate_from_json(json_info=note_info)
+        return note
+
+    def get_username_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["username"]
 
@@ -342,113 +276,30 @@ class DatabaseManager:
 
     def remove_notification_from_inbox(self, notification: Notification):
         result = self.users_db.update_many(
-            {"inbox": notification.id}, {"$pull": {"inbox": notification.id}}
+            {"inbox": ObjectId(notification.id)},
+            {"$pull": {"inbox": ObjectId(notification.id)}},
+        )
+        self.notifications_db.update_one(
+            {"_id": notification.id}, {"$set": {"read": True}}
         )
         return result
 
-    def delete_data(self, uuid: ObjectId, *, collection: str = None):
-        if collection:
-            match collection:
-                case "users":
-                    user = self.users_db.find({"_id": uuid})
-                    if not user:
-                        raise ValueError(
-                            f"ObjectId {uuid} does not exist in {collection} collection"
-                        )
-
-                    # future talks will have to be discussed regarding which data should be deleted with the user and which should stay
-
-                case "equipment":
-                    equipment = self.equipment_db
-                    if not equipment:
-                        raise ValueError(
-                            f"ObjectId {uuid} does not exist in {collection} collection"
-                        )
-
-                    if equipment["checked_out"]:
-                        return "Equipment is checked out by a user, have the user relinquish ownership so the equipment can be deleted"
-                    else:
-                        report_uuids = self.find_reports_for_equipment(
-                            equipment_uuid=equipment["_id"]
-                        )
-                        for report_uuid in report_uuids:
-                            self.delete_report(uuid=report_uuid)
-                            # test to make sure that all reports are deleted
-
-                        image_uuids = self.find_images_for_equipment(
-                            equipment_uuid=["_id"]
-                        )
-                        for image_uuid in image_uuids:
-                            self.delete_image(uuid=image_uuid)
-                            # test to make sure that all reports are deleted
-
-                        self.equipment_db.delete_one(
-                            {"_id": equipment["_id"]}
-                        )  # Check this with tests
-                        return f"Equipment {uuid} has successfully been deleted"
-
-                case "notification":
-                    notification = self.notifications_db
-                    if not notification:
-                        raise ValueError(
-                            f"ObjectId {uuid} does not exist in {collection} collection"
-                        )
-
-                    self.notifications_db.delete_one({"_id": uuid})
-
-                    return f"Notification {uuid} has sucessfully been deleted"
-
-                case "request":
-                    request = self.reports_db
-                    if not request:
-                        raise ValueError(
-                            f"ObjectId {uuid} does not exist in {collection} collection"
-                        )
-
-                    if request["active"]:
-                        return "Request can not be deleted as it is still active, if we want to change this, delete this 'if' statement"
-                    else:
-                        self.reports_db.delete_one({"_id": uuid})
-                        return f"Request {uuid} was successfuly deleted"
-
-                case _:
-                    raise ValueError(f"{collection} is not a colelction in MongoDB")
-        else:
-            collections = [
-                self.users_db,
-                self.equipment_db,
-                self.requests_db,
-                self.notifications_db,
-            ]
-            for c in collections:
-                result = c.delete_many({"_id": uuid})
-                if result.deleted_count != 0:
-                    return f"{uuid} has been sucessfully deleted from {c}"
-
-            for dir, _, files in os.walk(self.images_db):
-                if uuid in files:
-                    os.remove(self.images_db / dir / uuid)
-                    return f"{uuid} has been sucessfully deleted from images"
-
-            for dir, _, files in os.walk(self.reports_db):
-                if uuid in files:
-                    os.remove(self.images_db / dir / uuid)
-                    return f"{uuid} has been sucessfully deleted from reports"
-
-            return f"{uuid} could not be found in database"
-
     def send_notification(self, notification: Notification):
-        note_id = ObjectId()
+        if notification.id is None:
+            notification.id = ObjectId()
+
         notification_json = {
-            "_id": note_id,
+            "_id": notification.id,
             "sender": notification.sender.id,
             "receiver": notification.receiver.id,
             "body": notification.body,
             "date": notification.date,
             "type": notification.type,
+            "equipment_id": notification.equipment_id,
+            "read": notification.read,
         }
         result_user = self.users_db.update_one(
-            {"_id": notification.receiver.id}, {"$push": {"inbox": note_id}}
+            {"_id": notification.receiver.id}, {"$push": {"inbox": notification.id}}
         )
         result_note = self.notifications_db.insert_one(notification_json)
 
@@ -464,4 +315,55 @@ class DatabaseManager:
             }
 
     def get_all_equipment(self):
-        return self.equipment_db.find({})
+        cursor = self.equipment_db.find({})
+        equip_list = []
+        for equip_info in cursor:
+            equip = Equipment()
+            equip.fill_from_json(equip_info)
+            equip_list.append(equip)
+        return equip_list
+
+    def get_equipment_by_id(self, id: ObjectId):
+        print("equip_id", id)
+        equip_info = self.equipment_db.find_one({"_id": id})
+        equip = Equipment()
+        equip.fill_from_json(json_info=equip_info)
+        return equip
+
+    def get_equipment_by_user(self, user_id: ObjectId):
+        equip_list = []
+
+        for equip_id in self.users_db.find_one({"_id": user_id})[
+            "checked_out_equipment"
+        ]:
+            equip_list.append(self.get_equipment_by_id(id=equip_id))
+        return equip_list
+
+    def remove_equipment_from_inbox(self, equip_id: ObjectId, user_id: ObjectId):
+        self.users_db.update_one(
+            {"_id": user_id},
+            {"$pull": {"checked_out_equipment": equip_id}},
+        )
+
+    def get_unread_messages_by_user(self, user_id: ObjectId):
+        note_infos = self.notifications_db.find({"receiver": user_id, "read": False})
+        note_list = []
+        for note_info in note_infos:
+            note = Notification()
+            note.populate_from_json(json_info=note_info)
+            note_list.append(note)
+        return note_list
+
+    def get_requests_by_user(self, user_id: ObjectId):
+        user = self.get_user_by_id(user_id=user_id)
+        requests = self.notifications_db.find({"type": "r", "sender": user.id})
+        request_list = []
+        equipment_list = []
+        for request in requests:
+            new_request = Notification()
+            new_request.populate_from_json(json_info=request)
+            request_list.append(new_request)
+
+            equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
+
+        return request_list, equipment_list

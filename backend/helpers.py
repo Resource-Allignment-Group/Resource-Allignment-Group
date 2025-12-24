@@ -20,10 +20,11 @@ def check_password(origional_password: str, hashed_password: str):
 
 def insert_via_spreadsheet():
     db = DatabaseManager()
-    df = pd.read_excel("/Users/brada/Downloads/MAFES Equipment Inventory_2025_tcm.xlsx")
+    df = pd.read_excel(
+        "/Users/Bradan/Downloads/MAFES Equipment Inventory_2025_tcm.xlsx"
+    )
     df.drop(
         [
-            
             "Serial",
             "Unnamed: 9",
             "Unnamed: 10",
@@ -40,7 +41,7 @@ def insert_via_spreadsheet():
     print(df.head())
     for i, tup in enumerate(df.iterrows()):
         _, row = tup
-        
+
         if i == 0:
             continue
         row = list(row)
@@ -51,7 +52,18 @@ def insert_via_spreadsheet():
         )
         name = name.replace("nan, ", "")
         print("name", name)
-        equip = Equipment(uuid=ObjectId(), name=name, _class=row[1], year=row[4], farm=row[0], model=row[3], make=row[2], description=row[5], use=row[6])
+        equip = Equipment(
+            uuid=ObjectId(),
+            name=name,
+            _class=row[1],
+            year=row[4],
+            farm=row[0],
+            model=row[3],
+            make=row[2],
+            description=row[5],
+            use=row[6],
+            damaged=False,
+        )
         db.add_equipment(
             equipment=equip,
         )

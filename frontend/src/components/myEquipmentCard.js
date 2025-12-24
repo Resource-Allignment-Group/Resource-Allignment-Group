@@ -4,6 +4,29 @@ import "../styles/myequipment.css";
 import { MdArrowForwardIos } from "react-icons/md";
 
 function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
+	const ReturnEquipment = async () => {
+		try{
+			const res = await fetch("http://localhost:5000/return_equipment", {
+				method: "POST",	
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({
+					equipment_id: equipment.id
+				})
+				});
+				const data = await res.json();
+				if (data.result){
+					alert("Your Equipment has been returned")
+				}
+				else{
+					alert("Something Has Gone Wrong, Please Refresh Your Page to See if Your Equipment was Returned")
+				}
+				
+		}
+		catch (error) {
+			console.log(error)
+		}
+	}
 	return (
 		<div className="my-equipment-card">
 			<div className="card-header">
@@ -22,7 +45,7 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 					</p>
 
 					{/* Return Equipment button */}
-					<button className="btn-primary">Return Equipment</button>
+					<button className="btn-primary" onClick={ReturnEquipment}>Return Equipment</button>
 				</div>
 
 				{/* Button state for opening and closing the equipment card  */}
