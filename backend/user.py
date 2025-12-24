@@ -1,4 +1,3 @@
-
 class User:
     def __init__(self):
         self.username = None
@@ -7,11 +6,11 @@ class User:
         self.role = None
         self.email = None
         self.inbox = []
-        
-        
+        self.checked_out_equipment = []
+
     def fill_inbox(self, db):
         notifications = db.get_notifications_by_user(self.id)
-        
+
         for n in notifications.sort("date", -1):
             self.inbox.append(n)
 
@@ -21,4 +20,4 @@ class User:
         self.id = db_object["_id"]
         self.role = db_object["role"]
         self.inbox = db_object["inbox"]
-        return 1
+        self.checked_out_equipment = db_object["checked_out_equipment"]

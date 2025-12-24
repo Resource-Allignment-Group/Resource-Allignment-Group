@@ -10,12 +10,12 @@ function NewRequestNotification({
 	const [status, setStatus] = useState(null)
 
 	const handleApproveClick = () => {
-		setStatus("Available");
+		setStatus("approved");
 		onApprove(notification);
 	};
 
 	const handleRejectClick = () => {
-		setStatus("Checked-Out");
+		setStatus("rejected");
 		onReject(notification);
 	};
 	return (
@@ -147,6 +147,34 @@ function NewAccountNotification({
 	);
 }
 
+function InformNotification ({notification, onDismiss}){
+	return (
+		<div className="notification-card">
+			<div className="notification-content">
+				<div className="notification-icon-circle notification-icon-info">
+					<span>ℹ</span>
+				</div>
+				<div className="notification-info">
+					<h3>Notification</h3>
+					<p>{notification.body}</p>
+				</div>
+
+				<span className="notification-date">
+					{new Date(notification.date).toLocaleString()}
+				</span>
+
+				{onDismiss && (
+					<button
+						className="dismiss-button"
+						onClick={() => onDismiss(notification)}
+					>
+						✕
+					</button>
+				)}
+			</div>
+		</div>
+	);
+}
 
 
 export default function NotificationCard({
@@ -155,7 +183,6 @@ export default function NotificationCard({
 	onReject,
 	onDismiss,
 }) {
-	console.log("type", notification.type)
 	switch (notification.type) {
 		case "a": // New account notification
 			return (
@@ -174,6 +201,12 @@ export default function NotificationCard({
 					onApprove={onApprove}
 					onReject={onReject}
 					onDismiss={onDismiss}
+				/>
+			)
+		case 'i':
+			return (
+				<InformNotification
+				notification={notification}
 				/>
 			)
 		default:

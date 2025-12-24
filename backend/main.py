@@ -85,10 +85,11 @@ def register():
 @app.route("/get_user_info", methods=["GET"])
 def get_user_info():
     # add profile pic retrevial and any other import stuff here
+
+    # This needs so re factoring once we get more features implimented
     inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
-    return jsonify(
-        {"messages": [], "num_notifications": len(list(inbox_notifications))}
-    )
+    unread_messages = db.get_unread_messages_by_user(user_id=ObjectId(session["id"]))
+    return jsonify({"messages": [], "num_notifications": len(unread_messages)})
 
 
 @app.route("/get_notifications", methods=["GET"])
@@ -96,7 +97,6 @@ def get_notifications():
     user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
     msgs = []
     for note in user_notifications:
-        print(note.type)
         msgs.append(
             {  # need to convert to strings in order to make the json serializable
                 "sender_username": db.get_username_by_id(user_id=str(note.sender)),
@@ -107,8 +107,13 @@ def get_notifications():
                 "type": note.type,
                 "_id": str(note.id),
                 "equipment_id": str(note.equipment_id),
+                "read": note.read,
             }
         )
+        if note.type == "i":
+            # kind of a jerry-rigged way to see if the user has read the message but I can't really think of a better way without massive overhead in developments
+            db.set_notification_read(id=note.id, read=True)
+
     return jsonify({"messages": msgs})
 
 
@@ -122,24 +127,39 @@ def account_decision():
     match new_note.type:
         case "a":  # if it is an account creation notification, update the users role
             db.remove_notification_from_inbox(notification=new_note)
+            db.set_notification_read(id=new_note.id, read=True)
             if data["result"]:
+                result_message = f"{db.get_username_by_id(user_id=new_note.sender)} has been added to the system"
                 db.set_user_role(id=ObjectId(new_note.sender), role="u")  # u for 'user'
+
             else:
+                result_message = f"{db.get_username_by_id(user_id=new_note.sender)} has been rejected from the system"
                 db.set_user_role(
                     id=ObjectId(new_note.sender), role="r"
                 )  # r stand for 'rejected'
+
+            for admin in db.get_administrators():
+                nm.send_inform_notification(
+                    sender=db.get_user_by_id(user_id=new_note.sender),
+                    receiver=admin,
+                    message=result_message,
+                )  # might want to make the sender a "system" sender or something like that
+
             return jsonify({"result": 0})
 
         case "r":  # If the notification is a equipment request, update the equipment
-            new_note.equipment_id = ObjectId(note_info["equipment_id"])
+            db.remove_notification_from_inbox(notification=new_note)
+            db.set_notification_read(id=ObjectId(new_note.id), read=True)
+
             if data["result"]:
                 equipment = db.get_equipment_by_id(id=new_note.equipment_id)
-
-                result = db.add_user_equipment(
+                db.add_user_equipment(
                     user_id=ObjectId(new_note.sender),
                     equipment_id=ObjectId(equipment.id),
                 )
-                print(result)
+                db.set_equipment_checked_out(
+                    id=ObjectId(new_note.equipment_id), checked_out=True
+                )
                 return jsonify({"result": True})
                 # send notification to user that their equipment is theirs
             else:
@@ -153,7 +173,6 @@ def get_equipment():
     equip_list = []
     for equip in equipment_cur:
         equip_list.append(equip.create_dict())
-    print(equip_list[0])
     return jsonify(equip_list)
 
 
@@ -161,16 +180,14 @@ def get_equipment():
 def request_equipment():
     data = request.json
     equip_id = data["equip_id"]
-    result = db.set_equipment_checked_out(
-        id=ObjectId(equip_id), checked_out=True
-    )  # Should move all of these to chars to save database space
+
     note_result = nm.send_equipment_request(
         id=ObjectId(),
         sender=db.get_user_by_username(username=session["user"]),
         equip_name=data["equip_name"],
         equipment_id=ObjectId(equip_id),
     )
-    if result and note_result:
+    if note_result:
         return jsonify({"success": True, "message": "this is the success message"})
     else:
         return jsonify({"success": True, "message": "this is the failure message"})
@@ -197,6 +214,7 @@ def return_equipment():
         )
         return jsonify({"result": True})
     except Exception as e:
+        print(e)
         return jsonify({"result": False, "message": e})
 
 

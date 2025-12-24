@@ -15,6 +15,12 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 				})
 				});
 				const data = await res.json();
+				if (data.result){
+					alert("Your Equipment has been returned")
+				}
+				else{
+					alert("Something Has Gone Wrong, Please Refresh Your Page to See if Your Equipment was Returned")
+				}
 				
 		}
 		catch (error) {

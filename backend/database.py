@@ -42,6 +42,9 @@ class DatabaseManager:
     def set_notfication_result(self, id: ObjectId, result: str):
         self.notifications_db.update_one({"_id": id}, {"$set": {"result": result}})
 
+    def set_notification_read(self, id: ObjectId, read: bool):
+        self.notifications_db.update_one({"_id": id}, {"$set": {"read": read}})
+
     def set_request_active(self, id: ObjectId, active: bool):
         self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
 
@@ -163,6 +166,11 @@ class DatabaseManager:
         )
         return new_user
 
+    def get_user_by_id(self, user_id: ObjectId) -> User:
+        new_user = User()
+        new_user.fill_user_information(self.users_db.find_one({"_id": user_id}))
+        return new_user
+
     def add_image(self, equipment_id: ObjectId, image: Image):
         img_uuid = ObjectId()
         while True:
@@ -246,6 +254,7 @@ class DatabaseManager:
         return notes
 
     def get_notification_by_id(self, note_id):
+        print(note_id)
         note_info = self.notifications_db.find_one({"_id": ObjectId(note_id)})
         note = Notification()
         note.populate_from_json(json_info=note_info)
@@ -270,6 +279,9 @@ class DatabaseManager:
             {"inbox": ObjectId(notification.id)},
             {"$pull": {"inbox": ObjectId(notification.id)}},
         )
+        self.notifications_db.update_one(
+            {"_id": notification.id}, {"$set": {"read": True}}
+        )
         return result
 
     def send_notification(self, notification: Notification):
@@ -284,6 +296,7 @@ class DatabaseManager:
             "date": notification.date,
             "type": notification.type,
             "equipment_id": notification.equipment_id,
+            "read": notification.read,
         }
         result_user = self.users_db.update_one(
             {"_id": notification.receiver.id}, {"$push": {"inbox": notification.id}}
@@ -311,6 +324,7 @@ class DatabaseManager:
         return equip_list
 
     def get_equipment_by_id(self, id: ObjectId):
+        print("equip_id", id)
         equip_info = self.equipment_db.find_one({"_id": id})
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
@@ -330,3 +344,12 @@ class DatabaseManager:
             {"_id": user_id},
             {"$pull": {"checked_out_equipment": equip_id}},
         )
+
+    def get_unread_messages_by_user(self, user_id: ObjectId):
+        note_infos = self.notifications_db.find({"receiver": user_id, "read": False})
+        note_list = []
+        for note_info in note_infos:
+            note = Notification()
+            note.populate_from_json(json_info=note_info)
+            note_list.append(note)
+        return note_list

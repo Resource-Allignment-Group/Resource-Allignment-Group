@@ -4,6 +4,8 @@ import "../styles/myrequests.css";
 import { MdArrowForwardIos } from "react-icons/md";
 
 function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
+
+	
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
 	function getStatusClass(status) {

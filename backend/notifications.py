@@ -18,6 +18,7 @@ class Notification:
         body: str = None,
         _type: str = None,
         equipment_id: ObjectId = None,
+        read: bool = False,
     ):
         self.id = id
         self.sender = sender
@@ -26,16 +27,17 @@ class Notification:
         self.body = body
         self.type = _type
         self.equipment_id = equipment_id
+        self.read = read
 
     def populate_from_json(self, json_info):
-        print(json_info)
         self.id = ObjectId(json_info["_id"])
-        self.sender = json_info["sender"]
-        self.receiver = json_info["receiver"]
+        self.sender = ObjectId(json_info["sender"])
+        self.receiver = ObjectId(json_info["receiver"])
         self.date = json_info["date"]
         self.body = json_info["body"]
         self.type = json_info["type"]
-        self.equipment_id = json_info["equipment_id"]
+        self.equipment_id = ObjectId(json_info["equipment_id"])
+        self.read = json_info["read"]
 
 
 class Notification_Manager:
@@ -75,6 +77,7 @@ class Notification_Manager:
                 body=message,
                 _type="a",
                 equipment_id=None,
+                read=False,
             )
             self.db.send_notification(notification=new_note)
 
@@ -92,9 +95,28 @@ class Notification_Manager:
                     body=message,
                     _type="r",
                     equipment_id=ObjectId(equipment_id),
+                    read=False,
                 )
                 self.db.send_notification(notification=new_note)
 
             return 1
         except:
             return 0
+
+    def send_inform_notification(
+        self, sender: User, receiver: User, message: str, id: ObjectId = None
+    ):
+        if id is None:
+            id = ObjectId()
+
+        notification = Notification(
+            id=id,
+            sender=sender,
+            receiver=receiver,
+            date=datetime.now(),
+            body=message,
+            _type="i",  # inform
+            equipment_id=None,
+            read=False,
+        )
+        self.db.send_notification(notification=notification)
