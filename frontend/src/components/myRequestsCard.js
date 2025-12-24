@@ -10,7 +10,7 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 	// It will display the stylized badge associated to that status
 	function getStatusClass(status) {
 		if (status === "Approved") return "status-approved";
-		if (status === "Pending") return "status-pending";
+		if (status === "Pending") return "status-pending"; //This needs to have an added char field in the notifications db, will figure it out in a later push because I am tired
 		if (status === "Denied") return "status-denied";
 		return "";
 	}
@@ -29,7 +29,7 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 
 					{/* Displays when the user requested to check out a piece of equipment */}
 					<p className="checkout-info">
-						<strong>Requested On:</strong> {notification.requestDate}
+						<strong>Requested On:</strong> {notification.date}
 					</p>
 
 					{/* Show the current state of the users equipment request. This will

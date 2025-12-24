@@ -353,3 +353,17 @@ class DatabaseManager:
             note.populate_from_json(json_info=note_info)
             note_list.append(note)
         return note_list
+
+    def get_requests_by_user(self, user_id: ObjectId):
+        user = self.get_user_by_id(user_id=user_id)
+        requests = self.notifications_db.find({"type": "r", "sender": user.id})
+        request_list = []
+        equipment_list = []
+        for request in requests:
+            new_request = Notification()
+            new_request.populate_from_json(json_info=request)
+            request_list.append(new_request)
+
+            equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
+
+        return request_list, equipment_list

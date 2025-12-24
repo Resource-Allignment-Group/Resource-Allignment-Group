@@ -72,7 +72,7 @@ class Equipment:
         self.damaged = json_info["damaged"]
         return 1
 
-    def create_dict(self):
+    def to_dict(self):
         return (  # should really look through this in order to see what we need and what we don't
             {
                 "id": str(self.id),

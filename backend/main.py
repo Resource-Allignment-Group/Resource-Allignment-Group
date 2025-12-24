@@ -98,18 +98,8 @@ def get_notifications():
     msgs = []
     for note in user_notifications:
         msgs.append(
-            {  # need to convert to strings in order to make the json serializable
-                "sender_username": db.get_username_by_id(user_id=str(note.sender)),
-                "sender": str(note.sender),
-                "receiver": str(note.receiver),
-                "date": str(note.date),
-                "body": note.body,
-                "type": note.type,
-                "_id": str(note.id),
-                "equipment_id": str(note.equipment_id),
-                "read": note.read,
-            }
-        )
+            note.to_dict(db.get_username_by_id(user_id=str(note.sender)))
+        )  # not the best way to do this, but once again, van not think of a better way
         if note.type == "i":
             # kind of a jerry-rigged way to see if the user has read the message but I can't really think of a better way without massive overhead in developments
             db.set_notification_read(id=note.id, read=True)
@@ -172,7 +162,7 @@ def get_equipment():
     equipment_cur = db.get_all_equipment()
     equip_list = []
     for equip in equipment_cur:
-        equip_list.append(equip.create_dict())
+        equip_list.append(equip.to_dict())
     return jsonify(equip_list)
 
 
@@ -198,7 +188,7 @@ def get_user_equipment():
     user_equipment = db.get_equipment_by_user(user_id=ObjectId(session["id"]))
     equip_list = []
     for equip in user_equipment:
-        equip_list.append(equip.create_dict())
+        equip_list.append(equip.to_dict())
 
     return jsonify(equip_list)
 
@@ -216,6 +206,21 @@ def return_equipment():
     except Exception as e:
         print(e)
         return jsonify({"result": False, "message": e})
+
+
+@app.route("/get_requests", methods=["GET"])
+def get_requests():
+    notifications, equipment = db.get_requests_by_user(user_id=ObjectId(session["id"]))
+
+    notifications_list, equipment_list = [], []
+
+    for i, note in enumerate(notifications):
+        notifications_list.append(
+            note.to_dict(db.get_username_by_id(user_id=str(note.sender)))
+        )
+        equipment_list.append(equipment[i].to_dict())
+    print(notifications_list, equipment_list)
+    return jsonify({"notifications": notifications_list, "equipment": equipment_list})
 
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end

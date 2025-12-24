@@ -39,6 +39,19 @@ class Notification:
         self.equipment_id = ObjectId(json_info["equipment_id"])
         self.read = json_info["read"]
 
+    def to_dict(self, sender_username):
+        return {  # need to convert to strings in order to make the json serializable
+            "sender_username": sender_username,
+            "sender": str(self.sender),
+            "receiver": str(self.receiver),
+            "date": str(self.date),
+            "body": self.body,
+            "type": self.type,
+            "_id": str(self.id),
+            "equipment_id": str(self.equipment_id),
+            "read": self.read,
+        }
+
 
 class Notification_Manager:
     def __init__(self, db):
