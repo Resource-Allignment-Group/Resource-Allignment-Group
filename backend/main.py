@@ -31,8 +31,9 @@ def authenticate():
     username = data.get("username")
     password = data.get("password")
     user = db.get_user_by_username(username=username)
+    hashed_passowrd = db.get_password_by_username(username=username)
     if check_password(
-        origional_password=password, hashed_password=user.password
+        origional_password=password, hashed_password=hashed_passowrd
     ):  # check with the the hashing algorithm
         if user.role == "p":
             return "Account is still pending approval from admin"

@@ -166,6 +166,9 @@ class DatabaseManager:
             {"_id": equipment_id}, {"$set": {"checked_out": False}}
         )
 
+    def get_password_by_username(self, username: str):
+        return self.users_db.find_one({"username": username})["password"]
+    
     def get_user_by_username(self, username: str) -> User:
         new_user = User()
         new_user.fill_user_information(

@@ -54,7 +54,19 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 				<div className="equipment-info">
 					<h3>{user.name}</h3>
 					<p className="user-contact-info">
-						{user.email} | {user.phone}
+
+
+
+
+
+						{/* change back to email */}
+						{user.username} | {user.phone}
+
+
+
+
+
+
 					</p>
 				</div>
 
