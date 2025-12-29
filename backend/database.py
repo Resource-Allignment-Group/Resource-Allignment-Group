@@ -10,6 +10,7 @@ from user import User
 from notifications import Notification
 from bson.objectid import ObjectId
 from equipment import Equipment
+from typing import Literal
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
@@ -44,6 +45,9 @@ class DatabaseManager:
 
     def set_notification_read(self, id: ObjectId, read: bool):
         self.notifications_db.update_one({"_id": id}, {"$set": {"read": read}})
+
+    def set_notification_status(self, id: ObjectId, status: Literal["a", "r", "p"]):
+        self.notifications_db.update_one({"_id": id}, {"$set": {"status": status}})
 
     def set_request_active(self, id: ObjectId, active: bool):
         self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
@@ -90,6 +94,9 @@ class DatabaseManager:
                 "role": "p",
                 "checked_out_equipment": [],
                 "inbox": [],
+                "position": None,
+                "name": None,
+                "phone": None,
             }
         )
 
@@ -159,6 +166,9 @@ class DatabaseManager:
             {"_id": equipment_id}, {"$set": {"checked_out": False}}
         )
 
+    def get_password_by_username(self, username: str):
+        return self.users_db.find_one({"username": username})["password"]
+    
     def get_user_by_username(self, username: str) -> User:
         new_user = User()
         new_user.fill_user_information(
@@ -254,7 +264,6 @@ class DatabaseManager:
         return notes
 
     def get_notification_by_id(self, note_id):
-        print(note_id)
         note_info = self.notifications_db.find_one({"_id": ObjectId(note_id)})
         note = Notification()
         note.populate_from_json(json_info=note_info)
@@ -288,18 +297,19 @@ class DatabaseManager:
         if notification.id is None:
             notification.id = ObjectId()
 
-        notification_json = {
+        notification_json = notification_json = {
             "_id": notification.id,
-            "sender": notification.sender.id,
-            "receiver": notification.receiver.id,
+            "sender": notification.sender,
+            "receiver": notification.receiver,
             "body": notification.body,
             "date": notification.date,
             "type": notification.type,
             "equipment_id": notification.equipment_id,
             "read": notification.read,
+            "status": notification.status,
         }
         result_user = self.users_db.update_one(
-            {"_id": notification.receiver.id}, {"$push": {"inbox": notification.id}}
+            {"_id": notification.receiver}, {"$push": {"inbox": notification.id}}
         )
         result_note = self.notifications_db.insert_one(notification_json)
 
@@ -324,7 +334,6 @@ class DatabaseManager:
         return equip_list
 
     def get_equipment_by_id(self, id: ObjectId):
-        print("equip_id", id)
         equip_info = self.equipment_db.find_one({"_id": id})
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
@@ -367,3 +376,33 @@ class DatabaseManager:
             equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
 
         return request_list, equipment_list
+
+    def get_dashboard_info(self):
+        num_total = len(self.get_all_equipment())
+        num_available = self.equipment_db.count_documents({"checked_out": False})
+        num_used = self.equipment_db.count_documents({"checked_out": True})
+        num_damaged = self.equipment_db.count_documents({"damaged": True})
+        # add unavalibility later
+        num_unavailable = "add later"
+        return num_total, num_available, num_used, num_damaged, num_unavailable
+
+    def get_all_users(self):
+        all_users = []
+        users = self.users_db.find({})
+        for user_info in users:
+            all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
+        return all_users
+
+    def delete_user(self, user: User):
+        [
+            self.equipment_db.update_one(
+                {"_id": equipment_id}, {"$set", {"checked_out": False}}
+            )
+            for equipment_id in user.checked_out_equipment
+        ]
+
+        result = self.users_db.delete_one({"_id": user.id})
+        if result.acknowledged:
+            return True
+        else:
+            return False

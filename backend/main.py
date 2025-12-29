@@ -6,6 +6,7 @@ from database import DatabaseManager
 from helpers import *
 from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
+from user import User
 
 load_dotenv()
 
@@ -30,8 +31,9 @@ def authenticate():
     username = data.get("username")
     password = data.get("password")
     user = db.get_user_by_username(username=username)
+    hashed_passowrd = db.get_password_by_username(username=username)
     if check_password(
-        origional_password=password, hashed_password=user.password
+        origional_password=password, hashed_password=hashed_passowrd
     ):  # check with the the hashing algorithm
         if user.role == "p":
             return "Account is still pending approval from admin"
@@ -143,6 +145,7 @@ def account_decision():
 
             if data["result"]:
                 equipment = db.get_equipment_by_id(id=new_note.equipment_id)
+                db.set_notification_status(id=new_note.id, status="a")
                 db.add_user_equipment(
                     user_id=ObjectId(new_note.sender),
                     equipment_id=ObjectId(equipment.id),
@@ -153,6 +156,7 @@ def account_decision():
                 return jsonify({"result": True})
                 # send notification to user that their equipment is theirs
             else:
+                db.set_notification_status(id=new_note.id, status="r")
                 db.set_equipment_checked_out(id=new_note.id, checked_out=False)
                 return jsonify({"result": True})
 
@@ -170,7 +174,6 @@ def get_equipment():
 def request_equipment():
     data = request.json
     equip_id = data["equip_id"]
-
     note_result = nm.send_equipment_request(
         id=ObjectId(),
         sender=db.get_user_by_username(username=session["user"]),
@@ -219,8 +222,52 @@ def get_requests():
             note.to_dict(db.get_username_by_id(user_id=str(note.sender)))
         )
         equipment_list.append(equipment[i].to_dict())
-    print(notifications_list, equipment_list)
+
     return jsonify({"notifications": notifications_list, "equipment": equipment_list})
+
+
+@app.route("/get_dashboard_info")
+def get_dashboard_info():
+    num_total, num_available, num_used, num_damaged, num_unavailable = (
+        db.get_dashboard_info()
+    )
+    return jsonify(
+        {
+            "total": num_total,
+            "available": num_available,
+            "used": num_used,
+            "damaged": num_damaged,
+            "unavailable": num_unavailable,
+        }
+    )
+
+
+@app.route("/get_users", methods=["GET"])
+def get_users():
+    users = db.get_all_users()
+    user_dicts = [user.to_dict() for user in users]
+    return jsonify({"users": user_dicts})
+
+
+@app.route("/change_user_role", methods=["POST"])
+def change_user_role():
+    data = request.json
+    result = db.set_user_role(id=ObjectId(data["user"]["id"]), role=data["new_role"])
+    if result:
+        return jsonify({"result": True})
+    else:
+        return jsonify({"result": False})
+
+
+@app.route("/delete_user_account", methods=["POST"])
+def delete_user_account():
+    data = request.json
+    user = db.get_user_by_id(ObjectId(data["user"]["id"]))
+    result = db.delete_user(user=user)
+    if result:
+        return jsonify({"result": True})
+    else:
+        return jsonify({"result": False})
 
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
