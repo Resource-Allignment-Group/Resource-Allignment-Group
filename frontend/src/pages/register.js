@@ -5,6 +5,9 @@ import "../styles/register.css";
 function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fname, setFirstName] = useState('')
+  const [lname, setLastName] = useState('')
+  const [phone_number, setPhoneNumber] = useState('')
   // const [adminEmail, setAdminEmail] = useState('')
   const navigate = useNavigate() 
   
@@ -17,7 +20,9 @@ function Register() {
         body: JSON.stringify({ 
           "email": email, 
           "password": password,
-          // "admin_email": adminEmail 
+          "fname": fname,
+          "lname": lname,
+          "phone_number": phone_number
         }),
         credentials: "include", 
       });
@@ -51,24 +56,35 @@ function Register() {
         <h2 className="title">Register</h2>
 
         <form className="form">
-          
-          <label>Email *</label>
+          <label>First Name</label>
+          <input
+          type="text"
+          onChange={(e) => setFirstName(e.target.value)} 
+          />
+
+          <label>Last Name</label>
+          <input 
+          type="text"
+          onChange={(e) => setLastName(e.target.value)} 
+          />
+
+          <label>Email</label>
           <input
           type="email" 
           onChange={(e) => setEmail(e.target.value)} 
           />
 
-          <label>Password *</label>
+          <label>Password</label>
           <input 
           type="password"
           onChange={(e) => setPassword(e.target.value)} 
           />
 
-          {/* <label>Admin ID *</label>
+          <label>Phone Number</label>
           <input
-          type="text"      Not needed as it is automatically sent to all admin
-          onChange={(e) => setAdminEmail(e.target.value)} 
-          /> */}
+          type="tel" 
+          onChange={(e) => setPhoneNumber(e.target.value)} 
+          />
 
           <button type="submit" onClick={handleRegister}>Sign Up</button>
         </form>

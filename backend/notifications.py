@@ -89,8 +89,8 @@ class Notification_Manager:
         for admin in self.db.get_administrators():
             new_note = Notification(
                 id=ObjectId(),
-                sender=new_user,
-                receiver=admin,
+                sender=new_user.id,
+                receiver=admin.id,
                 date=datetime.now(),
                 body=message,
                 _type="a",
@@ -101,7 +101,7 @@ class Notification_Manager:
             self.db.send_notification(notification=new_note)
 
     def send_equipment_request(
-        self, id: ObjectId, sender: ObjectId, equip_name: str, equipment_id: ObjectId
+        self, id: ObjectId, sender: User, equip_name: str, equipment_id: ObjectId
     ):
         message = f"{sender.username} wants to sign out {equip_name}"
         try:
@@ -131,8 +131,8 @@ class Notification_Manager:
 
         notification = Notification(
             id=id,
-            sender=sender,
-            receiver=receiver,
+            sender=sender.id,
+            receiver=receiver.id,
             date=datetime.now(),
             body=message,
             _type="i",  # inform

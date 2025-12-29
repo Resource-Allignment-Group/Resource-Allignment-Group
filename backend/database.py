@@ -94,6 +94,9 @@ class DatabaseManager:
                 "role": "p",
                 "checked_out_equipment": [],
                 "inbox": [],
+                "position": None,
+                "name": None,
+                "phone": None,
             }
         )
 
@@ -370,3 +373,33 @@ class DatabaseManager:
             equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
 
         return request_list, equipment_list
+
+    def get_dashboard_info(self):
+        num_total = len(self.get_all_equipment())
+        num_available = self.equipment_db.count_documents({"checked_out": False})
+        num_used = self.equipment_db.count_documents({"checked_out": True})
+        num_damaged = self.equipment_db.count_documents({"damaged": True})
+        # add unavalibility later
+        num_unavailable = "add later"
+        return num_total, num_available, num_used, num_damaged, num_unavailable
+
+    def get_all_users(self):
+        all_users = []
+        users = self.users_db.find({})
+        for user_info in users:
+            all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
+        return all_users
+
+    def delete_user(self, user: User):
+        [
+            self.equipment_db.update_one(
+                {"_id": equipment_id}, {"$set", {"checked_out": False}}
+            )
+            for equipment_id in user.checked_out_equipment
+        ]
+
+        result = self.users_db.delete_one({"_id": user.id})
+        if result.acknowledged:
+            return True
+        else:
+            return False

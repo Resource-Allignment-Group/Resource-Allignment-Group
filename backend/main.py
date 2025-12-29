@@ -6,6 +6,7 @@ from database import DatabaseManager
 from helpers import *
 from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
+from user import User
 
 load_dotenv()
 
@@ -222,6 +223,50 @@ def get_requests():
         equipment_list.append(equipment[i].to_dict())
 
     return jsonify({"notifications": notifications_list, "equipment": equipment_list})
+
+
+@app.route("/get_dashboard_info")
+def get_dashboard_info():
+    num_total, num_available, num_used, num_damaged, num_unavailable = (
+        db.get_dashboard_info()
+    )
+    return jsonify(
+        {
+            "total": num_total,
+            "available": num_available,
+            "used": num_used,
+            "damaged": num_damaged,
+            "unavailable": num_unavailable,
+        }
+    )
+
+
+@app.route("/get_users", methods=["GET"])
+def get_users():
+    users = db.get_all_users()
+    user_dicts = [user.to_dict() for user in users]
+    return jsonify({"users": user_dicts})
+
+
+@app.route("/change_user_role", methods=["POST"])
+def change_user_role():
+    data = request.json
+    result = db.set_user_role(id=ObjectId(data["user"]["id"]), role=data["new_role"])
+    if result:
+        return jsonify({"result": True})
+    else:
+        return jsonify({"result": False})
+
+
+@app.route("/delete_user_account", methods=["POST"])
+def delete_user_account():
+    data = request.json
+    user = db.get_user_by_id(ObjectId(data["user"]["id"]))
+    result = db.delete_user(user=user)
+    if result:
+        return jsonify({"result": True})
+    else:
+        return jsonify({"result": False})
 
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
