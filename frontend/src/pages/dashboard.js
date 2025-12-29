@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 // Import componets that will make up the dashboard page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import AddEquipmentModal from "../components/addEquipmentWindow"
 
 function Dashboard({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -13,6 +14,7 @@ function Dashboard({num_of_notifications, setNumNotifications}) {
 	const [num_available, setNumAvailable] = useState(0)
 	const [num_unavailable, setNumUnavailable] = useState(0)
 	const [num_total, setTotal] = useState(0)
+	const [showModal, setShowModal] = useState(false);
 	
 	useEffect(() => {
 		const GetDashboardInfo = async () => {
@@ -102,10 +104,21 @@ function Dashboard({num_of_notifications, setNumNotifications}) {
 
 							<button className="action-button">
 								<span>
-									<strong>Add Equipment</strong>
+									<strong
+									onClick={() => setShowModal(true)}
+									style={{ cursor: "pointer" }}
+									>
+									Add Equipment
+									</strong>
+									
 								</span>
 								<span className="plus-icon">+</span>
 							</button>
+							<AddEquipmentModal
+									isOpen={showModal}
+									onClose={() => setShowModal(false)}
+									onSuccess={() => console.log("Equipment added")}
+								/>
 						</div>
 					</div>
 				</div>

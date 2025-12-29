@@ -269,6 +269,19 @@ def delete_user_account():
     else:
         return jsonify({"result": False})
 
+@app.route("/add_equipment", methods=["POST"])
+def add_equipment():
+    equip_data = request.json["data"]
+    equip_data["_id"] = ObjectId()
+    equip_data["images"] = request.json["images"]
+    equip_data["reports"] = request.json["reports"]
+    equip_data["checked_out"] = False
+    equip_data["damaged"] = False
+
+    new_equip = Equipment()
+    new_equip.fill_from_json(equip_data)
+    db.add_equipment(new_equip)
+    return jsonify({"result": True})
 
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":

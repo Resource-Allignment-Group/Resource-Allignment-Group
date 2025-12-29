@@ -8,54 +8,6 @@ function UserManagement({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [users, setUsers] = useState([]);
-
-	// Sample user data, will be replaced with backend info later
-	// const users = [
-	// 	{
-	// 	  id: 1,
-	// 	  name: 'John Smith',
-	// 	  email: 'john.smith@gmail.com',
-	// 	  phone: '(123) 456-789',
-	// 	  role: 'Admin',
-	// 	  position: 'Example Position',
-	// 	  department: 'Example Department',
-	// 	  checkedOutEquipment: [
-	// 		{
-	// 		  name: 'Snow Plow Truck - Ford',
-	// 		  checkedOutDate: 'Nov 12, 2025'
-	// 		}
-	// 	  ]
-	// 	},
-	// 	{
-	// 	  id: 2,
-	// 	  name: 'Jane Doe',
-	// 	  email: 'jane.doe@gmail.com',
-	// 	  phone: '(987) 654-321',
-	// 	  role: 'Superintendent',
-	// 	  position: 'Farm Manager',
-	// 	  department: 'Operations',
-	// 	  checkedOutEquipment: [
-	// 		{
-	// 		  name: 'Tractor - John Deere 4040',
-	// 		  checkedOutDate: 'Nov 10, 2025'
-	// 		},
-	// 		{
-	// 		  name: 'Sprayer - Case IH',
-	// 		  checkedOutDate: 'Nov 8, 2025'
-	// 		}
-	// 	  ]
-	// 	},
-	// 	{
-	// 	  id: 3,
-	// 	  name: 'John Doe',
-	// 	  email: 'john.doe@gmail.com',
-	// 	  phone: 'N/A',
-	// 	  role: 'User',
-	// 	  position: 'Research Assistant',
-	// 	  department: 'Research',
-	// 	  checkedOutEquipment: []
-	// 	},
-	// ];
 	useEffect(() => {
 		const GetUsersInfo = async () => {
 			try{
