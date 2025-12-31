@@ -1,6 +1,6 @@
 import "../styles/default.css";
 import "../styles/profile.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../Authentication"
 import { useNavigate } from 'react-router-dom';
 
@@ -13,7 +13,73 @@ function Profile({num_of_notifications, setNumNotifications}) {
 	const { logout } = useAuth()
 	const navigate = useNavigate()
 	
-	const handleLogout = async () => {
+	const [profile, setProfile] = useState({
+		fname: "",
+		lname: "",
+		email: "",
+		phone: "",
+		position: "",
+		department: "",
+	});
+	useEffect(() => {
+		const fetchProfile = async () => {
+			try {
+				const res = await fetch("http://localhost:5000/get_profile_info", {
+					method: "GET",
+					credentials: "include",
+				});
+
+				if (!res.ok) throw new Error("Failed to fetch profile");
+
+				const data = await res.json();
+				const fname = data.name.split(" ")[0]
+				const lname = data.name.split(" ")[1]
+				
+				setProfile({
+					fname: fname,
+					lname: lname,
+					email: data.email,
+					phone: data.phone || "",
+					position: data.position || "",
+					department: data.department || "",
+				});
+			} catch (err) {
+				console.error(err);
+				alert("Could not load profile information");
+			}
+		}
+	fetchProfile();
+	}, []);
+
+	const handleSave = async () => {
+			try {
+				const res = await fetch("http://localhost:5000/save_new_profile_info", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					credentials: "include",
+					body: JSON.stringify(profile),
+				});
+
+				if (!res.ok) throw new Error("Failed to save profile");
+
+				alert("Profile updated successfully");
+			} catch (err) {
+				console.error(err);
+				alert("Error saving profile changes");
+			} 
+		}
+
+	const handleChange = (e) => {
+			const { name, value } = e.target;
+			setProfile((prev) => ({
+				...prev,
+				[name]: value,
+			}));
+		};
+	
+		const handleLogout = async () => {
 		const success = await logout();
     	if(success){
       		navigate('/login'); 
@@ -26,11 +92,9 @@ function Profile({num_of_notifications, setNumNotifications}) {
 
 	return (
 		<div className="home-container">
-			{/* Sidebar is a separate component */}
 			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
 			<div className="main">
-				{/* Header is a separate component */}
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={() => setSidebarOpen(true)}
@@ -38,82 +102,115 @@ function Profile({num_of_notifications, setNumNotifications}) {
 					setNotificationsNum={setNumNotifications}
 				/>
 
-				{/* The title and brief description of the profile page  */}
 				<div className="hero-section">
 					<h2>Account Settings</h2>
 					<p>Manage your personal information</p>
 				</div>
 
-				{/* Account settings content */}
 				<div className="content">
 					<div className="settings-card">
-						{/* Left side - Profile section */}
+						{/* Left side */}
 						<div className="profile-section">
 							<div className="profile-picture-large"></div>
-							<button className="change-picture-btn">Change Picture</button>
+							<button className="change-picture-btn">
+								Change Picture
+							</button>
 
 							<div className="profile-info">
-								<h3>John Smith</h3>
-								<p>john.smith@gmail.com</p>
+								<h3>
+									{profile.fname} {profile.lname}
+								</h3>
+								<p>{profile.email}</p>
 							</div>
 
-							<button className="sign-out-btn" onClick={handleLogout}>Sign Out</button>
+							<button className="sign-out-btn" onClick={handleLogout}>
+								Sign Out
+							</button>
 						</div>
 
-						{/* Right side - Form section */}
+						{/* Right side form */}
 						<div className="form-section">
 							<h3>Personal Details</h3>
 
 							<div className="form-row">
 								<div className="form-field">
-									<label>
-										First Name <span className="required">*</span>
-									</label>
-									<input type="text" placeholder="" />
+									<label>First Name *</label>
+									<input
+										type="text"
+										name="fname"
+										value={profile.fname}
+										onChange={handleChange}
+									/>
 								</div>
 
 								<div className="form-field">
-									<label>
-										Last Name <span className="required">*</span>
-									</label>
-									<input type="text" placeholder="" />
+									<label>Last Name *</label>
+									<input
+										type="text"
+										name="lname"
+										value={profile.lname}
+										onChange={handleChange}
+									/>
 								</div>
 							</div>
 
 							<div className="form-row">
 								<div className="form-field">
-									<label>
-										Email Address <span className="required">*</span>
-									</label>
-									<input type="email" placeholder="" />
+									<label>Email Address *</label>
+									<input
+										type="email"
+										name="email"
+										value={profile.email}
+										onChange={handleChange}
+									/>
 								</div>
 
 								<div className="form-field">
 									<label>Phone Number</label>
-									<input type="tel" placeholder="" />
+									<input
+										type="tel"
+										name="phone"
+										value={profile.phone}
+										onChange={handleChange}
+									/>
 								</div>
 							</div>
 
 							<div className="form-row">
 								<div className="form-field">
-									<label>
-										Position within MAFES <span className="required">*</span>
-									</label>
-									<input type="text" placeholder="" />
+									<label>Position within MAFES *</label>
+									<input
+										type="text"
+										name="position"
+										value={profile.position}
+										onChange={handleChange}
+									/>
 								</div>
 
 								<div className="form-field">
-									<label>
-										MAFES Department <span className="required">*</span>
-									</label>
-									<input type="text" placeholder="" />
+									<label>MAFES Department *</label>
+									<input
+										type="text"
+										name="department"
+										value={profile.department}
+										onChange={handleChange}
+									/>
 								</div>
 							</div>
 
-							{/* Form buttons */}
 							<div className="form-buttons">
-								<button className="btn-save">Save Changes</button>
-								<button className="btn-cancel">Cancel</button>
+								<button
+									className="btn-save"
+									onClick={handleSave}
+								>
+									Save Changes
+								</button>
+								<button
+									className="btn-cancel"
+									onClick={() => window.location.reload()}
+								>
+									Cancel
+								</button>
 							</div>
 						</div>
 					</div>

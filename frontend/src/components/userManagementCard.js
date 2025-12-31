@@ -9,9 +9,10 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 	// Placeholder for changing the user's role in the dropdown
 	// Connect to the backend later
 	const [role, setRole] = useState(user.role);
-
+	
 	const ChangeRole = async (new_role) => {
 		try{
+			setRole(new_role)
 			const res = await fetch("http://localhost:5000/change_user_role", {
 					method: "POST",
 					credentials: "include",
@@ -60,7 +61,7 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 
 
 						{/* change back to email */}
-						{user.username} | {user.phone}
+						{user.email} | {user.phone}
 
 
 

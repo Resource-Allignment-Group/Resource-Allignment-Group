@@ -1,0 +1,125 @@
+.add-equipment-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.55);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 2000;
+}
+
+.add-equipment-modal {
+	background-color: white;
+	width: 520px;
+	max-height: 90vh;
+	border-radius: 8px;
+	overflow-y: auto;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.add-equipment-modal::-webkit-scrollbar {
+	display: none;
+}
+
+.add-equipment-modal {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.add-equipment-header {
+	padding: 20px 25px;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.add-equipment-header h2 {
+	font-size: 20px;
+	font-weight: 600;
+	color: #082e58;
+}
+
+.add-equipment-body {
+	padding: 20px 25px;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.add-equipment-body label {
+	display: flex;
+	flex-direction: column;
+	font-size: 13px;
+	color: #666;
+	gap: 5px;
+}
+
+.add-equipment-body input[type="text"],
+.add-equipment-body select,
+.add-equipment-body textarea {
+	padding: 10px;
+	font-size: 14px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-family: Arial, sans-serif;
+	background-color: white;
+}
+
+.add-equipment-body textarea {
+	min-height: 100px;
+	resize: vertical;
+	line-height: 1.6;
+}
+
+.add-equipment-body input[type="file"] {
+	font-size: 14px;
+}
+
+.add-equipment-footer {
+	padding: 15px 25px;
+	border-top: 1px solid #ddd;
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+.add-equipment-submit {
+	padding: 10px 20px;
+	background-color: #082e58;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.add-equipment-submit:hover {
+	background-color: #051d36;
+}
+
+.add-equipment-cancel {
+	padding: 10px 20px;
+	background-color: white;
+	color: #333;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.add-equipment-cancel:hover {
+	background-color: #f0f0f0;
+}
+
+.add-equipment-close {
+	background: none;
+	border: none;
+	font-size: 22px;
+	cursor: pointer;
+	color: #666;
+}
+
+.add-equipment-close:hover {
+	color: #000;
+}

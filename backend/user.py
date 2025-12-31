@@ -1,6 +1,5 @@
 class User:
     def __init__(self):
-        self.username = None
         self.password = None
         self.id = None
         self.role = None
@@ -18,7 +17,6 @@ class User:
             self.inbox.append(n)
 
     def fill_user_information(self, db_object):
-        self.username = db_object["username"]
         self.id = db_object["_id"]
         self.role = db_object["role"]
         self.inbox = db_object["inbox"]
@@ -26,10 +24,10 @@ class User:
         self.position = db_object["position"]
         self.phone = db_object["phone"]
         self.name = db_object["name"]
+        self.email = db_object["email"]
 
     def to_dict(self):
         return {
-            "username": self.username,
             "id": str(self.id),
             "role": self.role,
             "email": self.email,

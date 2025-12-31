@@ -58,14 +58,24 @@ class DatabaseManager:
     def set_request_user(self, id: ObjectId, user_id: ObjectId):
         self.requests_db.update_one({"_id": id}, {"$set": {"user": user_id}})
 
-    def set_user_username(self, id: ObjectId, username: str):
-        self.users_db.update_one({"_id": id}, {"$set": {"username": username}})
-
     def set_user_password(self, id: ObjectId, password: str):
         self.users_db.update_one({"_id": id}, {"$set": {"password": password}})
 
     def set_user_role(self, id: ObjectId, role: str):
         self.users_db.update_one({"_id": id}, {"$set": {"role": role}})
+    
+    def set_user_name(self, id: ObjectId, new_name: str):
+        self.users_db.update_one({"_id": id}, {"$set": {"name": new_name}})
+
+    def set_user_email(self, id: ObjectId, new_email: str):
+        #Might have to change notifications that use this depending on functionality
+        self.users_db.update_one({"_id": id}, {"$set": {"email": new_email}})
+
+    def set_user_phone(self, id: ObjectId, new_phone: str):
+        self.users_db.update_one({"_id": id}, {"$set": {"phone": new_phone}})
+
+    def set_user_position(self, id: ObjectId, new_position: str):
+        self.users_db.update_one({"_id": id}, {"$set": {"position": new_position}})
 
     def set_equipment_year(self, id: ObjectId, year: int):
         self.equipment_db.update_one({"_id": id}, {"$set": {"year": year}})
@@ -81,22 +91,22 @@ class DatabaseManager:
             {"_id": id}, {"$set": {"checked_out": checked_out}}
         )
 
-    def add_user(self, email: str, password):
+    def add_user(self, fname: str, lname: str, phone: int, email: str, password):
         if (
-            self.users_db.count_documents({"username": email}) != 0
-        ):  # Checks to make sure username does not already exist
-            return {"result": False, "message": f"Username {email} already exists"}
+            self.users_db.count_documents({"email": email}) != 0
+        ):  # Checks to make sure email does not already exist
+            return {"result": False, "message": f"Email {email} already exists"}
 
         result = self.users_db.insert_one(
             {
-                "username": email,
                 "password": password,
+                "email": email,
                 "role": "p",
                 "checked_out_equipment": [],
                 "inbox": [],
                 "position": None,
-                "name": None,
-                "phone": None,
+                "name": fname.capitalize() + lname.capitalize(),
+                "phone": phone,
             }
         )
 
@@ -166,13 +176,13 @@ class DatabaseManager:
             {"_id": equipment_id}, {"$set": {"checked_out": False}}
         )
 
-    def get_password_by_username(self, username: str):
-        return self.users_db.find_one({"username": username})["password"]
+    def get_password_by_email(self, email: str):
+        return self.users_db.find_one({"email": email})["password"]
     
-    def get_user_by_username(self, username: str) -> User:
+    def get_user_by_email(self, email: str) -> User:
         new_user = User()
         new_user.fill_user_information(
-            list(self.users_db.find({"username": username}))[0]
+            list(self.users_db.find({"email": email}))[0]
         )
         return new_user
 
@@ -269,9 +279,9 @@ class DatabaseManager:
         note.populate_from_json(json_info=note_info)
         return note
 
-    def get_username_by_id(self, user_id: str):
+    def get_email_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
-        return user["username"]
+        return user["email"]
 
     def get_administrators(self):
         cursor = self.users_db.find({"role": "a"})

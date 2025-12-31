@@ -33,7 +33,7 @@ function Notifications({ num_of_notifications, setNumNotifications}) {
 				body: JSON.stringify({ result: result, notification: notification}),
 			});
 			const data = await res.json();
-			if (result) {
+			if (data.result) { //might cause problems, if so delete "data."
 				setNumNotifications((num) => num - 1);
 			}
 			//change notification to an inform class

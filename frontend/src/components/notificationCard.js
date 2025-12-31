@@ -100,7 +100,7 @@ function NewAccountNotification({
 				<div className="notification-info">
 					<h3>New Account Request</h3>
 					<p>
-						<strong>{notification.sender_username}</strong> has requested a new
+						<strong>{notification.sender_name}</strong> has requested a new
 						account.
 					</p>
 
