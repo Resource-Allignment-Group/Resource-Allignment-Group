@@ -28,17 +28,17 @@ nm = Notification_Manager(db=db)
 @app.route("/authenticate", methods=["POST", "GET"])
 def authenticate():
     data = request.json
-    username = data.get("username")
+    email = data.get("email")
     password = data.get("password")
-    user = db.get_user_by_username(username=username)
-    hashed_passowrd = db.get_password_by_username(username=username)
+    user = db.get_user_by_email(email=email)
+    hashed_passowrd = db.get_password_by_email(email=email)
     if check_password(
         origional_password=password, hashed_password=hashed_passowrd
     ):  # check with the the hashing algorithm
         if user.role == "p":
             return "Account is still pending approval from admin"
         else:
-            session["user"] = username
+            session["user"] = email
             session["role"] = user.role
             session["id"] = str(user.id)  # Object ID can not be serialized
             return jsonify({"message": "success"})
@@ -68,15 +68,15 @@ def logout():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    email, password = data["email"], data["password"]
+    fname, lname, email, password, phone = data["email"], data["password"], data["fname"], data["lname"], data["phone"]
     hashed_password = hash_password(
         password=password
     )  # I belive this uses SHA256 but i would have to check
-    result = db.add_user(email=email, password=hashed_password)
+    result = db.add_user(email=email, password=hashed_password, fname=fname, lname=lname, phone=phone)
 
     if result["result"]:
         # send a notification to admin and update user management
-        new_user = db.get_user_by_username(username=email)
+        new_user = db.get_user_by_email(email=email)
         db.set_user_role(id=new_user.id, role="p")  #'p' stands for 'pending'
         nm.send_account_approval_message(new_user=new_user)
         return jsonify({"message": "success"})
@@ -100,7 +100,7 @@ def get_notifications():
     msgs = []
     for note in user_notifications:
         msgs.append(
-            note.to_dict(db.get_username_by_id(user_id=str(note.sender)))
+            note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
         )  # not the best way to do this, but once again, van not think of a better way
         if note.type == "i":
             # kind of a jerry-rigged way to see if the user has read the message but I can't really think of a better way without massive overhead in developments
@@ -121,11 +121,11 @@ def account_decision():
             db.remove_notification_from_inbox(notification=new_note)
             db.set_notification_read(id=new_note.id, read=True)
             if data["result"]:
-                result_message = f"{db.get_username_by_id(user_id=new_note.sender)} has been added to the system"
+                result_message = f"{db.get_email_by_id(user_id=new_note.sender)} has been added to the system"
                 db.set_user_role(id=ObjectId(new_note.sender), role="u")  # u for 'user'
 
             else:
-                result_message = f"{db.get_username_by_id(user_id=new_note.sender)} has been rejected from the system"
+                result_message = f"{db.get_email_by_id(user_id=new_note.sender)} has been rejected from the system"
                 db.set_user_role(
                     id=ObjectId(new_note.sender), role="r"
                 )  # r stand for 'rejected'
@@ -176,7 +176,7 @@ def request_equipment():
     equip_id = data["equip_id"]
     note_result = nm.send_equipment_request(
         id=ObjectId(),
-        sender=db.get_user_by_username(username=session["user"]),
+        sender=db.get_user_by_email(email=session["user"]),
         equip_name=data["equip_name"],
         equipment_id=ObjectId(equip_id),
     )
@@ -219,7 +219,7 @@ def get_requests():
 
     for i, note in enumerate(notifications):
         notifications_list.append(
-            note.to_dict(db.get_username_by_id(user_id=str(note.sender)))
+            note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
         )
         equipment_list.append(equipment[i].to_dict())
 
@@ -283,6 +283,19 @@ def add_equipment():
     db.add_equipment(new_equip)
     return jsonify({"result": True})
 
+@app.route("/get_profile_info", methods=["GET"])
+def get_profile_equipment():
+    user = db.get_user_by_id(user_id=ObjectId(session["id"]))
+    return jsonify(user.to_dict())
+
+@app.route("/save_new_profile_info", methods= ["POST"])
+def save_new_profile_info():
+    data = request.json
+    db.set_user_name(id=ObjectId(session["id"]), new_name=f"{data["fname"].capitalize()} {data["lname"].capitalize()}")
+    db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
+    db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
+    db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
+    return jsonify({"result": True})
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000, use_reloader=False)

@@ -43,9 +43,9 @@ class Notification:
         self.read = json_info["read"]
         self.status = json_info["status"]
 
-    def to_dict(self, sender_username):
+    def to_dict(self, sender_name):
         return {  # need to convert to strings in order to make the json serializable
-            "sender_username": sender_username,
+            "sender_name": sender_name,
             "sender": str(self.sender),
             "receiver": str(self.receiver),
             "date": str(self.date),
@@ -85,7 +85,7 @@ class Notification_Manager:
             return f"Error sending email: {e}"
 
     def send_account_approval_message(self, new_user: User):
-        message = f"The user {new_user.username} is attempting to make a new account"
+        message = f"{new_user.name} is attempting to make a new account"
         for admin in self.db.get_administrators():
             new_note = Notification(
                 id=ObjectId(),
@@ -103,7 +103,7 @@ class Notification_Manager:
     def send_equipment_request(
         self, id: ObjectId, sender: User, equip_name: str, equipment_id: ObjectId
     ):
-        message = f"{sender.username} wants to sign out {equip_name}"
+        message = f"{sender.name} wants to sign out {equip_name}"
         try:
             for admin in self.db.get_administrators():
                 new_note = Notification(

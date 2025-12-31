@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         });
 
         const data = await res.json();
-        setUser(data.user ? { username: data.user } : null);
+        setUser(data.user ? { email: data.user } : null);
       } 
       
       catch (err) {
@@ -31,18 +31,18 @@ export const AuthProvider = ({ children }) => {
     checkSession();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
       const res = await fetch("http://localhost:5000/authenticate", { //logis in the user and starts their session
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
         credentials: "include", 
       });
       
       const data = await res.json();
       if (data.message === "success") {
-        setUser({ username });
+        setUser({ email });
         return true;
       }
       else{

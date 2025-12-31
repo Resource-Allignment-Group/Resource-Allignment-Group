@@ -4,7 +4,7 @@ import { useAuth } from "../Authentication"
 import "../styles/login.css"
 
 function Login() {
-    const [username, setUsername] = useState('')
+    const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const { login } = useAuth()
     const navigate = useNavigate()
@@ -12,13 +12,13 @@ function Login() {
     const handleLogin = async (e) => {
   if (e) e.preventDefault();
   try {
-    const success = await login(username, password); // call login function in AuthProvider.js
+    const success = await login(email, password); // call login function in AuthProvider.js
     if(success){
       navigate('/home'); 
     } 
     
     else {
-      alert('Invalid username or password'); //can make these non alert is decided
+      alert('Invalid email or password'); //can make these non alert is decided
     }
     
   } catch (error) {
@@ -44,10 +44,10 @@ function Login() {
           <label>Email *</label>
           <input
               type="text"
-              id="username"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
           <label>Password *</label>
