@@ -24,6 +24,7 @@ def create_app(testing=False):
 
     if testing:
         app.config["TESTING"] = True
+        app.secret_key = 'testing_key'
     else:
         app.config["SESSION_COOKIE_HTTPONLY"] = True
         app.config["SESSION_COOKIE_SECURE"] = False
