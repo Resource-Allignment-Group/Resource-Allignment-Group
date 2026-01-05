@@ -41,9 +41,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run backend tests
-        working-directory:
+        working-directory: backend
+        env:
+          PYTHONPATH: ${{ github.workspace }}/backend
         run: |
-          pytest
+          pytest tests e2e_tests
 
       - name: Set up Node
         uses: actions/setup-node@v4
