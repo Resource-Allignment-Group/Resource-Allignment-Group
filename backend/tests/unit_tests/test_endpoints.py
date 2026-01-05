@@ -1,7 +1,7 @@
 
 import pytest
-from backend.main import create_app
-from backend.database import DatabaseManager
+from main import create_app
+from database import DatabaseManager
 from bson.objectid import ObjectId
 
 def test_all_user_endpoints(client):

@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from backend.main import create_app
+from main import create_app
 
 @pytest.fixture(scope="session")
 def flask_server():

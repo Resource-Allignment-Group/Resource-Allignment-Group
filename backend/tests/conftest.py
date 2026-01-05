@@ -1,6 +1,6 @@
 import pytest
 from threading import Thread
-from backend.main import create_app
+from main import create_app
 
 @pytest.fixture
 def client():

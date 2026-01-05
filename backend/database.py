@@ -6,10 +6,10 @@ from datetime import datetime
 from PIL import Image
 import io
 from dotenv import load_dotenv
-from backend.user import User
-from backend.notifications import Notification
+from user import User
+from notifications import Notification
 from bson.objectid import ObjectId
-from backend.equipment import Equipment
+from equipment import Equipment
 from typing import Literal
 
 _client = None  # Needed so that only one client call is made

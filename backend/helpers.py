@@ -1,7 +1,7 @@
 import bcrypt
-from backend.database import DatabaseManager
+from database import DatabaseManager
 import pandas as pd
-from backend.equipment import Equipment
+from equipment import Equipment
 from bson.objectid import ObjectId
 
 

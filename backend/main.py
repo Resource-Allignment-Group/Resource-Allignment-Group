@@ -2,32 +2,11 @@ from flask import Flask, session, jsonify, request
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from backend.database import DatabaseManager
-from backend.helpers import *
-from backend.notifications import Notification_Manager, Notification
+from database import DatabaseManager
+from helpers import *
+from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
-from backend.user import User
-
-# def create_app(testing=False):
-#     load_dotenv()
-
-#     app = Flask(__name__)
-#     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-
-#     CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
-#     if testing:
-#         db = DatabaseManager(testing=testing) 
-#         nm = Notification_Manager(db=db)
-#         app.config["TESTING"] = True
-#     else:
-#         app.config["SESSION_COOKIE_HTTPONLY"] = True
-#         app.config["SESSION_COOKIE_SECURE"] = False
-#         app.config["SESSION_TYPE"] = "filesystem"
-#         app.config["SESSION_COOKIE_SAMESITE"] = None
-
-
-#         db = DatabaseManager(testing=False)
-#         nm = Notification_Manager(db=db)
+from user import User
     
 def create_app(testing=False):
     load_dotenv()
