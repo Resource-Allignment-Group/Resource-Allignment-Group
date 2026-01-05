@@ -50,7 +50,7 @@ def create_app(testing=False):
                 return jsonify({"result": True, "message": "success"})
 
         else:
-            return jsonify({"result": False, "message": [user.to_dict() for user in db.get_all_users()], "hash": hashed_passowrd})
+            return jsonify({"result": False, "message":"Something went wrong"})
 
 
     @app.route("/check-session", methods=["GET"])
@@ -296,7 +296,7 @@ def create_app(testing=False):
     @app.route("/save_new_profile_info", methods= ["POST"])
     def save_new_profile_info():
         data = request.json
-        db.set_user_name(id=ObjectId(session["id"]), new_name=f"{data["fname"].capitalize()} {data["lname"].capitalize()}")
+        db.set_user_name(id=ObjectId(session["id"]), new_name=f"{data['fname'].capitalize()} {data['lname'].capitalize()}")
         db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
         db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
         db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
