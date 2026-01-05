@@ -6,10 +6,10 @@ from datetime import datetime
 from PIL import Image
 import io
 from dotenv import load_dotenv
-from user import User
-from notifications import Notification
+from backend.user import User
+from backend.notifications import Notification
 from bson.objectid import ObjectId
-from equipment import Equipment
+from backend.equipment import Equipment
 from typing import Literal
 
 _client = None  # Needed so that only one client call is made
@@ -23,9 +23,14 @@ class DatabaseManager:
             _client = MongoClient(os.environ.get("DATABASE_URI"))
         return _client
 
-    def __init__(self):
+    def __init__(self, testing):
         self.get_client()
-        self.db = _client["RAM_DB"]
+        if testing:
+            print("testing")
+            self.db = _client["TEST_RAM_DB"]
+        else:
+            print("straight")
+            self.db = _client["RAM_DB"]
         self.users_db = self.db["users"]
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
@@ -181,6 +186,10 @@ class DatabaseManager:
     
     def get_user_by_email(self, email: str) -> User:
         new_user = User()
+        print(email)
+        u = self.users_db.find({})
+        for i in u:
+            print(i)
         new_user.fill_user_information(
             list(self.users_db.find({"email": email}))[0]
         )
@@ -278,7 +287,13 @@ class DatabaseManager:
         note = Notification()
         note.populate_from_json(json_info=note_info)
         return note
-
+    
+    def get_notifications_by_equipment(self, equip_id):
+        note_info = self.notifications_db.find_one({"equipment_id": ObjectId(equip_id)})
+        note = Notification()
+        note.populate_from_json(json_info=note_info)
+        return note
+    
     def get_email_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["email"]
@@ -382,7 +397,6 @@ class DatabaseManager:
             new_request = Notification()
             new_request.populate_from_json(json_info=request)
             request_list.append(new_request)
-
             equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
 
         return request_list, equipment_list

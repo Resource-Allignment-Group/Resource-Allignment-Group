@@ -31,7 +31,7 @@ class User:
             "id": str(self.id),
             "role": self.role,
             "email": self.email,
-            "inbox": self.inbox,
+            "inbox": [str(id) for id in self.inbox],
             "position": self.position,
             "name": self.name,
             "phone": self.phone,

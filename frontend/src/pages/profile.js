@@ -32,16 +32,17 @@ function Profile({num_of_notifications, setNumNotifications}) {
 				if (!res.ok) throw new Error("Failed to fetch profile");
 
 				const data = await res.json();
-				const fname = data.name.split(" ")[0]
-				const lname = data.name.split(" ")[1]
+				const user_info = data["user"]
+				const fname = user_info.name.split(" ")[0]
+				const lname = user_info.name.split(" ")[1]
 				
 				setProfile({
 					fname: fname,
 					lname: lname,
-					email: data.email,
-					phone: data.phone || "",
-					position: data.position || "",
-					department: data.department || "",
+					email: user_info.email,
+					phone: user_info.phone || "",
+					position: user_info.position || "",
+					department: user_info.department || "",
 				});
 			} catch (err) {
 				console.error(err);
