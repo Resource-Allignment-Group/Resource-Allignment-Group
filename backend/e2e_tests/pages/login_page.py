@@ -5,7 +5,6 @@ class LoginPage:
         self.driver = driver
         self.url = f"{base_url}/login"
 
-        # Locators
         self.email_input = (By.ID, "email")
         self.password_input = (By.ID, "password")
         self.submit_button = (By.CSS_SELECTOR, "button[type='submit']")

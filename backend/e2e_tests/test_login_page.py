@@ -11,7 +11,7 @@ def test_user_can_log_in(driver, flask_server, base_url):
     print(driver.current_url)
     flag = False
     try:
-        header = WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
                 (By.XPATH, "//h1[text()='MAFES Equipment Management System']")
             )
