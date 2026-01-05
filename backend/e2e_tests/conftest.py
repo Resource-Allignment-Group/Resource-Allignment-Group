@@ -6,19 +6,21 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from main import create_app
+from werkzeug.serving import make_server
 
 @pytest.fixture(scope="session")
 def flask_server():
     app = create_app(testing=True)
     print("App created")
 
-    def run():
-        app.run(port=5000, use_reloader=False)
-
-    thread = Thread(target=run)
+    server = make_server("127.0.0.1", 5000, app)
+    thread = Thread(target=server.serve_forever)
     thread.start()
-    yield
-    thread.join(timeout=1)
+    
+    yield  # tests run here
+
+    server.shutdown()  # stop the server after tests
+    thread.join()
 
 @pytest.fixture(scope="session")
 def driver(flask_server):  # depends on flask_server
