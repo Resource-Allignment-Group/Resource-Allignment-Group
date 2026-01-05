@@ -23,7 +23,7 @@ def flask_server():
 @pytest.fixture(scope="session")
 def driver(flask_server):  # depends on flask_server
     options = Options()
-    # options.add_argument("--headless=new")
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
