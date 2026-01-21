@@ -18,7 +18,8 @@ function MyEquipment({num_of_notifications, setNumNotifications}) {
 				credentials: "include",
 			});
 			const data = await res.json();
-			return Array.isArray(data) ? data : [];
+			const equip_list = data["equip_list"]
+			return Array.isArray(equip_list) ? equip_list : [];
 		} 
 		catch (error) {
 			console.log(error);
@@ -26,8 +27,8 @@ function MyEquipment({num_of_notifications, setNumNotifications}) {
 		}
 	}
 	useEffect(() => {
-			fillEquipment().then((data) =>{
-				 setEquipment(data)});
+			fillEquipment().then((equip_list) =>{
+				 setEquipment(equip_list)});
 		}, []);
 
 	return (

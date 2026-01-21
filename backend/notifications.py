@@ -120,7 +120,6 @@ class Notification_Manager:
                 self.db.send_notification(notification=new_note)
             return 1
         except Exception as e:
-            print(e)
             return 0
 
     def send_inform_notification(

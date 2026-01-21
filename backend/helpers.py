@@ -38,20 +38,17 @@ def insert_via_spreadsheet():
         inplace=True,
     )
     df = df.fillna("None")
-    print(df.head())
     for i, tup in enumerate(df.iterrows()):
         _, row = tup
 
         if i == 0:
             continue
         row = list(row)
-        print(i, ":", row)
         name = (
             ", ".join([str(row[5]), str(row[2]), str(row[3]), str(row[4])])
             + f" ({row[1]})"
         )
         name = name.replace("nan, ", "")
-        print("name", name)
         equip = Equipment(
             uuid=ObjectId(),
             name=name,

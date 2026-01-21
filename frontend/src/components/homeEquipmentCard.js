@@ -39,7 +39,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
      			}),
 			});
 			const data = await res.json();
-			if (data.success){
+			if (data.result){
 				alert("Your Request Has Been Sent")
 			}
 			else{

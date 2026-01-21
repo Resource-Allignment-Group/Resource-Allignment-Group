@@ -23,9 +23,12 @@ class DatabaseManager:
             _client = MongoClient(os.environ.get("DATABASE_URI"))
         return _client
 
-    def __init__(self):
+    def __init__(self, testing):
         self.get_client()
-        self.db = _client["RAM_DB"]
+        if testing:
+            self.db = _client["TEST_RAM_DB"]
+        else:
+            self.db = _client["RAM_DB"]
         self.users_db = self.db["users"]
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
@@ -63,12 +66,12 @@ class DatabaseManager:
 
     def set_user_role(self, id: ObjectId, role: str):
         self.users_db.update_one({"_id": id}, {"$set": {"role": role}})
-    
+
     def set_user_name(self, id: ObjectId, new_name: str):
         self.users_db.update_one({"_id": id}, {"$set": {"name": new_name}})
 
     def set_user_email(self, id: ObjectId, new_email: str):
-        #Might have to change notifications that use this depending on functionality
+        # Might have to change notifications that use this depending on functionality
         self.users_db.update_one({"_id": id}, {"$set": {"email": new_email}})
 
     def set_user_phone(self, id: ObjectId, new_phone: str):
@@ -178,12 +181,10 @@ class DatabaseManager:
 
     def get_password_by_email(self, email: str):
         return self.users_db.find_one({"email": email})["password"]
-    
+
     def get_user_by_email(self, email: str) -> User:
         new_user = User()
-        new_user.fill_user_information(
-            list(self.users_db.find({"email": email}))[0]
-        )
+        new_user.fill_user_information(list(self.users_db.find({"email": email}))[0])
         return new_user
 
     def get_user_by_id(self, user_id: ObjectId) -> User:
@@ -279,6 +280,12 @@ class DatabaseManager:
         note.populate_from_json(json_info=note_info)
         return note
 
+    def get_notifications_by_equipment(self, equip_id):
+        note_info = self.notifications_db.find_one({"equipment_id": ObjectId(equip_id)})
+        note = Notification()
+        note.populate_from_json(json_info=note_info)
+        return note
+
     def get_email_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["email"]
@@ -344,8 +351,10 @@ class DatabaseManager:
         return equip_list
 
     def get_equipment_by_id(self, id: ObjectId):
-        equip_info = self.equipment_db.find_one({"_id": id})
+        print(id)
+        equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
         equip = Equipment()
+        print(equip_info)
         equip.fill_from_json(json_info=equip_info)
         return equip
 
@@ -382,7 +391,6 @@ class DatabaseManager:
             new_request = Notification()
             new_request.populate_from_json(json_info=request)
             request_list.append(new_request)
-
             equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
 
         return request_list, equipment_list

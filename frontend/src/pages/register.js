@@ -22,7 +22,7 @@ function Register() {
           "password": password,
           "fname": fname,
           "lname": lname,
-          "phone_number": phone_number
+          "phone": phone_number
         }),
         credentials: "include", 
       });
