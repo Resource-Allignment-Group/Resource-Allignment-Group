@@ -7,7 +7,8 @@ from helpers import *
 from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
 from user import User
-    
+
+
 def create_app(testing=False):
     load_dotenv()
 
@@ -19,18 +20,18 @@ def create_app(testing=False):
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
 
-    db = db      # attach DB to app
-    app.nm = nm      # attach manager to app
+    db = db  # attach DB to app
+    app.nm = nm  # attach manager to app
 
     if testing:
         app.config["TESTING"] = True
-        app.secret_key = 'testing_key'
+        app.secret_key = "testing_key"
     else:
         app.config["SESSION_COOKIE_HTTPONLY"] = True
         app.config["SESSION_COOKIE_SECURE"] = False
         app.config["SESSION_TYPE"] = "filesystem"
         app.config["SESSION_COOKIE_SAMESITE"] = None
-    
+
     @app.route("/authenticate", methods=["POST", "GET"])
     def authenticate():
         data = request.json
@@ -38,7 +39,6 @@ def create_app(testing=False):
         password = data.get("password")
         user = db.get_user_by_email(email=email)
         hashed_passowrd = db.get_password_by_email(email=email)
-        print("hashed", hashed_passowrd)
         if check_password(
             origional_password=password, hashed_password=hashed_passowrd
         ):  # check with the the hashing algorithm
@@ -51,8 +51,7 @@ def create_app(testing=False):
                 return jsonify({"result": True, "message": "success"})
 
         else:
-            return jsonify({"result": False, "message":"Something went wrong"})
-
+            return jsonify({"result": False, "message": "Something went wrong"})
 
     @app.route("/check-session", methods=["GET"])
     def check_session():
@@ -63,7 +62,6 @@ def create_app(testing=False):
         else:
             return jsonify({"result": False, "user": None})
 
-
     @app.route("/logout", methods=["POST"])
     def logout():
         session.pop("user", None)
@@ -71,15 +69,22 @@ def create_app(testing=False):
         session.pop("id", None)
         return jsonify({"result": True, "message": "logged out"})
 
-
     @app.route("/register", methods=["POST"])
     def register():
         data = request.json
-        fname, lname, email, password, phone = data["fname"], data["lname"], data["email"], data["password"], data["phone"]
+        fname, lname, email, password, phone = (
+            data["fname"],
+            data["lname"],
+            data["email"],
+            data["password"],
+            data["phone"],
+        )
         hashed_password = hash_password(
             password=password
         )  # I belive this uses SHA256 but i would have to check
-        result = db.add_user(email=email, password=hashed_password, fname=fname, lname=lname, phone=phone)
+        result = db.add_user(
+            email=email, password=hashed_password, fname=fname, lname=lname, phone=phone
+        )
 
         if result["result"]:
             # send a notification to admin and update user management
@@ -88,8 +93,7 @@ def create_app(testing=False):
             nm.send_account_approval_message(new_user=new_user)
             return jsonify({"result": True, "message": "success"})
         else:
-            return jsonify({"result" : False, "message": result["message"]})
-
+            return jsonify({"result": False, "message": result["message"]})
 
     @app.route("/get_user_info", methods=["GET"])
     def get_user_info():
@@ -97,13 +101,18 @@ def create_app(testing=False):
 
         # This needs so re factoring once we get more features implimented
         inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
-        unread_messages = db.get_unread_messages_by_user(user_id=ObjectId(session["id"]))
-        return jsonify({"result": True, "messages": [], "num_notifications": len(unread_messages)})
-
+        unread_messages = db.get_unread_messages_by_user(
+            user_id=ObjectId(session["id"])
+        )
+        return jsonify(
+            {"result": True, "messages": [], "num_notifications": len(unread_messages)}
+        )
 
     @app.route("/get_notifications", methods=["GET"])
     def get_notifications():
-        user_notifications = db.get_notifications_by_user(user_id=ObjectId(session["id"]))
+        user_notifications = db.get_notifications_by_user(
+            user_id=ObjectId(session["id"])
+        )
         msgs = []
         for note in user_notifications:
             msgs.append(
@@ -115,7 +124,6 @@ def create_app(testing=False):
 
         return jsonify({"result": True, "messages": msgs})
 
-
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
         data = request.json
@@ -124,12 +132,16 @@ def create_app(testing=False):
         new_note.populate_from_json(json_info=note_info)
 
         match new_note.type:
-            case "a":  # if it is an account creation notification, update the users role
+            case (
+                "a"
+            ):  # if it is an account creation notification, update the users role
                 db.remove_notification_from_inbox(notification=new_note)
                 db.set_notification_read(id=new_note.id, read=True)
                 if data["result"]:
                     result_message = f"{db.get_email_by_id(user_id=new_note.sender)} has been added to the system"
-                    db.set_user_role(id=ObjectId(new_note.sender), role="u")  # u for 'user'
+                    db.set_user_role(
+                        id=ObjectId(new_note.sender), role="u"
+                    )  # u for 'user'
 
                 else:
                     result_message = f"{db.get_email_by_id(user_id=new_note.sender)} has been rejected from the system"
@@ -146,7 +158,9 @@ def create_app(testing=False):
 
                 return jsonify({"result": True})
 
-            case "r":  # If the notification is a equipment request, update the equipment
+            case (
+                "r"
+            ):  # If the notification is a equipment request, update the equipment
                 db.remove_notification_from_inbox(notification=new_note)
                 db.set_notification_read(id=ObjectId(new_note.id), read=True)
 
@@ -167,15 +181,13 @@ def create_app(testing=False):
                     db.set_equipment_checked_out(id=new_note.id, checked_out=False)
                     return jsonify({"result": True})
 
-
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
         equipment_cur = db.get_all_equipment()
         equip_list = []
         for equip in equipment_cur:
             equip_list.append(equip.to_dict())
-        return jsonify({"result": True, "equip_list":equip_list} )
-
+        return jsonify({"result": True, "equip_list": equip_list})
 
     @app.route("/request_equipment", methods=["POST"])
     def request_equipment():
@@ -192,7 +204,6 @@ def create_app(testing=False):
         else:
             return jsonify({"result": False, "message": "this is the failure message"})
 
-
     @app.route("/get_user_equipment", methods=["GET"])
     def get_user_equipment():
         user_equipment = db.get_equipment_by_user(user_id=ObjectId(session["id"]))
@@ -201,7 +212,6 @@ def create_app(testing=False):
             equip_list.append(equip.to_dict())
 
         return jsonify({"result": True, "equip_list": equip_list})
-
 
     @app.route("/return_equipment", methods=["POST"])
     def return_equipment():
@@ -214,13 +224,13 @@ def create_app(testing=False):
             )
             return jsonify({"result": True})
         except Exception as e:
-            print(e)
             return jsonify({"result": False, "message": e})
-
 
     @app.route("/get_requests", methods=["GET"])
     def get_requests():
-        notifications, equipment = db.get_requests_by_user(user_id=ObjectId(session["id"]))
+        notifications, equipment = db.get_requests_by_user(
+            user_id=ObjectId(session["id"])
+        )
 
         notifications_list, equipment_list = [], []
 
@@ -230,8 +240,13 @@ def create_app(testing=False):
             )
             equipment_list.append(equipment[i].to_dict())
 
-        return jsonify({"result": True, "notifications": notifications_list, "equipment": equipment_list})
-
+        return jsonify(
+            {
+                "result": True,
+                "notifications": notifications_list,
+                "equipment": equipment_list,
+            }
+        )
 
     @app.route("/get_dashboard_info")
     def get_dashboard_info():
@@ -240,7 +255,7 @@ def create_app(testing=False):
         )
         return jsonify(
             {
-                "result": True, 
+                "result": True,
                 "total": num_total,
                 "available": num_available,
                 "used": num_used,
@@ -249,13 +264,11 @@ def create_app(testing=False):
             }
         )
 
-
     @app.route("/get_users", methods=["GET"])
     def get_users():
         users = db.get_all_users()
         user_dicts = [user.to_dict() for user in users]
         return jsonify({"result": True, "users": user_dicts})
-
 
     @app.route("/change_user_role", methods=["POST"])
     def change_user_role():
@@ -263,7 +276,6 @@ def create_app(testing=False):
         db.set_user_role(id=ObjectId(data["user"]["id"]), role=data["new_role"])
 
         return jsonify({"result": True})
-
 
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
@@ -294,16 +306,21 @@ def create_app(testing=False):
         user = db.get_user_by_id(user_id=ObjectId(session["id"]))
         return jsonify({"result": True, "user": user.to_dict()})
 
-    @app.route("/save_new_profile_info", methods= ["POST"])
+    @app.route("/save_new_profile_info", methods=["POST"])
     def save_new_profile_info():
         data = request.json
-        db.set_user_name(id=ObjectId(session["id"]), new_name=f"{data['fname'].capitalize()} {data['lname'].capitalize()}")
+        db.set_user_name(
+            id=ObjectId(session["id"]),
+            new_name=f"{data['fname'].capitalize()} {data['lname'].capitalize()}",
+        )
         db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
         db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
         db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
         return jsonify({"result": True})
 
     return app
+
+
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)

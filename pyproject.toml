@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resource-alignment-group"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+dependencies = [
+    "attrs==25.4.0",
+    "bcrypt==5.0.0",
+    "blinker==1.9.0",
+    "cachelib==0.13.0",
+    "certifi==2026.1.4",
+    "cffi==2.0.0",
+    "charset-normalizer==3.4.4",
+    "click==8.3.0",
+    "colorama==0.4.6",
+    "dnspython==2.8.0",
+    "dotenv==0.9.9",
+    "et_xmlfile==2.0.0",
+    "Flask==3.1.2",
+    "flask-cors==6.0.1",
+    "Flask-Session==0.8.0",
+    "h11==0.16.0",
+    "idna==3.11",
+    "iniconfig==2.3.0",
+    "itsdangerous==2.2.0",
+    "Jinja2==3.1.6",
+    "MarkupSafe==3.0.3",
+    "msgspec==0.19.0",
+    "numpy==2.3.5",
+    "openpyxl==3.1.5",
+    "outcome==1.3.0.post0",
+    "packaging==25.0",
+    "pandas==2.3.3",
+    "pillow==12.0.0",
+    "pluggy==1.6.0",
+    "pycparser==2.23",
+    "Pygments==2.19.2",
+    "pymongo==4.15.3",
+    "PySocks==1.7.1",
+    "pytest==9.0.2",
+    "python-dateutil==2.9.0.post0",
+    "python-dotenv==1.2.1",
+    "pytz==2025.2",
+    "requests==2.32.5",
+    "selenium==4.39.0",
+    "six==1.17.0",
+    "sniffio==1.3.1",
+    "sortedcontainers==2.4.0",
+    "trio==0.32.0",
+    "trio-websocket==0.12.2",
+    "typing_extensions==4.15.0",
+    "tzdata==2025.2",
+    "urllib3==2.6.2",
+    "webdriver-manager==4.0.2",
+    "websocket-client==1.9.0",
+    "Werkzeug==3.1.3",
+    "wsproto==1.3.2",
+]
+
+# pytest configuration to fix import issues
+[tool.pytest.ini_options]
+minversion = "9.0"
+addopts = "-ra -q"
+testpaths = [
+    "backend/tests",
+]
+pythonpath = [
+    "backend"
+]
+
+[tool.setuptools.packages.find]
+where = ["backend"]
