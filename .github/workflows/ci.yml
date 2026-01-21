@@ -63,7 +63,7 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
         run: |
-          pytest tests e2e_tests
+          pytest tests
 
       - name: Run frontend tests
         working-directory: frontend

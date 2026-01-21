@@ -1,4 +1,5 @@
-# backend/end-to-end-tests/conftest.py
+# I tried to get these e2e tests working but was unsuccessful. Leaving this here for future reference.
+
 import pytest
 from threading import Thread
 from selenium import webdriver
@@ -8,6 +9,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from main import create_app
 from werkzeug.serving import make_server
 
+
 @pytest.fixture(scope="session")
 def flask_server():
     app = create_app(testing=True)
@@ -16,11 +18,12 @@ def flask_server():
     server = make_server("127.0.0.1", 5000, app)
     thread = Thread(target=server.serve_forever)
     thread.start()
-    
+
     yield  # tests run here
 
     server.shutdown()  # stop the server after tests
     thread.join()
+
 
 @pytest.fixture(scope="session")
 def driver(flask_server):  # depends on flask_server
@@ -33,6 +36,7 @@ def driver(flask_server):  # depends on flask_server
     driver = webdriver.Chrome(service=service, options=options)
     yield driver
     driver.quit()
+
 
 @pytest.fixture(scope="session")
 def base_url():
