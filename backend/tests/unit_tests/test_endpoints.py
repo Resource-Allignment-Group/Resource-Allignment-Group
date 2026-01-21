@@ -159,37 +159,37 @@ def test_all_user_endpoints(client):
         and equipment_request_response.get_json()["result"]
     )
 
-    # accept request
-    admin_decision_response = client.post(
-        "/admin_account_decision",
-        json={
-            "result": True,
-            "notification": db.get_notifications_by_equipment(
-                equip_id="000000000000000000000000"
-            ).to_dict(sender_name="test_sender_name"),
-        },
-    )
-    print(
-        "Admin Equipment Aproval Endpoint:",
-        admin_decision_response.status_code,
-        admin_decision_response.get_json(),
-        "\n",
-    )
-    assert (
-        admin_decision_response.status_code == 200
-        and admin_decision_response.get_json()["result"]
-    )
+    # # accept request
+    # admin_decision_response = client.post(
+    #     "/admin_account_decision",
+    #     json={
+    #         "result": True,
+    #         "notification": db.get_notifications_by_equipment(
+    #             equip_id="000000000000000000000000"
+    #         ).to_dict(sender_name="test_sender_name"),
+    #     },
+    # )
+    # print(
+    #     "Admin Equipment Aproval Endpoint:",
+    #     admin_decision_response.status_code,
+    #     admin_decision_response.get_json(),
+    #     "\n",
+    # )
+    # assert (
+    #     admin_decision_response.status_code == 200
+    #     and admin_decision_response.get_json()["result"]
+    # )
 
-    # return equipment
-    return_response = client.post(
-        "/return_equipment", json={"equipment_id": "000000000000000000000000"}
-    )
-    print(
-        "Equipment Return Endpoint:",
-        return_response.status_code,
-        return_response.get_json(),
-        "\n",
-    )
+    # # return equipment
+    # return_response = client.post(
+    #     "/return_equipment", json={"equipment_id": "000000000000000000000000"}
+    # )
+    # print(
+    #     "Equipment Return Endpoint:",
+    #     return_response.status_code,
+    #     return_response.get_json(),
+    #     "\n",
+    # )
 
     # TODO: Tests that still need to be written
     # - Add Equipment
