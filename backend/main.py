@@ -20,7 +20,7 @@ def create_app(testing=False):
     nm = Notification_Manager(db=db)
 
     app.db = db
-    app.nm = nm 
+    app.nm = nm
 
     if testing:
         app.config["TESTING"] = True
@@ -37,21 +37,28 @@ def create_app(testing=False):
         data = request.json
         email = data.get("email")
         password = data.get("password")
-        user = db.get_user_by_email(email=email)
-        hashed_passowrd = db.get_password_by_email(email=email)
-        if check_password(
-            origional_password=password, hashed_password=hashed_passowrd
-        ):  # check with the the hashing algorithm
-            if user.role == "p":
-                return "Account is still pending approval from admin"
-            else:
-                session["user"] = email
-                session["role"] = user.role
-                session["id"] = str(user.id)  # Object ID can not be serialized
-                return jsonify({"result": True, "message": "success"})
 
-        else:
-            return jsonify({"result": False, "message": "Something went wrong"})
+        # TODO:make sure that this try and except actually works the way it should
+        try:
+            user = db.get_user_by_email(email=email)
+            print(user)
+            hashed_passowrd = db.get_password_by_email(email=email)
+            if check_password(
+                origional_password=password, hashed_password=hashed_passowrd
+            ):  # check with the the hashing algorithm
+                if user.role == "p":
+                    return "Account is still pending approval from admin"
+                else:
+                    session["user"] = email
+                    session["role"] = user.role
+                    session["id"] = str(user.id)  # Object ID can not be serialized
+                    print("SESSION AT AUTHENTICATE:", dict(session))
+                    return jsonify({"result": True, "message": "success"})
+
+            else:
+                return jsonify({"result": False, "message": "Something went wrong"})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/check-session", methods=["GET"])
     def check_session():
@@ -88,10 +95,13 @@ def create_app(testing=False):
 
         if result["result"]:
             # send a notification to admin and update user management
-            new_user = db.get_user_by_email(email=email)
-            db.set_user_role(id=new_user.id, role="p")  #'p' stands for 'pending'
-            nm.send_account_approval_message(new_user=new_user)
-            return jsonify({"result": True, "message": "success"})
+            try:
+                new_user = db.get_user_by_email(email=email)
+                db.set_user_role(id=new_user.id, role="p")  #'p' stands for 'pending'
+                nm.send_account_approval_message(new_user=new_user)
+                return jsonify({"result": True, "message": "success"})
+            except Exception as e:
+                return jsonify({"result": False, "message": e})
         else:
             return jsonify({"result": False, "message": result["message"]})
 
@@ -224,7 +234,7 @@ def create_app(testing=False):
             )
             return jsonify({"result": True})
         except Exception as e:
-            return jsonify({"result": False, "message": e})
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/get_requests", methods=["GET"])
     def get_requests():
@@ -303,6 +313,8 @@ def create_app(testing=False):
 
     @app.route("/get_profile_info", methods=["GET"])
     def get_profile_equipment():
+        print(db.users_db.count_documents({"_id": (session["id"])}))
+        print("SESSION AT PROFILE:", dict(session))
         user = db.get_user_by_id(user_id=ObjectId(session["id"]))
         return jsonify({"result": True, "user": user.to_dict()})
 

@@ -182,11 +182,15 @@ class DatabaseManager:
     def get_password_by_email(self, email: str):
         return self.users_db.find_one({"email": email})["password"]
 
-    def get_user_by_email(self, email: str) -> User: #holy fuck fix this please
-        new_user = User()
-        result =
-        new_user.fill_user_information(list(self.users_db.find({"email": email}))[0])
-        return new_user
+    def get_user_by_email(self, email: str) -> User:
+        result = self.users_db.find_one({"email": email})
+
+        if result is None:
+            raise ValueError(f"No user with email {email}")
+
+        user = User()
+        user.fill_user_information(result)
+        return user
 
     def get_user_by_id(self, user_id: ObjectId) -> User:
         new_user = User()
