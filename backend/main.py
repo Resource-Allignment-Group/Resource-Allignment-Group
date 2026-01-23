@@ -16,16 +16,16 @@ def create_app(testing=False):
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
     CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 
-    # Create DB & Notification manager
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
 
-    db = db  # attach DB to app
-    app.nm = nm  # attach manager to app
+    app.db = db
+    app.nm = nm 
 
     if testing:
         app.config["TESTING"] = True
         app.secret_key = "testing_key"
+
     else:
         app.config["SESSION_COOKIE_HTTPONLY"] = True
         app.config["SESSION_COOKIE_SECURE"] = False

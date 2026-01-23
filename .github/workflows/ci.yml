@@ -22,7 +22,7 @@ jobs:
           --health-retries 5
 
     env:
-      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_URI: mongodb://localhost:27017/test_db
       FLASK_ENV: testing
 
     steps:
