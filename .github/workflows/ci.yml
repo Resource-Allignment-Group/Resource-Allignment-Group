@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
   push:
     branches: [ main ]
 
@@ -22,7 +22,7 @@ jobs:
           --health-retries 5
 
     env:
-      MONGO_URI: mongodb://localhost:27017/test_db
+      MONGO_URI: ${{ secrets.MONGO_URI }}
       FLASK_ENV: testing
 
     steps:
