@@ -41,7 +41,6 @@ def create_app(testing=False):
         # TODO:make sure that this try and except actually works the way it should
         try:
             user = db.get_user_by_email(email=email)
-            print(user)
             hashed_passowrd = db.get_password_by_email(email=email)
             if check_password(
                 origional_password=password, hashed_password=hashed_passowrd
@@ -52,7 +51,6 @@ def create_app(testing=False):
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
-                    print("SESSION AT AUTHENTICATE:", dict(session))
                     return jsonify({"result": True, "message": "success"})
 
             else:
@@ -313,8 +311,6 @@ def create_app(testing=False):
 
     @app.route("/get_profile_info", methods=["GET"])
     def get_profile_equipment():
-        print(db.users_db.count_documents({"_id": (session["id"])}))
-        print("SESSION AT PROFILE:", dict(session))
         user = db.get_user_by_id(user_id=ObjectId(session["id"]))
         return jsonify({"result": True, "user": user.to_dict()})
 

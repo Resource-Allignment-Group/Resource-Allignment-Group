@@ -90,9 +90,12 @@ def login_user(client, seed_db):
 
 @pytest.fixture
 def login_admin(client, seed_db):
-    pass
-    # TODO: Implement
-
+    res = client.post(
+        "/authenticate", json={"email": "admin@gmail.com", "password": "test_pass"}
+    )
+    print(res.get_json())
+    assert res.get_json()["result"]
+    return client
 
 @pytest.fixture(autouse=True)
 def clean_db(client):

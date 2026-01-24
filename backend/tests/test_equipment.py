@@ -15,7 +15,7 @@ def test_request_equipment(login_user):
         "/admin_account_decision",
         json={
             "result": True,
-            "notification": login_user.app.db.get_notifications_by_equipment(
+            "notification": login_user.application.db.get_notifications_by_equipment(
                 equip_id="000000000000000000000000"
             ).to_dict(sender_name="test_sender_name"),
         },

@@ -49,6 +49,6 @@ def test_authentication(client, seed_db):
 def test_delete_user(login_admin):
     delete_account_res = login_admin.post(
         "/delete_user_account",
-        json={"user": login_admin.app.db.get_user_by_email("user@gmail.com").to_dict()},
+        json={"user": login_admin.application.db.get_user_by_email("user@gmail.com").to_dict()},
     )
     assert delete_account_res.get_json()["result"]

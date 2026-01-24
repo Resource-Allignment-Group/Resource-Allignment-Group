@@ -356,10 +356,8 @@ class DatabaseManager:
         return equip_list
 
     def get_equipment_by_id(self, id: ObjectId):
-        print(id)
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
         equip = Equipment()
-        print(equip_info)
         equip.fill_from_json(json_info=equip_info)
         return equip
 
