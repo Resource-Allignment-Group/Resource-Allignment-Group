@@ -183,9 +183,14 @@ class DatabaseManager:
         return self.users_db.find_one({"email": email})["password"]
 
     def get_user_by_email(self, email: str) -> User:
-        new_user = User()
-        new_user.fill_user_information(list(self.users_db.find({"email": email}))[0])
-        return new_user
+        result = self.users_db.find_one({"email": email})
+
+        if result is None:
+            raise ValueError(f"No user with email {email}")
+
+        user = User()
+        user.fill_user_information(result)
+        return user
 
     def get_user_by_id(self, user_id: ObjectId) -> User:
         new_user = User()
@@ -351,10 +356,8 @@ class DatabaseManager:
         return equip_list
 
     def get_equipment_by_id(self, id: ObjectId):
-        print(id)
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
         equip = Equipment()
-        print(equip_info)
         equip.fill_from_json(json_info=equip_info)
         return equip
 
