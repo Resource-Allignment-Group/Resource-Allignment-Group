@@ -273,9 +273,11 @@ class DatabaseManager:
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
+        print(user_id)
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         notes = []
         for note_id in user["inbox"]:
+            print(note_id)
             notes.append(self.get_notification_by_id(note_id=note_id))
         return notes
 
@@ -291,7 +293,12 @@ class DatabaseManager:
         note.populate_from_json(json_info=note_info)
         return note
 
+    def delete_notification(self, note_id):
+        res = self.notifications_db.delete_one({"_id": note_id})
+        return True
+    
     def get_email_by_id(self, user_id: str):
+        print(user_id)
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["email"]
 
@@ -318,7 +325,7 @@ class DatabaseManager:
     def send_notification(self, notification: Notification):
         if notification.id is None:
             notification.id = ObjectId()
-
+        print(notification.id, notification.sender)
         notification_json = notification_json = {
             "_id": notification.id,
             "sender": notification.sender,

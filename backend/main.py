@@ -288,6 +288,10 @@ def create_app(testing=False):
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
         data = request.json
+        notifications = db.get_notifications_by_user(ObjectId(data["user"]["id"]))
+        for note in notifications:
+            db.delete_notification(note_id=note.id)
+            db.remove_notification_from_inbox(notification=note)
         user = db.get_user_by_id(ObjectId(data["user"]["id"]))
         result = db.delete_user(user=user)
         if result:
