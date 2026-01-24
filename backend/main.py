@@ -182,11 +182,22 @@ def create_app(testing=False):
                     db.set_equipment_checked_out(
                         id=ObjectId(new_note.equipment_id), checked_out=True
                     )
+                    nm.send_inform_notification(
+                        sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
+                        receiver=db.get_user_by_id(user_id=new_note.sender),
+                        message=f"You have been approved to use {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}"
+                        )
+
                     return jsonify({"result": True})
                     # send notification to user that their equipment is theirs
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
                     db.set_equipment_checked_out(id=new_note.id, checked_out=False)
+                    nm.send_inform_notification(
+                        sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
+                        receiver=db.get_user_by_id(user_id=new_note.sender),
+                        message=f"Your request has been denied for {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}"
+                        )
                     return jsonify({"result": True})
 
     @app.route("/get_equipment", methods=["GET"])
@@ -230,6 +241,12 @@ def create_app(testing=False):
             db.remove_equipment_from_inbox(
                 equip_id=equipment.id, user_id=ObjectId(session["id"])
             )
+            for admin in db.get_administrators():
+                nm.send_inform_notification(
+                    sender=db.get_user_by_id(ObjectId(session["id"])),
+                    receiver=admin,
+                    message=f"The Equipment {equipment.name} has been returned"
+                )
             return jsonify({"result": True})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
@@ -247,7 +264,6 @@ def create_app(testing=False):
                 note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
             )
             equipment_list.append(equipment[i].to_dict())
-
         return jsonify(
             {
                 "result": True,
