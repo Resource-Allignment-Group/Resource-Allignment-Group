@@ -91,7 +91,8 @@ class DatabaseManager:
 
     def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
         self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"checked_out": checked_out}}
+            {"_id": ObjectId(id)},
+            {"$set": checked_out}
         )
 
     def add_user(self, fname: str, lname: str, phone: int, email: str, password):
@@ -159,7 +160,7 @@ class DatabaseManager:
             return f"Equipment {equipment_id} is already checked out"
 
         self.users_db.update_one(
-            {"_id": user_id}, {"$push": {"checked_out_equipment": equipment_id}}
+            {"_id": user_id}, {"$addToSet": {"checked_out_equipment": equipment_id}}
         )
 
         self.equipment_db.update_one(
@@ -355,6 +356,20 @@ class DatabaseManager:
             equip_list.append(equip)
         return equip_list
 
+    # Allows you to edit a specific field on an equipment
+    def update_equipment_field(self, equip_id, field_name, value):
+        try:
+            result = self.equipment_db.update_one(
+                {"_id": ObjectId(equip_id)},
+                {"$set": {field_name: value}}
+            )
+
+            updated = self.equipment_db.find_one({"_id": ObjectId(equip_id)})
+
+            return result.modified_count > 0
+        except:
+            return False
+
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
         equip = Equipment()
@@ -399,12 +414,15 @@ class DatabaseManager:
         return request_list, equipment_list
 
     def get_dashboard_info(self):
-        num_total = len(self.get_all_equipment())
-        num_available = self.equipment_db.count_documents({"checked_out": False})
+        num_total = self.equipment_db.count_documents({})
+        num_available = self.equipment_db.count_documents({
+            "checked_out": {"$ne": True},
+            "damaged": {"$ne": True},
+            "unavailable": {"$ne": True}
+        })
         num_used = self.equipment_db.count_documents({"checked_out": True})
         num_damaged = self.equipment_db.count_documents({"damaged": True})
-        # add unavalibility later
-        num_unavailable = "add later"
+        num_unavailable = self.equipment_db.count_documents({"unavailable": True})
         return num_total, num_available, num_used, num_damaged, num_unavailable
 
     def get_all_users(self):

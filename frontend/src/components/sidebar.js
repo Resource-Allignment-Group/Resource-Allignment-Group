@@ -1,24 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MdArrowBack } from "react-icons/md";
 
 // This component is used across all pages
 
-function Sidebar({ isOpen, onClose }) {
+function Sidebar({
+	isOpen,
+	onClose,
+	onFilter,
+	filterOptions = {},
+	onClearFilters,
+	savedFilters = null,
+}) {
 	const [selectedFarm, setSelectedFarm] = useState("All Farms");
+	const [searchQuery, setSearchQuery] = useState("");
+	const [equipmentClass, setEquipmentClass] = useState("All Classes");
+	const [equipmentMake, setEquipmentMake] = useState("All Makes");
+	const [equipmentYear, setEquipmentYear] = useState("All Years");
+	const [status, setStatus] = useState("All Statuses");
 
-	// All of the quick selection farms for filtering
-	const farms = [
-		"All Farms",
-		"Aroostook",
-		"Blueberry Hill",
-		"Highmoor",
-		"Rogers",
-		"Witter",
-		"Greenhouse/Gardens",
-	];
+	// Load the saved filters on start and when the filters change
+	useEffect(() => {
+		if (savedFilters) {
+			setSelectedFarm(savedFilters.farm || "All Farms");
+			setSearchQuery(savedFilters.search || "");
+			setEquipmentClass(savedFilters.class || "All Classes");
+			setEquipmentMake(savedFilters.make || "All Makes");
+			setEquipmentYear(savedFilters.year || "All Years");
+			setStatus(savedFilters.status || "All Statuses");
+		} else {
+			// Reset to defaults when filters are cleared
+			setSelectedFarm("All Farms");
+			setSearchQuery("");
+			setEquipmentClass("All Classes");
+			setEquipmentMake("All Makes");
+			setEquipmentYear("All Years");
+			setStatus("All Statuses");
+		}
+	}, [savedFilters]);
 
-	// IMPORTANT NOTE: The sidebar won't save any of the selected filtering parameters
-	// once it's closed. We may wan't to maintain the last used filters for the user.
+	// Get the farms from the database
+	const farms = ["All Farms"];
+	// If there are farms, add all of them
+	if (filterOptions.farms) {
+		farms.push(...filterOptions.farms);
+	}
+
+	// Trigger when the user submits their filter/search query
+	const handleSubmit = () => {
+		const filters = {
+			farm: selectedFarm,
+			search: searchQuery,
+			class: equipmentClass,
+			make: equipmentMake,
+			year: equipmentYear,
+			status: status,
+		};
+		onFilter(filters);
+	};
 
 	// Don't display the sidebar the menu icon wasn't clicked
 	if (!isOpen) return null;
@@ -34,7 +72,9 @@ function Sidebar({ isOpen, onClose }) {
 					</button>
 
 					{/* Top submit button */}
-					<button className="sidebar-submit">Submit</button>
+					<button className="sidebar-submit" onClick={handleSubmit}>
+						Apply
+					</button>
 				</div>
 
 				{/* Divider line */}
@@ -42,12 +82,16 @@ function Sidebar({ isOpen, onClose }) {
 
 				{/* Search bar for equipment lookup */}
 				<div className="search-box">
-					<input type="text" placeholder="Search" />
+					<input
+						type="text"
+						placeholder="Search"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+					/>
 				</div>
 			</div>
 
 			{/* All of the farm buttons, as a list  */}
-			{/* Adjust styling for the active/selected item  */}
 			<h3>Sort by Farm</h3>
 			<div className="farm-list">
 				{farms.map((farm) => (
@@ -65,43 +109,69 @@ function Sidebar({ isOpen, onClose }) {
 			{/* Update with actual items later, or from db  */}
 			<h3>Filter Options</h3>
 			<div className="filter-group">
-				<label>Equipment Type</label>
-				<select>
-					<option>All Types</option>
-					<option>Tractor</option>
-					<option>Truck</option>
-					<option>Forklift</option>
+				<label>Equipment Class</label>
+				<select
+					value={equipmentClass}
+					onChange={(e) => setEquipmentClass(e.target.value)}
+				>
+					<option>All Classes</option>
+					{filterOptions.classes &&
+						filterOptions.classes.map((equipclass) => (
+							<option key={equipclass} value={equipclass}>
+								{equipclass}
+							</option>
+						))}
+				</select>
+			</div>
+
+			{/* These are hardcoded since they are the only statuses */}
+			<div className="filter-group">
+				<label>Equipment Status</label>
+				<select value={status} onChange={(e) => setStatus(e.target.value)}>
+					<option>All Statuses</option>
+					<option>Available</option>
+					<option>Checked Out</option>
+					<option>Damaged</option>
+					<option>Unavailable</option>
 				</select>
 			</div>
 
 			<div className="filter-group">
 				<label>Equipment Make</label>
-				<select>
+				<select
+					value={equipmentMake}
+					onChange={(e) => setEquipmentMake(e.target.value)}
+				>
 					<option>All Makes</option>
-					<option>John Deere</option>
-					<option>Ford</option>
-					<option>Yale</option>
+					{filterOptions.makes &&
+						filterOptions.makes.map((make) => (
+							<option key={make} value={make}>
+								{make}
+							</option>
+						))}
 				</select>
 			</div>
 
 			<div className="filter-group">
 				<label>Equipment Year</label>
-				<select>
+				<select
+					value={equipmentYear}
+					onChange={(e) => setEquipmentYear(e.target.value)}
+				>
 					<option>All Years</option>
-					<option>2020</option>
-					<option>2019</option>
-					<option>2018</option>
+					{filterOptions.years &&
+						filterOptions.years.map((year) => (
+							<option key={year} value={year}>
+								{year}
+							</option>
+						))}
 				</select>
 			</div>
-
-			<div className="filter-group">
-				<label>Accessibility</label>
-				<select>
-					<option>All Users</option>
-					<option>Researchers</option>
-					<option>Farm Staff</option>
-					<option>Superintendent</option>
-				</select>
+			{/* Let the user clear the loaded filters */}
+			<div className="sidebar-fixed">
+				<button className="sidebar-submit" onClick={onClearFilters}>
+					Clear Filters
+				</button>
 			</div>
 		</div>
 	);

@@ -28,7 +28,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				const equipArray = data.equipment || [];
 
 				setNotifications(notifArray);
-				setEquipment(equipArray);
+				setEquipment(equipArray.reverse());
 
 				//this creates the mapping of equipment and notification
 				const notifMap = {};
@@ -36,7 +36,6 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 					notifMap[notif.equipment_id] = notif;
 				}
 				setNotificationsByEquipment(notifMap);
-			
 			} catch (error) {
 				console.error("Failed to load requests:", error);
 			}
@@ -66,7 +65,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				<div className="content">
 					{equipment.map((item) => {
 						const notif = notificationsByEquipment[item.id];
-	
+
 						return (
 							<MyRequestsCard
 								key={item.id}
@@ -74,9 +73,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 								notification={notif}
 								isExpanded={expandedCard === item.id}
 								onToggle={() =>
-									setExpandedCard(
-										expandedCard === item.id ? null : item.id
-									)
+									setExpandedCard(expandedCard === item.id ? null : item.id)
 								}
 							/>
 						);
