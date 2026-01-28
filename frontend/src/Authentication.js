@@ -4,6 +4,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -15,19 +16,22 @@ export const AuthProvider = ({ children }) => {
         });
 
         const data = await res.json();
-        setUser(data.user ? { email: data.user } : null);
-      } 
-      
-      catch (err) {
+        if (data.result) {
+          setUser({ email: data.user });
+          setRole(data.role); // <-- store role
+        } else {
+          setUser(null);
+          setRole(null);
+        }
+      } catch (err) {
         console.error("Session check failed", err);
         setUser(null);
-      } 
-      
-      finally {
+        setRole(null);
+      } finally {
         setIsLoading(false);
       }
-
     };
+
     checkSession();
   }, []);
 
@@ -43,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       if (data.message === "success") {
         setUser({ email });
+        setRole(data.role || null)
         return true;
       }
       else{
@@ -67,15 +72,16 @@ export const AuthProvider = ({ children }) => {
       console.error("Logout failed", err);
     } finally {
       setUser(null);
+      setRole(null)
       return true
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, role, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext)
+export const  useAuth = () => useContext(AuthContext)
