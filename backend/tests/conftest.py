@@ -83,7 +83,6 @@ def login_user(client, seed_db):
     res = client.post(
         "/authenticate", json={"email": "user@gmail.com", "password": "test_pass"}
     )
-    print(res.get_json())
     assert res.get_json()["result"]
     return client
 
@@ -93,7 +92,6 @@ def login_admin(client, seed_db):
     res = client.post(
         "/authenticate", json={"email": "admin@gmail.com", "password": "test_pass"}
     )
-    print(res.get_json())
     assert res.get_json()["result"]
     return client
 

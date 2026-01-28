@@ -16,6 +16,7 @@ import MyEquipment from "./pages/myequipment";
 import Dashboard from "./pages/dashboard";
 import UserManagement from "./pages/usermanagement";
 import Notifications from "./pages/notifications";
+import ResetPassword from "./pages/resetPassword";
 import {useState} from "react"
 
 function App() {
@@ -27,6 +28,8 @@ function App() {
 				<Routes>
 					<Route path="/" element={<Navigate to="/login" />} />
 					<Route path="/register" element={<Register />} />
+					<Route path="/reset-password" element={<ResetPassword />} />
+					
 					<Route
 						path="/profile"
 						element={

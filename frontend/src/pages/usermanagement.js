@@ -47,7 +47,9 @@ function UserManagement({num_of_notifications, setNumNotifications}) {
 				{/* Scrollable content  */}
 				<div className="content">
 					{/* Scrollable users are a seperate component */}
-					{users.map((item) => (
+					{users
+					.filter((item) => item.role !== "p")
+					.map((item) => (
 						<UserManagementCard
 							key={item.id}
 							user={item}

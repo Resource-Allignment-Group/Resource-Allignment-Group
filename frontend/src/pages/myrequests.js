@@ -66,16 +66,16 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				<div className="content">
 					{equipment.map((item) => {
 						const notif = notificationsByEquipment[item.id];
-	
+						console.log("item.id:", item.id);
 						return (
 							<MyRequestsCard
 								key={item.id}
 								equipment={item}
 								notification={notif}
-								isExpanded={expandedCard === item.id}
+								isExpanded={expandedCard === notif.id}
 								onToggle={() =>
 									setExpandedCard(
-										expandedCard === item.id ? null : item.id
+										expandedCard === notif.id ? null : notif.id
 									)
 								}
 							/>

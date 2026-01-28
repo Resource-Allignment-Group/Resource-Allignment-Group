@@ -7,6 +7,7 @@ from helpers import *
 from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
 from user import User
+from datetime import datetime, timezone
 
 
 def create_app(testing=False):
@@ -51,12 +52,64 @@ def create_app(testing=False):
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
+                    print(email)
                     return jsonify({"result": True, "message": "success"})
 
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
+
+    @app.route("/forgot_password", methods=["POST"])
+    def forgot_password():
+        email = request.json["email"]
+        try:
+            user = db.get_user_by_email(email=email)
+            token, token_hash = generate_reset_token()
+            link = db.create_password_reset(
+                user_id=user.id, token=token, token_hash=token_hash
+            )
+            nm.send_forgot_password_email(email=email, link=link)
+            return jsonify({"result": True, "message": "Email Was Sent"})
+        except Exception as e:
+            if "No user with email" in str(e):  # check this
+                return jsonify({"result": True, "message": "Email doesn't exist"})
+            else:
+                return jsonify({"result": False, "message": str(e)})
+
+    @app.route("/reset_password", methods=["POST"])
+    def reset_password():
+        token = request.json["token"]
+        new_password = request.json["password"]
+
+        try:
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
+
+            reset = db.get_password_reset(token_hash=token_hash)
+            print(reset["expires_at"], datetime.now(timezone.utc))
+            print(type(reset["expires_at"]), type(datetime.now(timezone.utc)))
+
+            if not reset:
+                return jsonify({"result": True, "message": "Invalid or expired token"})
+
+            expires_at = reset["expires_at"]
+
+            # Convert naive datetime from Mongo into UTC-aware
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+            if expires_at < datetime.now(timezone.utc):
+                return jsonify({"result": True, "message": "Invalid or expired token"})
+
+            password_hash = hash_password(new_password)
+
+            db.set_user_password(id=reset["user_id"], password=password_hash)
+
+            db.set_password_reset_used(id=ObjectId(reset["_id"]), used=True)
+
+            return {"result": True}
+        except Exception as e:
+            return jsonify({"result": False, "message": f"error {str(e)}"})
 
     @app.route("/check-session", methods=["GET"])
     def check_session():
@@ -182,11 +235,22 @@ def create_app(testing=False):
                     db.set_equipment_checked_out(
                         id=ObjectId(new_note.equipment_id), checked_out=True
                     )
+                    nm.send_inform_notification(
+                        sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
+                        receiver=db.get_user_by_id(user_id=new_note.sender),
+                        message=f"You have been approved to use {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}",
+                    )
+
                     return jsonify({"result": True})
                     # send notification to user that their equipment is theirs
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
                     db.set_equipment_checked_out(id=new_note.id, checked_out=False)
+                    nm.send_inform_notification(
+                        sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
+                        receiver=db.get_user_by_id(user_id=new_note.sender),
+                        message=f"Your request has been denied for {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}",
+                    )
                     return jsonify({"result": True})
 
     @app.route("/get_equipment", methods=["GET"])
@@ -230,6 +294,12 @@ def create_app(testing=False):
             db.remove_equipment_from_inbox(
                 equip_id=equipment.id, user_id=ObjectId(session["id"])
             )
+            for admin in db.get_administrators():
+                nm.send_inform_notification(
+                    sender=db.get_user_by_id(ObjectId(session["id"])),
+                    receiver=admin,
+                    message=f"The Equipment {equipment.name} has been returned",
+                )
             return jsonify({"result": True})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
@@ -247,7 +317,6 @@ def create_app(testing=False):
                 note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
             )
             equipment_list.append(equipment[i].to_dict())
-
         return jsonify(
             {
                 "result": True,
@@ -288,6 +357,10 @@ def create_app(testing=False):
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
         data = request.json
+        notifications = db.get_notifications_by_user(ObjectId(data["user"]["id"]))
+        for note in notifications:
+            db.delete_notification(note_id=note.id)
+            db.remove_notification_from_inbox(notification=note)
         user = db.get_user_by_id(ObjectId(data["user"]["id"]))
         result = db.delete_user(user=user)
         if result:

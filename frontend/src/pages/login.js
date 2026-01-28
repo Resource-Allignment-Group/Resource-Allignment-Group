@@ -27,6 +27,37 @@ function Login() {
   }
 };
 
+    const ForgotPassword = async (e) => {
+      if (e) e.preventDefault()
+        try{
+          if (!email){
+            alert("Please Enter Email")
+          }
+          else{
+            const res =  await fetch("http://localhost:5000/forgot_password", {
+              method: "POST",
+              credentials: 'include',
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({
+                email: email
+              })
+            })
+            const data = await res.json()
+            if (data.result){//may return true even if the email was not sent due to security
+              alert("Password recovery email sent to " + email)
+            }
+            else{
+              alert("Something Went Wrong")
+            }
+          }
+          }
+        catch (error){
+        console.log(error)
+        alert("Something Went Wrong")
+        }
+      }
+    
+
     return(  
       <div className="container">
       <div className="image-side">
@@ -61,14 +92,16 @@ function Login() {
 
           <button type="submit" onClick={handleLogin}>Sign In</button>
 
-          <a href="#" className="forgot-password" onClick={() => navigate("/register")}>
+          <a href="#" className="sign-up-reference" onClick={() => navigate("/register")}>
             Sign Up
+          </a>
+          <a href="#" className="forgot-password" onClick={ForgotPassword}>
+            Forgot Password
           </a>
         </form>
       </div>
     </div>      
   )
 }
-
 export default Login
 
