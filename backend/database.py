@@ -2,7 +2,7 @@ import pymongo
 import os
 from pymongo import MongoClient
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from PIL import Image
 import io
 from dotenv import load_dotenv
@@ -11,6 +11,7 @@ from notifications import Notification
 from bson.objectid import ObjectId
 from equipment import Equipment
 from typing import Literal
+from datetime import timedelta
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
@@ -33,6 +34,7 @@ class DatabaseManager:
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
         self.notifications_db = self.db["notifications"]
+        self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
 
@@ -292,6 +294,10 @@ class DatabaseManager:
         note.populate_from_json(json_info=note_info)
         return note
 
+    def delete_notification(self, note_id):
+        res = self.notifications_db.delete_one({"_id": note_id})
+        return True
+
     def get_email_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         return user["email"]
@@ -319,7 +325,6 @@ class DatabaseManager:
     def send_notification(self, notification: Notification):
         if notification.id is None:
             notification.id = ObjectId()
-
         notification_json = notification_json = {
             "_id": notification.id,
             "sender": notification.sender,
@@ -445,3 +450,24 @@ class DatabaseManager:
             return True
         else:
             return False
+
+    def create_password_reset(self, user_id: ObjectId, token, token_hash):
+        print(self.password_resets)
+        res = self.password_resets.insert_one(
+            {
+                "_id": ObjectId(),
+                "user_id": user_id,
+                "token_hash": token_hash,
+                "expires_at": datetime.now(timezone.utc) + timedelta(minutes=5),
+                "used": False,
+            }
+        )
+        print(res)
+        link = f"http://localhost:3000/reset-password?token={token}"  # This will need to change when we host
+        return link
+
+    def get_password_reset(self, token_hash):
+        return self.password_resets.find_one({"token_hash": token_hash, "used": False})
+
+    def set_password_reset_used(self, id: ObjectId, used: bool):
+        self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})

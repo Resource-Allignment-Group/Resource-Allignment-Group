@@ -16,6 +16,8 @@ import MyEquipment from "./pages/myequipment";
 import Dashboard from "./pages/dashboard";
 import UserManagement from "./pages/usermanagement";
 import Notifications from "./pages/notifications";
+import ResetPassword from "./pages/resetPassword";
+import AdminRoute from "./AdminRoute";
 import {useState} from "react"
 
 function App() {
@@ -27,6 +29,9 @@ function App() {
 				<Routes>
 					<Route path="/" element={<Navigate to="/login" />} />
 					<Route path="/register" element={<Register />} />
+					<Route path="/reset-password" element={<ResetPassword />} />
+					<Route path="/login" element={<Login />} />
+					
 					<Route
 						path="/profile"
 						element={
@@ -35,7 +40,6 @@ function App() {
 							</ProtectedRoute>
 						}
 					/>
-					<Route path="/login" element={<Login />} />
 					<Route
 						path="/home"
 						element={
@@ -63,17 +67,17 @@ function App() {
 					<Route
 						path="/dashboard"
 						element={
-							<ProtectedRoute>
+							<AdminRoute>
 								<Dashboard num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
+							</AdminRoute>
 						}
 					/>
 					<Route
 						path="/usermanagement"
 						element={
-							<ProtectedRoute>
+							<AdminRoute>
 								<UserManagement num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
+							</AdminRoute>
 						}
 					/>
 					<Route

@@ -84,6 +84,30 @@ class Notification_Manager:
         except Exception as e:
             return f"Error sending email: {e}"
 
+    def send_forgot_password_email(self, email: str, link: str):
+        msg = MIMEMultipart()
+        msg["From"] = self.email_address
+        msg["To"] = email
+        msg["Subject"] = "Forgot Password"
+        msg.attach(
+            MIMEText(
+                f"Please use the following link to reset your password \n\n{link}",
+                "plain",
+            )
+        )
+        try:
+            server = smtplib.SMTP(self.server, self.port)
+            server.starttls()
+            server.login(self.email_address, self.email_password)
+            server.sendmail(self.email_address, email, msg.as_string())
+            server.quit()
+            print("email sent")
+            return "Email sent successfully!"
+
+        except Exception as e:
+            print(e)
+            return f"Error sending email: {e}"
+
     def send_account_approval_message(self, new_user: User):
         message = f"{new_user.name} is attempting to make a new account"
         for admin in self.db.get_administrators():

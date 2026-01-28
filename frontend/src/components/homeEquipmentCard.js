@@ -183,10 +183,16 @@ function HomeEquipmentCard({
 							<button className="link-button">Upload</button>
 						</div>
 						<div className="action-buttons">
-							<button className="btn-primary" onClick={handleCheckOut}>
+							<button
+								className="btn-primary"
+								onClick={handleCheckOut}
+								hidden={equipment.checked_out}
+							>
 								Request Checkout
 							</button>
-							<button className="btn-primary">Edit Equipment</button>
+							<button className="btn-primary" hidden={equipment.checked_out}>
+								Edit Equipment
+							</button>
 							<button className="btn-danger">Delete</button>
 						</div>
 					</div>
