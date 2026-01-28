@@ -4,6 +4,15 @@ import pandas as pd
 from equipment import Equipment
 from bson.objectid import ObjectId
 
+import secrets
+import hashlib
+
+
+def generate_reset_token():
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    return token, token_hash
+
 
 def hash_password(password: str):
     password_bytes = password.encode("utf-8")
