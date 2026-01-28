@@ -114,11 +114,12 @@ def create_app(testing=False):
     @app.route("/check-session", methods=["GET"])
     def check_session():
         user = session.get("user")  # Makes sure that the user is still logged in
+        role = session.get("role")
 
         if user:
-            return jsonify({"result": True, "user": user})
+            return jsonify({"result": True, "user": user, "role": role})
         else:
-            return jsonify({"result": False, "user": None})
+            return jsonify({"result": False, "user": None, "role": None})
 
     @app.route("/logout", methods=["POST"])
     def logout():
