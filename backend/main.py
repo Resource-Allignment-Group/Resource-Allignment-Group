@@ -406,4 +406,9 @@ def create_app(testing=False):
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)
-    app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000, use_reloader=False)
+    app.run(
+        host="0.0.0.0",
+        debug=os.environ.get("FLASK_DEBUG"),
+        port=5000,
+        use_reloader=False,
+    )
