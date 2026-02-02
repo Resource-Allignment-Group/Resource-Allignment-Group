@@ -6,7 +6,7 @@ const AdminRoute = ({ children }) => {
 
   if (isLoading) return <div><p>Loading...</p></div>;
   console.log(user, role)
-  return user && user.role === "a" ? children : <Navigate to="/home" />;
+  return user && role === "a" ? children : <Navigate to="/home" />;
 };
 
 export default AdminRoute;

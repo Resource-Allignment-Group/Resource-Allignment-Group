@@ -15,7 +15,7 @@ def create_app(testing=False):
 
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-    CORS(app, supports_credentials=True, origins=["http://localhost"])
+    CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
@@ -53,7 +53,9 @@ def create_app(testing=False):
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
                     print(email)
-                    return jsonify({"result": True, "message": "success"})
+                    return jsonify(
+                        {"result": True, "message": "success", "role": user.role}
+                    )
 
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})

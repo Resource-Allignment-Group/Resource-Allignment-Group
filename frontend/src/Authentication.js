@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
       if (data.message === "success") {
         setUser({ email });
         setRole(data.role || null)
+        console.log("in auth", email, data)
         return true;
       }
       else{
