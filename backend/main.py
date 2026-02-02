@@ -15,7 +15,7 @@ def create_app(testing=False):
 
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-    CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
+    CORS(app, supports_credentials=True, origins=["http://localhost"])
 
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)

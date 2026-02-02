@@ -1,10 +1,7 @@
-# backend/.dockerignore
 __pycache__
 *.pyc
 *.pyo
 *.pyd
-.env
-
-# frontend/.dockerignore
+.env.*
 node_modules
 build
