@@ -22,7 +22,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 		farms: [],
 		classes: [],
 		makes: [],
-		years: [],
+		statuses: [],
 	});
 
 	// Use to display equipment in database
@@ -52,7 +52,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 					farms: data.farms || [],
 					classes: data.classes || [],
 					makes: data.makes || [],
-					years: data.years || [],
+					statuses: data.statuses || [],
 				});
 			}
 		} catch (error) {
@@ -86,25 +86,6 @@ function Home({ num_of_notifications, setNumNotifications }) {
 					return itemFarm === filterFarm;
 				});
 			}
-
-			// TEMP REMOVE UNTIL MEETING WITH TYLER
-			// Filter by search query (searches name, make, model, description)
-			// if (filters.search && filters.search.trim() !== "") {
-			// 	const searchLower = filters.search.toLowerCase().trim();
-			// 	filtered = filtered.filter((item) => {
-			// 		const name = item.name ? item.name.toLowerCase() : "";
-			// 		const make = item.make ? item.make.toLowerCase() : "";
-			// 		const description = item.description
-			// 			? item.description.toLowerCase()
-			// 			: "";
-
-			// 		return (
-			// 			name.includes(searchLower) ||
-			// 			make.includes(searchLower) ||
-			// 			description.includes(searchLower)
-			// 		);
-			// 	});
-			// }
 
 			// Filter by status
 			if (filters.status && filters.status !== "All Status") {
@@ -140,13 +121,6 @@ function Home({ num_of_notifications, setNumNotifications }) {
 					const filterMake = filters.make.toLowerCase();
 					return itemMake === filterMake;
 				});
-			}
-
-			// Filter by equipment year
-			if (filters.year && filters.year !== "All Years") {
-				filtered = filtered.filter(
-					(item) => item.year && item.year.toString() === filters.year,
-				);
 			}
 
 			setFilteredEquipment(filtered);

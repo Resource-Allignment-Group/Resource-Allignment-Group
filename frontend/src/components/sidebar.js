@@ -15,7 +15,6 @@ function Sidebar({
 	const [searchQuery, setSearchQuery] = useState("");
 	const [equipmentClass, setEquipmentClass] = useState("All Classes");
 	const [equipmentMake, setEquipmentMake] = useState("All Makes");
-	const [equipmentYear, setEquipmentYear] = useState("All Years");
 	const [status, setStatus] = useState("All Statuses");
 
 	// Load the saved filters on start and when the filters change
@@ -25,7 +24,6 @@ function Sidebar({
 			setSearchQuery(savedFilters.search || "");
 			setEquipmentClass(savedFilters.class || "All Classes");
 			setEquipmentMake(savedFilters.make || "All Makes");
-			setEquipmentYear(savedFilters.year || "All Years");
 			setStatus(savedFilters.status || "All Statuses");
 		} else {
 			// Reset to defaults when filters are cleared
@@ -33,7 +31,6 @@ function Sidebar({
 			setSearchQuery("");
 			setEquipmentClass("All Classes");
 			setEquipmentMake("All Makes");
-			setEquipmentYear("All Years");
 			setStatus("All Statuses");
 		}
 	}, [savedFilters]);
@@ -47,15 +44,16 @@ function Sidebar({
 
 	// Trigger when the user submits their filter/search query
 	const handleSubmit = () => {
-		const filters = {
-			farm: selectedFarm,
-			search: searchQuery,
-			class: equipmentClass,
-			make: equipmentMake,
-			year: equipmentYear,
-			status: status,
-		};
-		onFilter(filters);
+		if (onFilter) {
+			const filters = {
+				farm: selectedFarm,
+				search: searchQuery,
+				class: equipmentClass,
+				make: equipmentMake,
+				status: status,
+			};
+			onFilter(filters);
+		}
 	};
 
 	// Don't display the sidebar the menu icon wasn't clicked
@@ -129,10 +127,12 @@ function Sidebar({
 				<label>Equipment Status</label>
 				<select value={status} onChange={(e) => setStatus(e.target.value)}>
 					<option>All Statuses</option>
-					<option>Available</option>
-					<option>Checked Out</option>
-					<option>Damaged</option>
-					<option>Unavailable</option>
+					{filterOptions.statuses &&
+						filterOptions.statuses.map((statusOption) => (
+							<option key={statusOption} value={statusOption}>
+								{statusOption}
+							</option>
+						))}
 				</select>
 			</div>
 
@@ -152,21 +152,6 @@ function Sidebar({
 				</select>
 			</div>
 
-			<div className="filter-group">
-				<label>Equipment Year</label>
-				<select
-					value={equipmentYear}
-					onChange={(e) => setEquipmentYear(e.target.value)}
-				>
-					<option>All Years</option>
-					{filterOptions.years &&
-						filterOptions.years.map((year) => (
-							<option key={year} value={year}>
-								{year}
-							</option>
-						))}
-				</select>
-			</div>
 			{/* Let the user clear the loaded filters */}
 			<div className="sidebar-fixed">
 				<button className="sidebar-submit" onClick={onClearFilters}>

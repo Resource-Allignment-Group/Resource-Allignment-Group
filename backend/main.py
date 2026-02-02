@@ -269,12 +269,10 @@ def create_app(testing=False):
             # If equipment is checked out, find who has it
             if equip_dict.get('checked_out'):
                 # Find the user who has this equipment in their checked_out_equipment array
-                user = db.users_db.find_one({
-                    "checked_out_equipment": ObjectId(equip_dict['id'])
-                })
+                user = db.get_user_by_equipment(ObjectId(equip_dict['id']))
                 
                 if user:
-                    equip_dict['checkedOutBy'] = user.get('email', 'Unknown')
+                    equip_dict['checkedOutBy'] = user.email
                 else:
                     equip_dict['checkedOutBy'] = None
             else:
@@ -298,16 +296,17 @@ def create_app(testing=False):
     def request_equipment():
         data = request.json
         equip_id = data["equip_id"]
+        
         # Making extra sure that equipment can't be requested if it's
         # unavailable or already checked out
-        equipment = db.equipment_db.find_one({"_id": ObjectId(equip_id)})
+        equipment = db.get_equipment_by_id(id=ObjectId(equip_id))
         if equipment:
-            if equipment.get('unavailable', False):
+            if equipment.unavailable:
                 return jsonify({
                     "result": False, 
                     "message": "This equipment is unavailable and cannot be checked out"
                 })
-            if equipment.get('checked_out', False):
+            if equipment.checked_out:
                 return jsonify({
                     "result": False, 
                     "message": "This equipment is already checked out"
@@ -459,78 +458,33 @@ def create_app(testing=False):
         object_ids = [ObjectId(equip_id) for equip_id in equipment_ids]
         # Get all equipment in one query to check status
         # Faster for bulk unavailable/available
-        all_equipment = list(db.equipment_db.find({"_id": {"$in": object_ids}}))
+        all_equipment = db.get_equipment_by_ids(object_ids)
         # Will track how many items were skipped/not
         # (Items that aren't allowed to be made available/unavailable at this time)
         skipped_count = 0
         allowed_ids = []
-
-        # for equip_id in equipment_ids:
-        #     # Check if equipment is checked out or damaged before marking unavailable
-        #     equipment = db.equipment_db.find_one({"_id": ObjectId(equip_id)})
-        #     if equipment:
-        #         # Skipping invalid items when marking as unavailable
-        #         if unavailable:
-        #             # Skip if checked out or damaged
-        #             if equipment.get('checked_out', False) or equipment.get('damaged', False) or equipment.get('unavailable', False):
-        #                 skipped_count += 1
-        #                 continue
-        #         else:
-        #             # Only mark equipment as available if they are 
-        #             # currently marked as unavailable
-        #             if not equipment.get('unavailable', False):
-        #                 skipped_count += 1
-        #                 continue
-
-        #     success = db.update_equipment_field(equip_id, "unavailable", unavailable)
-        #     if success:
-        #         updated_count += 1
-
-        #         # If marking equipment as unavailable, cancel any 
-        #         # pending requests for that item
-        #         if unavailable:
-        #             pending_requests = db.notifications_db.find({
-        #                 "equipment_id": ObjectId(equip_id),
-        #                 "type": "r",
-        #                 "status": {"$ne": "a"}  # Not approved
-        #             })
-                    
-        #             # Reject any pending requests for that item
-        #             for item in pending_requests:
-        #                 db.set_notification_status(id=item["_id"], status="r")
         
         for equipment in all_equipment:
             if unavailable:
                 # Skip if checked out, damaged, or already unavailable
-                if equipment.get('checked_out') or equipment.get('damaged') or equipment.get('unavailable'):
+                if equipment.checked_out or equipment.damaged or equipment.unavailable:
                     skipped_count += 1
                 else:
-                    allowed_ids.append(equipment['_id'])
+                    allowed_ids.append(equipment.id)
             else:
                 # Skip if NOT currently unavailable
-                if not equipment.get('unavailable'):
+                if not equipment.unavailable:
                     skipped_count += 1
                 else:
-                    allowed_ids.append(equipment['_id'])
+                    allowed_ids.append(equipment.id)
         
         # Update many equipment status at once
         if allowed_ids:
-            result = db.equipment_db.update_many(
-                {"_id": {"$in": allowed_ids}},
-                {"$set": {"unavailable": unavailable}}
-            )
-            updated_count = result.modified_count
-            
-            # Cancel pending requests for unavailable items
+            updated_count = db.bulk_update_equipment_unavailable(allowed_ids, unavailable)
+        
+            # Cancel pending requests
             if unavailable:
-                db.notifications_db.update_many(
-                    {
-                        "equipment_id": {"$in": allowed_ids},
-                        "type": "r",
-                        "status": {"$ne": "a"}
-                    },
-                    {"$set": {"status": "r"}}
-                )
+                db.cancel_pending_requests_for_equipment(allowed_ids)
         else:
             updated_count = 0
 
@@ -571,38 +525,45 @@ def create_app(testing=False):
             farms = set()
             classes = set()
             makes = set()
-            years = set()
             
+            # Helper function to format text properly
+            def format_text(text):
+                if not text:
+                    return text
+                
+                # Handle items with slashes like "HAY/FEED"
+                if '/' in text:
+                    parts = text.split('/')
+                    return '/'.join(part.capitalize() for part in parts)
+                elif ' ' in text:
+                    parts = text.split(' ')
+                    return ' '.join(part.capitalize() for part in parts)
+                
+                # Regular capitalization
+                return text.capitalize()
+
             for equip in equipment_cursor:
                 # Add farm if it exists and is not None/empty
                 if equip.farm and equip.farm.strip():
-                    farms.add(equip.farm.strip())
+                    farms.add(format_text(equip.farm.strip()))
                 
                 # Add class if it exists
                 if equip._class and equip._class.strip():
-                    classes.add(equip._class.strip())
+                    classes.add(format_text(equip._class.strip()))
                 
                 # Add make if it exists
                 if equip.make and equip.make.strip():
-                    makes.add(equip.make.strip())
-                
-                # Add year if it exists
-                if equip.year:
-                    try:
-                        # Ensure year is an int
-                        years.add(int(equip.year))
-                    # If it isn't an int, skip it
-                    except (ValueError, TypeError):
-                        # print("Uh Oh weird year") NOTE: There are quite a few cases where this is triggered, update DB
-                        pass 
+                    makes.add(format_text(equip.make.strip()))
 
+            statuses = ["Available", "Checked Out", "Damaged", "Unavailable"]
+            
             # Convert sets to sorted lists
             return jsonify({
                 "result": True,
                 "farms": sorted(list(farms)),
                 "classes": sorted(list(classes)),
                 "makes": sorted(list(makes)),
-                "years": sorted(list(years), reverse=True)
+                "statuses": statuses
             })
             
         except Exception as e:
