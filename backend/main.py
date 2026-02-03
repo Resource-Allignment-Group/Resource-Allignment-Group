@@ -400,9 +400,31 @@ def create_app(testing=False):
         db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
         return jsonify({"result": True})
 
+    @app.route("/delete_equipment", methods=["POST"])
+    def delete_equipment():
+        # Check if user is authenticated and is an admin
+        if "user" not in session:
+            return jsonify({"result": False, "message": "Not authenticated"}), 401
+        
+        if session.get("role") != "a":
+            return jsonify({"result": False, "message": "Only administrators can delete equipment"}), 403
+
+        data = request.json
+        equipment_id = data.get("equipment_id")
+        
+        if not equipment_id:
+            return jsonify({"result": False, "message": "Equipment ID is required"}), 400
+
+        try:
+            result = db.delete_equipment(equipment_id=ObjectId(equipment_id))
+            if result:
+                return jsonify({"result": True, "message": "Equipment deleted successfully"})
+            else:
+                return jsonify({"result": False, "message": "Equipment not found or could not be deleted"}), 404
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)}), 500
+
     return app
-
-
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)

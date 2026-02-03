@@ -5,9 +5,10 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
+import { useSidebar } from "../SidebarContext";
 
 function Home({num_of_notifications, setNumNotifications}) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
 
@@ -31,13 +32,13 @@ function Home({num_of_notifications, setNumNotifications}) {
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
-			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+			<Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
 			<div className="main">
 				{/* Header is a separate component */}
 				<Header
 					sidebarOpen={sidebarOpen}
-					onMenuToggle={() => setSidebarOpen(true)}
+					onMenuToggle={openSidebar}
 					activeTab="Home"
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
@@ -60,6 +61,13 @@ function Home({num_of_notifications, setNumNotifications}) {
 							onToggle={() =>
 								setExpandedCard(expandedCard === item.id ? null : item.id)
 							}
+							onDelete={() => {
+								// Refresh equipment list after deletion
+								GetEquipment().then((equip_list) => {
+									setEquipment(equip_list);
+									setExpandedCard(null); // Close any expanded cards
+								});
+							}}
 						/>
 					))}
 				</div>
