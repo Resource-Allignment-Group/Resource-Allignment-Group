@@ -15,8 +15,7 @@ def create_app(testing=False):
 
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-    CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
-
+    CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
 
@@ -29,9 +28,10 @@ def create_app(testing=False):
 
     else:
         app.config["SESSION_COOKIE_HTTPONLY"] = True
-        app.config["SESSION_COOKIE_SECURE"] = False
+        app.config["SESSION_COOKIE_SECURE"] = False  # Keep False for localhost (no HTTPS)
         app.config["SESSION_TYPE"] = "filesystem"
-        app.config["SESSION_COOKIE_SAMESITE"] = None
+        # Change None to 'Lax' - macOS browsers often reject 'None' without HTTPS
+        app.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
 
     @app.route("/authenticate", methods=["POST", "GET"])
     def authenticate():
