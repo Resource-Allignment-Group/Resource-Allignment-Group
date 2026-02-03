@@ -16,6 +16,23 @@ This will hold the equipment card items */
 	width: 35%;
 }
 
+.status-actions {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.delete-text-link {
+	cursor: pointer;
+	color: #d32f2f;
+	text-decoration: underline;
+	font-size: 14px;
+}
+
+.delete-text-link:hover {
+	color: #b71c1c;
+}
+
 /* This is the Available, Checked 
 Out, and Damaged badges */
 .status-badge {
@@ -107,4 +124,15 @@ Out, and Damaged badges */
 .btn-danger:hover {
 	background-color: #d32f2f;
 	color: white;
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.btn-delete-header {
+	padding: 8px 16px;
+	font-size: 13px;
 }

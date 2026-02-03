@@ -2,8 +2,11 @@
 
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
+import { useAuth } from "../Authentication";
 
-function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
+function HomeEquipmentCard({ equipment, isExpanded, onToggle, onDelete }) {
+	const { role } = useAuth();
+	const isAdmin = role === "a";
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
 	function getEquipmentStatus({ checked_out, damaged }) {
@@ -50,6 +53,45 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 		}		
 	}
 
+	const handleDelete = async () => {
+		if (!isAdmin) {
+			alert("Only administrators can delete equipment");
+			return;
+		}
+
+		const confirmDelete = window.confirm(
+			`Are you sure you want to delete "${equipment.name}"? `
+		);
+
+		if (!confirmDelete) {
+			return;
+		}
+
+		try {
+			const res = await fetch("http://localhost:5000/delete_equipment", {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					equipment_id: equipment.id,
+				}),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("Equipment deleted successfully");
+				// Call the onDelete callback to refresh the equipment list
+				if (onDelete) {
+					onDelete();
+				}
+			} else {
+				alert(data.message || "Failed to delete equipment");
+			}
+		} catch (error) {
+			console.log(error);
+			alert("An error occurred while deleting the equipment");
+		}
+	}
+
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
 	
 	return (
@@ -81,13 +123,23 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 							{status.label}
 						</span>
 
-						<label className="checkbox-label">
-							Mark as Unavailable
-							<input
-							type="checkbox"
-							//should add an onChange flag that will do something
-							/>
-						</label>
+						<div className="status-actions">
+							<label className="checkbox-label">
+								Mark as Unavailable
+								<input
+								type="checkbox"
+								//should add an onChange flag that will do something
+								/>
+							</label>
+							{isAdmin && (
+								<span 
+									className="delete-text-link" 
+									onClick={handleDelete}
+								>
+									Delete Equipment
+								</span>
+							)}
+						</div>
 					</div>
 				</div>
 
@@ -167,7 +219,9 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 						<div className="action-buttons">
 							<button className="btn-primary" onClick={handleCheckOut} hidden={equipment.checked_out}>Request Checkout</button>
 							<button className="btn-primary" hidden={equipment.checked_out}>Edit Equipment</button>
-							<button className="btn-danger">Delete</button>
+							{isAdmin && (
+								<button className="btn-danger" onClick={handleDelete}>Delete</button>
+							)}
 						</div>
 					</div>
 				</div>
