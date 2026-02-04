@@ -209,3 +209,4 @@ __marimo__/
 
 docker-compose
 .env.prod
+docker-compose.yaml
