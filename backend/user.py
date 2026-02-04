@@ -17,18 +17,14 @@ class User:
             self.inbox.append(n)
 
     def fill_user_information(self, db_object):
-            # If the user wasn't found in DB, stop here to avoid crashes
-            if db_object is None:
-                return 
-
-            self.id = db_object.get("_id")
-            self.role = db_object.get("role", "u")
-            self.inbox = db_object.get("inbox", [])
-            self.checked_out_equipment = db_object.get("checked_out_equipment", [])
-            self.position = db_object.get("position", "")
-            self.phone = db_object.get("phone", "")
-            self.name = db_object.get("name", "Unknown")
-            self.email = db_object.get("email", "")
+        self.id = db_object["_id"]
+        self.role = db_object["role"]
+        self.inbox = db_object["inbox"]
+        self.checked_out_equipment = db_object["checked_out_equipment"]
+        self.position = db_object["position"]
+        self.phone = db_object["phone"]
+        self.name = db_object["name"]
+        self.email = db_object["email"]
 
     def to_dict(self):
         return {

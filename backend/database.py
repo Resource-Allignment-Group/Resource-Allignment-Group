@@ -25,7 +25,6 @@ class DatabaseManager:
         return _client
 
     def __init__(self, testing):
-
         self.get_client()
         if testing:
             self.db = _client["TEST_RAM_DB"]
@@ -38,7 +37,6 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
-        self.logs_db = self.db["logs"] # Creates/adds to logs collection
 
     # Setters
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
@@ -98,17 +96,7 @@ class DatabaseManager:
             {"_id": id}, {"$set": {"checked_out": checked_out}}
         )
 
-    def add_log(self, user_id: ObjectId, action: str, details: str = None, target_id: ObjectId = None):
-        log_entry = {
-            "timestamp": datetime.now(timezone.utc),
-            "user_id": user_id,
-            "action": action,
-            "target_id": target_id,
-            "details": details
-        }
-        self.logs_db.insert_one(log_entry)
-
-    def add_user(self, fname: str, lname: str, phone: int, email: str, password, admin_id: ObjectId):
+    def add_user(self, fname: str, lname: str, phone: int, email: str, password):
         if (
             self.users_db.count_documents({"email": email}) != 0
         ):  # Checks to make sure email does not already exist
@@ -128,13 +116,6 @@ class DatabaseManager:
         )
 
         if result.acknowledged:
-            new_user_id = result.inserted_id
-            
-            self.add_log(
-                user_id=admin_id, 
-                action="ADD_USER",  
-                details=f"Added new user: {email} (ID: {new_user_id})"
-            )
             return {
                 "result": True,
                 "message": f"User {email} has sucessfully been added to the system",
@@ -173,7 +154,7 @@ class DatabaseManager:
             }
         )
 
-    def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, admin_id: ObjectId):
+    def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
         if equipment["checked_out"] is True:
@@ -186,39 +167,20 @@ class DatabaseManager:
         self.equipment_db.update_one(
             {"_id": equipment_id}, {"$set": {"checked_out": True}}
         )
-        self.add_log(
-                user_id=admin_id, 
-                action="CHECK_OUT", 
-                target_id=equipment_id, 
-                details=f"Assigned to user: {user_id}"
-            )
-    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False):
+
+    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
-        if not equipment or not equipment.get("checked_out"):
+        if not equipment["checked_out"]:
             return f"Equipment {equipment_id} is not checked out"
 
         self.users_db.update_one(
-            {"_id": user_id}, 
-            {"$pull": {"checked_out_equipment": equipment_id}}
+            {"_id": user_id}, {"$pull": {"checked_out_equipment": equipment_id}}
         )
-
         self.equipment_db.update_one(
-            {"_id": equipment_id}, 
-            {"$set": {"checked_out": False, "damaged": damaged}}
+            {"_id": equipment_id}, {"$set": {"checked_out": False}}
         )
 
-        if damaged:
-            status_msg = "Item returned DAMAGED"
-        else:
-            status_msg = "Item returned in good condition"
-
-        self.add_log(
-            user_id=user_id, 
-            action="CHECK_IN", 
-            target_id=equipment_id, 
-            details=status_msg
-        )
     def get_password_by_email(self, email: str):
         return self.users_db.find_one({"email": email})["password"]
 
@@ -403,10 +365,6 @@ class DatabaseManager:
 
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
-        if not equip_info: # Added for handling when equipment doesnt exist
-            print(f"DEBUG: No equipment found for ID {id}")
-            return None
-        
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
         return equip
@@ -464,7 +422,7 @@ class DatabaseManager:
             all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
         return all_users
 
-    def delete_user(self, user: User, admin_id: ObjectId):
+    def delete_user(self, user: User):
         for equipment_id in user.checked_out_equipment:
             self.equipment_db.update_one(
                 {"_id": equipment_id}, {"$set": {"checked_out": False}} # Changed , to :
@@ -472,11 +430,6 @@ class DatabaseManager:
 
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
-            self.add_log(
-                user_id=admin_id, 
-                action="DELETE_USER", 
-                details=f"{user.id} is deleted" # Should I add email info in here or just id
-            )
             return True
         else:
             return False
