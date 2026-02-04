@@ -32,16 +32,15 @@ class Notification:
         self.read = read
         self.status = status
 
-    def populate_from_json(self, json_info):
-        self.id = ObjectId(json_info["_id"])
-        self.sender = ObjectId(json_info["sender"])
-        self.receiver = ObjectId(json_info["receiver"])
-        self.date = json_info["date"]
-        self.body = json_info["body"]
-        self.type = json_info["type"]
-        self.equipment_id = ObjectId(json_info["equipment_id"])
-        self.read = json_info["read"]
-        self.status = json_info["status"]
+    def populate_from_json(self, json_info): # Changed to .get to prevent crashes when missing info
+        self.id = ObjectId(json_info.get("_id"))
+        self.sender = ObjectId(json_info.get("sender"))
+        self.receiver = ObjectId(json_info.get("receiver")) 
+        self.date = json_info.get("date", "")
+        self.body = json_info.get("body", "")
+        self.type = json_info.get("type", "i")
+        self.equipment_id = ObjectId(json_info.get("equipment_id"))
+        self.read = json_info.get("read", False)
 
     def to_dict(self, sender_name):
         return {  # need to convert to strings in order to make the json serializable
@@ -146,9 +145,7 @@ class Notification_Manager:
         except Exception as e:
             return 0
 
-    def send_inform_notification(
-        self, sender: User, receiver: User, message: str, id: ObjectId = None
-    ):
+    def send_inform_notification(self, sender, receiver, message="", equipment_id=None, body="", id=None):
         if id is None:
             id = ObjectId()
 
