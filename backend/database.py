@@ -201,7 +201,9 @@ class DatabaseManager:
         return new_user
 
     def add_image(self, equipment_id: ObjectId, image: Image):
-        img_uuid = ObjectId()
+        img_uuid = str(ObjectId())
+        image_path = self.images_db / img_uuid
+        image.save(image_path)
         while True:
             if (self.images_db / img_uuid).exists():
                 img_uuid = ObjectId()
@@ -277,8 +279,9 @@ class DatabaseManager:
 
     def get_notifications_by_user(self, user_id):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
+        if not user: return []
         notes = []
-        for note_id in user["inbox"]:
+        for note_id in user.get("inbox", []):
             notes.append(self.get_notification_by_id(note_id=note_id))
         return notes
 
@@ -325,7 +328,7 @@ class DatabaseManager:
     def send_notification(self, notification: Notification):
         if notification.id is None:
             notification.id = ObjectId()
-        notification_json = notification_json = {
+        notification_json = {
             "_id": notification.id,
             "sender": notification.sender,
             "receiver": notification.receiver,
@@ -460,12 +463,10 @@ class DatabaseManager:
         return None
 
     def delete_user(self, user: User):
-        [
+        for equipment_id in user.checked_out_equipment:
             self.equipment_db.update_one(
-                {"_id": equipment_id}, {"$set", {"checked_out": False}}
+                {"_id": equipment_id}, {"$set": {"checked_out": False}} # Changed , to :
             )
-            for equipment_id in user.checked_out_equipment
-        ]
 
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
@@ -521,3 +522,64 @@ class DatabaseManager:
             {"$set": {"unavailable": unavailable}}
         )
         return result.modified_count
+    
+    def delete_equipment(self, equipment_id: ObjectId):
+        """
+        Delete equipment and all its references from the database.
+        This includes:
+        - Removing equipment from users' checked_out_equipment arrays
+        - Deleting all notifications referencing this equipment
+        - Deleting associated image and report files
+        - Deleting the equipment document itself
+        """
+        # Get equipment to access images and reports
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+
+        # Remove equipment from all users' checked_out_equipment arrays
+        self.users_db.update_many(
+            {"checked_out_equipment": equipment_id},
+            {"$pull": {"checked_out_equipment": equipment_id}}
+        )
+
+        # Delete all notifications referencing this equipment
+        notifications = self.notifications_db.find({"equipment_id": equipment_id})
+        for notification in notifications:
+            # Remove notification from users' inbox arrays
+            self.users_db.update_many(
+                {"inbox": notification["_id"]},
+                {"$pull": {"inbox": notification["_id"]}}
+            )
+        # Delete the notifications
+        self.notifications_db.delete_many({"equipment_id": equipment_id})
+
+        # Delete associated image files
+        if "images" in equipment and equipment["images"]:
+            for image_id in equipment["images"]:
+                # Handle both string and ObjectId types
+                image_id_str = str(image_id) if image_id else None
+                if image_id_str:
+                    image_path = self.images_db / image_id_str
+                    if image_path.exists():
+                        try:
+                            os.remove(image_path)
+                        except Exception as e:
+                            print(f"Error deleting image {image_id_str}: {e}")
+
+        # Delete associated report files
+        if "reports" in equipment and equipment["reports"]:
+            for report_id in equipment["reports"]:
+                # Handle both string and ObjectId types
+                report_id_str = str(report_id) if report_id else None
+                if report_id_str:
+                    report_path = self.reports_db / report_id_str
+                    if report_path.exists():
+                        try:
+                            os.remove(report_path)
+                        except Exception as e:
+                            print(f"Error deleting report {report_id_str}: {e}")
+
+        # Finally, delete the equipment document itself
+        result = self.equipment_db.delete_one({"_id": equipment_id})
+        return result.acknowledged and result.deleted_count > 0

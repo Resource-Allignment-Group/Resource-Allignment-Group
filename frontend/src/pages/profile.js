@@ -3,13 +3,14 @@ import "../styles/profile.css";
 import { useState, useEffect } from "react";
 import { useAuth } from "../Authentication";
 import { useNavigate } from "react-router-dom";
+import { useSidebar } from "../SidebarContext";
 
 // Import componets that will make up the profile page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
 function Profile({ num_of_notifications, setNumNotifications }) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const { logout } = useAuth();
 	const navigate = useNavigate();
 
@@ -91,12 +92,12 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 
 	return (
 		<div className="home-container">
-			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+			<Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
 			<div className="main">
 				<Header
 					sidebarOpen={sidebarOpen}
-					onMenuToggle={() => setSidebarOpen(true)}
+					onMenuToggle={openSidebar}
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
 				/>

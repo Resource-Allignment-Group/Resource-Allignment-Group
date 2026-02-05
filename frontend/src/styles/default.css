@@ -16,6 +16,10 @@ body,
 	font-family: Arial, sans-serif;
 }
 
+body {
+	zoom: 0.95;
+}
+
 .home-container {
 	display: flex;
 	height: 100%;

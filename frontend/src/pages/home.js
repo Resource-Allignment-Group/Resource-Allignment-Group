@@ -5,9 +5,10 @@ import { useState, useEffect, useCallback } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
+import { useSidebar } from "../SidebarContext";
 
 function Home({ num_of_notifications, setNumNotifications }) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
 	const [selectedEquipment, setSelectedEquipment] = useState(new Set());
@@ -269,7 +270,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 			{/* Sidebar is a separate component */}
 			<Sidebar
 				isOpen={sidebarOpen}
-				onClose={() => setSidebarOpen(false)}
+				onClose={closeSidebar}
 				onFilter={handleFilter}
 				filterOptions={filterOptions}
 				onClearFilters={handleClearFilters}
@@ -280,7 +281,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 				{/* Header is a separate component */}
 				<Header
 					sidebarOpen={sidebarOpen}
-					onMenuToggle={() => setSidebarOpen(true)}
+					onMenuToggle={openSidebar}
 					activeTab="Home"
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
@@ -347,6 +348,13 @@ function Home({ num_of_notifications, setNumNotifications }) {
 								}
 								isSelected={selectedEquipment.has(item.id)}
 								onSelect={handleEquipmentSelect}
+								onDelete={() => {
+									// Refresh equipment list after deletion
+									GetEquipment().then((equip_list) => {
+										setEquipment(equip_list);
+										setExpandedCard(null); // Close any expanded cards
+									});
+								}}
 							/>
 						))
 					)}
