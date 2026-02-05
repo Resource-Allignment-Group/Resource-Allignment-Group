@@ -1,49 +1,5 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
-  "private": true,
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^6.30.3",
-    "react-scripts": "^5.0.1",
-    "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
-<<<<<<< HEAD
-    "baseline-browser-mapping": "^2.9.19"
-=======
-    "typescript": "^4.9.5",
-    "yaml": "^2.8.2"
->>>>>>> a9cff3467aa8d6a5a00b5f850a84a37aae50d6f7
+    "cors": "^2.8.6"
   }
 }
