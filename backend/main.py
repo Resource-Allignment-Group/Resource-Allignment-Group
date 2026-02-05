@@ -8,6 +8,7 @@ from notifications import Notification_Manager, Notification
 from bson.objectid import ObjectId
 from user import User
 from datetime import datetime, timezone
+from rapidfuzz import fuzz
 
 
 def create_app(testing=False):
@@ -569,6 +570,91 @@ def create_app(testing=False):
         except Exception as e:
             print(f"Error getting filter options: {e}")
             return jsonify({"result": False, "error": str(e)})
+
+    # Endpoint for user entered search parameters
+    # Allows fuzzy searching (eg. tractor, tractr, tract)
+    # Supports multi-word queries accross equipment fields
+    @app.route("/search_equipment", methods=["POST"])
+    def search_equipment():
+        # Take in the received search params and normalize them
+        data = request.get_json()
+        query = (data.get("query") or "").strip().lower()
+
+        # If no search query was entered, load equipment normally
+        if not query:
+            return get_equipment()
+
+        # Split search into tokens
+        query_tokens = query.split()
+        all_equipment = db.get_all_equipment()
+        results = []
+
+        # Iterate through equipment items and score them
+        for equip in all_equipment:
+            # Searchable fields
+            fields = {
+                "name": equip.name or "",
+                "make": equip.make or "",
+                "model": equip.model or "",
+                "class": equip._class or "",
+                "farm": equip.farm or "",
+                "description": equip.description or "",
+            }
+
+            # Normalize status
+            if equip.unavailable:
+                fields["status"] = "unavailable"
+            elif equip.damaged:
+                fields["status"] = "damaged"
+            elif equip.checked_out:
+                fields["status"] = "checked out"
+            else:
+                fields["status"] = "available"
+
+            # Normalize field values (lowercase)
+            fields = {k: str(v).lower() for k, v in fields.items() if v}
+            token_scores = []
+
+            # Combine all field values into one searchable text
+            combined_text = " ".join(fields.values())
+
+            for token in query_tokens:
+                # Use token_sort_ratio for queries where word order matters
+                # Use partial_ratio for substring matching for misspelling, etc
+                token_score = max(
+                    fuzz.partial_ratio(token, combined_text),
+                    fuzz.token_sort_ratio(token, combined_text)
+                )
+                token_scores.append(token_score)
+
+            # For multi word queries, use the average score
+            # This allows items to match even if one tokens scores bad
+            if token_scores:
+                score = sum(token_scores) / len(token_scores) 
+            else: 
+                score = 0
+
+            # Only display the equipment that closely match the search params
+            if score >= 80:
+                equip_dict = equip.to_dict()
+                # Show who has that equipment checked out if any
+                if equip_dict.get("checked_out"):
+                    user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
+                    equip_dict["checkedOutBy"] = user.email if user else None
+                else:
+                    equip_dict["checkedOutBy"] = None
+
+                results.append((score, equip_dict))
+
+        # Sort by relevance (highest first)
+        results.sort(key=lambda x: x[0], reverse=True)
+
+        return jsonify({
+            "result": True,
+            "equip_list": [r[1] for r in results],
+            "query": query,
+            "count": len(results),
+        })
 
     return app
 

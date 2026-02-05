@@ -85,6 +85,11 @@ function Sidebar({
 						placeholder="Search"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								handleSubmit();
+							}
+						}}
 					/>
 				</div>
 			</div>

@@ -75,8 +75,24 @@ function Home({ num_of_notifications, setNumNotifications }) {
 	// This method allows the filters to only be reloaded when the equipment changes
 	// allowing for the most up-to-date info
 	const applyFilters = useCallback(
-		(filters) => {
-			let filtered = [...equipment];
+		async (filters) => {
+			let filtered = [];
+
+			// If there's a search query, call the search endpoint
+			if (filters.search && filters.search.trim() !== "") {
+				const res = await fetch("http://localhost:5000/search_equipment", {
+					method: "POST",
+					credentials: "include",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ query: filters.search }),
+				});
+
+				const data = await res.json();
+				filtered = data.equip_list || [];
+			} else {
+				// Otherwise use full equipment list
+				filtered = [...equipment];
+			}
 
 			// Filter by farm
 			if (filters.farm && filters.farm !== "All Farms") {

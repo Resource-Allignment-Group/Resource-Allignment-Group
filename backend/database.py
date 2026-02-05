@@ -509,8 +509,15 @@ class DatabaseManager:
     
     # Update multiple equipment items as unavailable at once
     def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
+        if not equipment_ids:
+            return 0
+        
         result = self.equipment_db.update_many(
-            {"_id": {"$in": equipment_ids}},
+            {
+                "_id": {"$in": equipment_ids}, 
+                "checked_out": False, 
+                "damaged": False,
+            },
             {"$set": {"unavailable": unavailable}}
         )
         return result.modified_count
