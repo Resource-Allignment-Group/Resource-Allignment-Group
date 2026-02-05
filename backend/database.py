@@ -24,7 +24,7 @@ class DatabaseManager:
             _client = MongoClient(os.environ.get("DATABASE_URI"))
         return _client
 
-    def __init__(self, testing):
+    def __init__(self, testing=False):
         self.get_client()
         if testing:
             self.db = _client["TEST_RAM_DB"]
@@ -93,7 +93,8 @@ class DatabaseManager:
 
     def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
         self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"checked_out": checked_out}}
+            {"_id": ObjectId(id)},
+            {"$set": {"checked_out": checked_out}}
         )
 
     def add_user(self, fname: str, lname: str, phone: int, email: str, password):
@@ -161,7 +162,7 @@ class DatabaseManager:
             return f"Equipment {equipment_id} is already checked out"
 
         self.users_db.update_one(
-            {"_id": user_id}, {"$push": {"checked_out_equipment": equipment_id}}
+            {"_id": user_id}, {"$addToSet": {"checked_out_equipment": equipment_id}}
         )
 
         self.equipment_db.update_one(
@@ -363,11 +364,35 @@ class DatabaseManager:
             equip_list.append(equip)
         return equip_list
 
+    # Allows you to edit a specific field on an equipment
+    def update_equipment_field(self, equip_id, field_name, value):
+        try:
+            result = self.equipment_db.update_one(
+                {"_id": ObjectId(equip_id)},
+                {"$set": {field_name: value}}
+            )
+
+            updated = self.equipment_db.find_one({"_id": ObjectId(equip_id)})
+
+            return result.modified_count > 0
+        except:
+            return False
+
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
         return equip
+
+    # Get multiple equipment items from a list of ids
+    def get_equipment_by_ids(self, equipment_ids: list):
+        cursor = self.equipment_db.find({"_id": {"$in": equipment_ids}})
+        equip_list = []
+        for equip_info in cursor:
+            equip = Equipment()
+            equip.fill_from_json(equip_info)
+            equip_list.append(equip)
+        return equip_list
 
     def get_equipment_by_user(self, user_id: ObjectId):
         equip_list = []
@@ -407,12 +432,15 @@ class DatabaseManager:
         return request_list, equipment_list
 
     def get_dashboard_info(self):
-        num_total = len(self.get_all_equipment())
-        num_available = self.equipment_db.count_documents({"checked_out": False})
+        num_total = self.equipment_db.count_documents({})
+        num_available = self.equipment_db.count_documents({
+            "checked_out": {"$ne": True},
+            "damaged": {"$ne": True},
+            "unavailable": {"$ne": True}
+        })
         num_used = self.equipment_db.count_documents({"checked_out": True})
         num_damaged = self.equipment_db.count_documents({"damaged": True})
-        # add unavalibility later
-        num_unavailable = "add later"
+        num_unavailable = self.equipment_db.count_documents({"unavailable": True})
         return num_total, num_available, num_used, num_damaged, num_unavailable
 
     def get_all_users(self):
@@ -421,6 +449,18 @@ class DatabaseManager:
         for user_info in users:
             all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
         return all_users
+
+    # See what equipment a user has checked out
+    def get_user_by_equipment(self, equipment_id: ObjectId):
+        user_info = self.users_db.find_one({
+            "checked_out_equipment": equipment_id
+        })
+        
+        if user_info:
+            user = User()
+            user.fill_user_information(user_info)
+            return user
+        return None
 
     def delete_user(self, user: User):
         for equipment_id in user.checked_out_equipment:
@@ -455,6 +495,34 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
+    # If equipment marked as unavailable and there is a pending 
+    # request for checkout, cancel the request
+    def cancel_pending_requests_for_equipment(self, equipment_ids: list):
+        result = self.notifications_db.update_many(
+            {
+                "equipment_id": {"$in": equipment_ids},
+                "type": "r",
+                "status": {"$ne": "a"}  # Not approved
+            },
+            {"$set": {"status": "r"}}  # Set to rejected
+        )
+        return result.modified_count
+    
+    # Update multiple equipment items as unavailable at once
+    def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
+        if not equipment_ids:
+            return 0
+        
+        result = self.equipment_db.update_many(
+            {
+                "_id": {"$in": equipment_ids}, 
+                "checked_out": False, 
+                "damaged": False,
+            },
+            {"$set": {"unavailable": unavailable}}
+        )
+        return result.modified_count
+    
     '''
     Delete equipment and all its references from the database.
     '''

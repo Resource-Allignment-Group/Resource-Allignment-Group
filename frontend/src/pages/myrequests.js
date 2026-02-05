@@ -9,7 +9,6 @@ import { useSidebar } from "../SidebarContext";
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
-
 	const [notifications, setNotifications] = useState([]);
 	const [equipment, setEquipment] = useState([]);
 
@@ -29,7 +28,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				const equipArray = data.equipment || [];
 
 				setNotifications(notifArray);
-				setEquipment(equipArray);
+				setEquipment(equipArray.reverse());
 
 				//this creates the mapping of equipment and notification
 				const notifMap = {};
@@ -37,7 +36,6 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 					notifMap[notif.equipment_id] = notif;
 				}
 				setNotificationsByEquipment(notifMap);
-			
 			} catch (error) {
 				console.error("Failed to load requests:", error);
 			}
@@ -76,9 +74,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 								notification={notif}
 								isExpanded={expandedCard === cardId}
 								onToggle={() => {
-									setExpandedCard(
-										expandedCard === cardId ? null : cardId
-									);
+									setExpandedCard(expandedCard === cardId ? null : cardId);
 								}}
 							/>
 						);

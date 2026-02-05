@@ -5,28 +5,27 @@ import { MdArrowForwardIos } from "react-icons/md";
 
 function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 	const ReturnEquipment = async () => {
-		try{
+		try {
 			const res = await fetch("http://localhost:5000/return_equipment", {
-				method: "POST",	
+				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",
 				body: JSON.stringify({
-					equipment_id: equipment.id
-				})
-				});
-				const data = await res.json();
-				if (data.result){
-					alert("Your Equipment has been returned")
-				}
-				else{
-					alert("Something Has Gone Wrong, Please Refresh Your Page to See if Your Equipment was Returned")
-				}
-				
+					equipment_id: equipment.id,
+				}),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("Your Equipment has been returned");
+			} else {
+				alert(
+					"Something Has Gone Wrong, Please Refresh Your Page to See if Your Equipment was Returned",
+				);
+			}
+		} catch (error) {
+			console.log(error);
 		}
-		catch (error) {
-			console.log(error)
-		}
-	}
+	};
 	return (
 		<div className="my-equipment-card">
 			<div className="card-header">
@@ -36,20 +35,20 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 				</div>
 
 				{/* Equipment details */}
-				<div className="equipment-info">
+				<div className="equipment-info-less-text">
 					<h3>{equipment.name}</h3>
 
-					{/* Show when the equipment was checked out */}
-					<p className="checkout-info">
-						<strong>Checked Out:</strong> {equipment.checkedOutDate}
-					</p>
-
 					{/* Return Equipment button */}
-					<button className="btn-primary" onClick={ReturnEquipment}>Return Equipment</button>
+					<button className="btn-primary" onClick={ReturnEquipment}>
+						Return Equipment
+					</button>
 				</div>
 
 				{/* Button state for opening and closing the equipment card  */}
-				<button className={`expand-button ${isExpanded ? "rotated" : ""}`} onClick={onToggle}>
+				<button
+					className={`expand-button ${isExpanded ? "rotated" : ""}`}
+					onClick={onToggle}
+				>
 					<MdArrowForwardIos />
 				</button>
 			</div>
