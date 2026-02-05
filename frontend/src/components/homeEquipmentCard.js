@@ -79,7 +79,6 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle, onDelete }) {
 			const data = await res.json();
 			if (data.result) {
 				alert("Equipment deleted successfully");
-				// Call the onDelete callback to refresh the equipment list
 				if (onDelete) {
 					onDelete();
 				}
@@ -88,8 +87,8 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle, onDelete }) {
 			}
 		} catch (error) {
 			console.log(error);
-			alert("An error occurred while deleting the equipment");
-		}
+			alert("There Were Problems Deleting The Equipment");
+		}		
 	}
 
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
@@ -124,13 +123,13 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle, onDelete }) {
 						</span>
 
 						<div className="status-actions">
-							<label className="checkbox-label">
-								Mark as Unavailable
-								<input
-								type="checkbox"
-								//should add an onChange flag that will do something
-								/>
-							</label>
+						<label className="checkbox-label">
+							Mark as Unavailable
+							<input
+							type="checkbox"
+							//should add an onChange flag that will do something
+							/>
+						</label>
 							{isAdmin && (
 								<span 
 									className="delete-text-link" 

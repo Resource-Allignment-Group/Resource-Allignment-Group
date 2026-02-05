@@ -53,7 +53,7 @@ def create_app(testing=False):
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
                     print(email)
-                    return jsonify({"result": True, "message": "success"})
+                    return jsonify({"result": True, "message": "success", "role": user.role})
 
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})
@@ -402,27 +402,16 @@ def create_app(testing=False):
 
     @app.route("/delete_equipment", methods=["POST"])
     def delete_equipment():
-        # Check if user is authenticated and is an admin
-        if "user" not in session:
-            return jsonify({"result": False, "message": "Not authenticated"}), 401
-        
-        if session.get("role") != "a":
-            return jsonify({"result": False, "message": "Only administrators can delete equipment"}), 403
-
         data = request.json
-        equipment_id = data.get("equipment_id")
-        
-        if not equipment_id:
-            return jsonify({"result": False, "message": "Equipment ID is required"}), 400
-
         try:
+            equipment_id = data.get("equipment_id")
             result = db.delete_equipment(equipment_id=ObjectId(equipment_id))
             if result:
-                return jsonify({"result": True, "message": "Equipment deleted successfully"})
+                return jsonify({"result": True})
             else:
-                return jsonify({"result": False, "message": "Equipment not found or could not be deleted"}), 404
+                return jsonify({"result": False, "message": "Equipment not found or could not be deleted"})
         except Exception as e:
-            return jsonify({"result": False, "message": str(e)}), 500
+            return jsonify({"result": False, "message": str(e)})
 
     return app
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end

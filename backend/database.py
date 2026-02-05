@@ -455,15 +455,10 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
+    '''
+    Delete equipment and all its references from the database.
+    '''
     def delete_equipment(self, equipment_id: ObjectId):
-        """
-        Delete equipment and all its references from the database.
-        This includes:
-        - Removing equipment from users' checked_out_equipment arrays
-        - Deleting all notifications referencing this equipment
-        - Deleting associated image and report files
-        - Deleting the equipment document itself
-        """
         # Get equipment to access images and reports
         equipment = self.equipment_db.find_one({"_id": equipment_id})
         if not equipment:
@@ -489,28 +484,18 @@ class DatabaseManager:
         # Delete associated image files
         if "images" in equipment and equipment["images"]:
             for image_id in equipment["images"]:
-                # Handle both string and ObjectId types
-                image_id_str = str(image_id) if image_id else None
-                if image_id_str:
-                    image_path = self.images_db / image_id_str
+                if image_id:
+                    image_path = self.images_db / image_id
                     if image_path.exists():
-                        try:
-                            os.remove(image_path)
-                        except Exception as e:
-                            print(f"Error deleting image {image_id_str}: {e}")
+                        os.remove(image_path)
 
         # Delete associated report files
         if "reports" in equipment and equipment["reports"]:
             for report_id in equipment["reports"]:
-                # Handle both string and ObjectId types
-                report_id_str = str(report_id) if report_id else None
-                if report_id_str:
-                    report_path = self.reports_db / report_id_str
+                if report_id:
+                    report_path = self.reports_db / report_id
                     if report_path.exists():
-                        try:
-                            os.remove(report_path)
-                        except Exception as e:
-                            print(f"Error deleting report {report_id_str}: {e}")
+                        os.remove(report_path)
 
         # Finally, delete the equipment document itself
         result = self.equipment_db.delete_one({"_id": equipment_id})
