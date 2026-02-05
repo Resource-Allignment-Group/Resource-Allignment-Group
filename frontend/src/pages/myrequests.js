@@ -9,7 +9,6 @@ import { useSidebar } from "../SidebarContext";
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
-
 	const [notifications, setNotifications] = useState([]);
 	const [equipment, setEquipment] = useState([]);
 
