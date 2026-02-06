@@ -37,8 +37,8 @@ def create_app(testing=False):
     @app.route("/authenticate", methods=["POST", "GET"])
     def authenticate():
         data = request.json
-        email = data.get("email")
-        password = data.get("password")
+        email = data["email"]
+        password = data["password"]
 
         # TODO:make sure that this try and except actually works the way it should
         try:
@@ -268,7 +268,7 @@ def create_app(testing=False):
             equip_dict = equip.to_dict()
 
             # If equipment is checked out, find who has it
-            if equip_dict.get('checked_out'):
+            if equip_dict["checked_out"]:
                 # Find the user who has this equipment in their checked_out_equipment array
                 user = db.get_user_by_equipment(ObjectId(equip_dict['id']))
                 
@@ -284,9 +284,9 @@ def create_app(testing=False):
         # Sort the output equipment by their assigned status
         # (ie. Available, Checked Out, Damaged, Unavailable)
         def get_priority(equip):
-            if equip.get('unavailable'): return 4
-            elif equip.get('damaged'): return 3
-            elif equip.get('checked_out'): return 2
+            if equip["unavailable"]: return 4
+            elif equip["damaged"]: return 3
+            elif equip["checked_out"]: return 2
             else: return 1
 
         # This will sort the returned equipment by their status
@@ -452,8 +452,8 @@ def create_app(testing=False):
     @app.route("/mark_equipment_unavailable", methods=['POST'])
     def mark_equipment_unavailable():
         data = request.get_json()
-        equipment_ids = data.get('equipment_ids', [])
-        unavailable = data.get('unavailable', True)
+        equipment_ids = data["equipment_ids"]
+        unavailable = data["unavailable"]
         
         # Convert to ObjectIds
         object_ids = [ObjectId(equip_id) for equip_id in equipment_ids]
@@ -578,7 +578,7 @@ def create_app(testing=False):
     def search_equipment():
         # Take in the received search params and normalize them
         data = request.get_json()
-        query = (data.get("query") or "").strip().lower()
+        query = (data["query"] or "").strip().lower()
 
         # If no search query was entered, load equipment normally
         if not query:
@@ -638,7 +638,7 @@ def create_app(testing=False):
             if score >= 80:
                 equip_dict = equip.to_dict()
                 # Show who has that equipment checked out if any
-                if equip_dict.get("checked_out"):
+                if equip_dict["checked_out"]:
                     user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
                     equip_dict["checkedOutBy"] = user.email if user else None
                 else:
@@ -660,7 +660,7 @@ def create_app(testing=False):
     def delete_equipment():
         data = request.json
         try:
-            equipment_id = data.get("equipment_id")
+            equipment_id = data["equipment_id"]
             result = db.delete_equipment(equipment_id=ObjectId(equipment_id))
             if result:
                 return jsonify({"result": True})
