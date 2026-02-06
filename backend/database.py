@@ -252,7 +252,7 @@ class DatabaseManager:
         return buffer.getvalue()
 
     def delete_image(self, uuid: ObjectId):
-        os.remove(self.images_db / uuid)
+        (self.images_db / uuid).unlink()
 
     def get_report(self, uuid: ObjectId):
         if type(uuid) is not ObjectId:
@@ -267,7 +267,7 @@ class DatabaseManager:
         return report_data
 
     def delete_report(self, uuid: ObjectId):
-        os.remove(self.reports_db / uuid)
+        (self.reports_db / uuid).unlink()
 
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
@@ -555,7 +555,7 @@ class DatabaseManager:
                 if image_id:
                     image_path = self.images_db / image_id
                     if image_path.exists():
-                        os.remove(image_path)
+                        image_path.unlink()
 
         # Delete associated report files
         if "reports" in equipment and equipment["reports"]:
@@ -563,7 +563,7 @@ class DatabaseManager:
                 if report_id:
                     report_path = self.reports_db / report_id
                     if report_path.exists():
-                        os.remove(report_path)
+                        report_path.unlink()
 
         # Finally, delete the equipment document itself
         result = self.equipment_db.delete_one({"_id": equipment_id})
