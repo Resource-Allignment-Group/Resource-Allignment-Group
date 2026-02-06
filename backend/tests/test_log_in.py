@@ -1,7 +1,10 @@
 import pytest
-
+from flask import session
+from bson.objectid import ObjectId
 
 def test_register(client):
+    with client.session_transaction() as sess:
+        sess['id'] = str(ObjectId())
     res = client.post(
         "/register",
         json={

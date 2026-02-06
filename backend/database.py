@@ -12,6 +12,7 @@ from bson.objectid import ObjectId
 from equipment import Equipment
 from typing import Literal
 from datetime import timedelta
+from logger import SystemLogger
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
@@ -25,12 +26,14 @@ class DatabaseManager:
         return _client
 
     def __init__(self, testing):
-
         self.get_client()
         if testing:
             self.db = _client["TEST_RAM_DB"]
+            self.txt_logger = SystemLogger("test_log.txt")
         else:
             self.db = _client["RAM_DB"]
+            self.txt_logger = SystemLogger("system_logs.txt")
+            
         self.users_db = self.db["users"]
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
@@ -38,9 +41,7 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
-        self.logs_db = self.db["logs"] # Creates/adds to logs collection
 
-    # Setters
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
 
@@ -99,14 +100,7 @@ class DatabaseManager:
         )
 
     def add_log(self, user_id: ObjectId, action: str, details: str = None, target_id: ObjectId = None):
-        log_entry = {
-            "timestamp": datetime.now(timezone.utc),
-            "user_id": user_id,
-            "action": action,
-            "target_id": target_id,
-            "details": details
-        }
-        self.logs_db.insert_one(log_entry)
+        self.txt_logger.log_action(user_id, action, details, target_id)
 
     def add_user(self, fname: str, lname: str, phone: int, email: str, password, admin_id: ObjectId):
         if (
@@ -192,6 +186,7 @@ class DatabaseManager:
                 target_id=equipment_id, 
                 details=f"Assigned to user: {user_id}"
             )
+
     def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
@@ -219,6 +214,7 @@ class DatabaseManager:
             target_id=equipment_id, 
             details=status_msg
         )
+
     def get_password_by_email(self, email: str):
         return self.users_db.find_one({"email": email})["password"]
 
@@ -404,7 +400,7 @@ class DatabaseManager:
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
         if not equip_info: # Added for handling when equipment doesnt exist
-            print(f"DEBUG: No equipment found for ID {id}")
+            # Add message
             return None
         
         equip = Equipment()
