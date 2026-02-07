@@ -16,7 +16,8 @@ def create_app(testing=False):
 
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-    CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+    CORS(app, supports_credentials=True, origins='*')
+
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
 
@@ -48,17 +49,22 @@ def create_app(testing=False):
                 origional_password=password, hashed_password=hashed_passowrd
             ):  # check with the the hashing algorithm
                 if user.role == "p":
+                    print("1")
                     return "Account is still pending approval from admin"
                 else:
+                    print("2")
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
-                    print(email)
-                    return jsonify({"result": True, "message": "success", "role": user.role})
+                    print(session)
+                    return jsonify(
+                        {"result": True, "message": "success", "role": user.role}
+                    )
 
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})
         except Exception as e:
+            print(str(e))
             return jsonify({"result": False, "message": str(e)})
 
     @app.route("/forgot_password", methods=["POST"])
@@ -169,6 +175,7 @@ def create_app(testing=False):
         # add profile pic retrevial and any other import stuff here
 
         # This needs so re factoring once we get more features implimented
+        print(session)
         inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
         unread_messages = db.get_unread_messages_by_user(
             user_id=ObjectId(session["id"])
@@ -692,4 +699,9 @@ def create_app(testing=False):
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)
-    app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000, use_reloader=False)
+    app.run(
+        host="0.0.0.0",
+        debug=os.environ.get("FLASK_DEBUG"),
+        port=5000,
+        use_reloader=False,
+    )

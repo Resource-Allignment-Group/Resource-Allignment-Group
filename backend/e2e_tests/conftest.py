@@ -40,4 +40,4 @@
 
 # @pytest.fixture(scope="session")
 # def base_url():
-#     return "http://localhost:3000"
+#     return "http://${API_BASE}:3000"

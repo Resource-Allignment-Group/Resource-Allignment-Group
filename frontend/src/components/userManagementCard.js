@@ -4,6 +4,7 @@
 import '../styles/userManagementCard.css';
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react"; // Temp needed for visibility, removed when backend connected
+import { API_BASE } from "../config";
 
 function UserManagementCard({ user, isExpanded, onToggle }) {
 	// Placeholder for changing the user's role in the dropdown
@@ -13,7 +14,7 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 	const ChangeRole = async (new_role) => {
 		try{
 			setRole(new_role)
-			const res = await fetch("http://localhost:5000/change_user_role", {
+			const res = await fetch(`http://${API_BASE}:5000/change_user_role`, {
 					method: "POST",
 					credentials: "include",
 					headers: { "Content-Type": "application/json" },
@@ -29,7 +30,7 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 
 	const DeleteUser = async () => {
 		try{
-			const res = await fetch("http://localhost:5000/delete_user_account", {
+			const res = await fetch(`http://${API_BASE}:5000/delete_user_account`, {
 					method: "POST",
 					credentials: "include",
 					headers: { "Content-Type": "application/json" },

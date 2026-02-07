@@ -3,7 +3,7 @@
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
-
+import { API_BASE } from "../config";
 function HomeEquipmentCard({
 	equipment,
 	isExpanded,
@@ -52,7 +52,7 @@ function HomeEquipmentCard({
 		}
 
 		try {
-			const res = await fetch("http://localhost:5000/request_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/request_equipment`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
