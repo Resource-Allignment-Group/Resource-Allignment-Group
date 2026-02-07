@@ -13,6 +13,8 @@ function Login() {
   if (e) e.preventDefault();
   try {
     const success = await login(email, password); // call login function in AuthProvider.js
+
+    
     if(success){
       navigate('/home'); 
     } 

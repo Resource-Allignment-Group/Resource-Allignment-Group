@@ -16,6 +16,10 @@ body,
 	font-family: Arial, sans-serif;
 }
 
+body {
+	zoom: 0.95;
+}
+
 .home-container {
 	display: flex;
 	height: 100%;
@@ -69,7 +73,7 @@ body,
 	width: fit-content;
 	background-color: #4a4a4a;
 	color: white;
-	padding: 10px;
+	padding: 9px;
 	font-size: 15px;
 	border: none;
 	border-radius: 6px;
@@ -99,7 +103,7 @@ body,
 
 .search-box {
 	position: relative;
-	margin-bottom: 15px;
+	margin-bottom: 5px;
 }
 
 .search-box input {
@@ -112,7 +116,7 @@ body,
 
 .sidebar h3 {
 	font-size: 16px;
-	margin: 20px 0 10px 0;
+	margin: 10px 0 10px 0;
 	color: #333;
 }
 
@@ -310,13 +314,29 @@ and profile buttons are in */
 	overflow-y: auto;
 }
 
-.content::-webkit-scrollbar {
+/* Disables the scrollbar in the main views */
+/* .content::-webkit-scrollbar {
 	display: none;
-}
+} */
 
-.content {
+/* .content {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
+} */
+
+/* WebKit browsers */
+.content::-webkit-scrollbar {
+	width: 15px;
+}
+
+.content::-webkit-scrollbar-track {
+	background: #e3e3e3;
+}
+
+.content::-webkit-scrollbar-thumb {
+	background-color: #4a4a4a;
+	height: 20px;
+	border: 2px solid #e3e3e3;
 }
 
 .card-header {

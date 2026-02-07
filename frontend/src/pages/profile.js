@@ -8,11 +8,11 @@ import { API_BASE } from "../config";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 
-function Profile({num_of_notifications, setNumNotifications}) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
-	const { logout } = useAuth()
-	const navigate = useNavigate()
-	
+function Profile({ num_of_notifications, setNumNotifications }) {
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
+	const { logout } = useAuth();
+	const navigate = useNavigate();
+
 	const [profile, setProfile] = useState({
 		fname: "",
 		lname: "",
@@ -32,10 +32,10 @@ function Profile({num_of_notifications, setNumNotifications}) {
 				if (!res.ok) throw new Error("Failed to fetch profile");
 
 				const data = await res.json();
-				const user_info = data["user"]
-				const fname = user_info.name.split(" ")[0]
-				const lname = user_info.name.split(" ")[1]
-				
+				const user_info = data["user"];
+				const fname = user_info.name.split(" ")[0];
+				const lname = user_info.name.split(" ")[1];
+
 				setProfile({
 					fname: fname,
 					lname: lname,
@@ -48,8 +48,8 @@ function Profile({num_of_notifications, setNumNotifications}) {
 				console.error(err);
 				alert("Could not load profile information");
 			}
-		}
-	fetchProfile();
+		};
+		fetchProfile();
 	}, []);
 
 	const handleSave = async () => {
@@ -63,42 +63,40 @@ function Profile({num_of_notifications, setNumNotifications}) {
 					body: JSON.stringify(profile),
 				});
 
-				if (!res.ok) throw new Error("Failed to save profile");
+			if (!res.ok) throw new Error("Failed to save profile");
 
-				alert("Profile updated successfully");
-			} catch (err) {
-				console.error(err);
-				alert("Error saving profile changes");
-			} 
+			alert("Profile updated successfully");
+		} catch (err) {
+			console.error(err);
+			alert("Error saving profile changes");
 		}
+	};
 
 	const handleChange = (e) => {
-			const { name, value } = e.target;
-			setProfile((prev) => ({
-				...prev,
-				[name]: value,
-			}));
-		};
-	
-		const handleLogout = async () => {
+		const { name, value } = e.target;
+		setProfile((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+	};
+
+	const handleLogout = async () => {
 		const success = await logout();
-    	if(success){
-      		navigate('/login'); 
-    	} 
-    
-    	else {
-      		alert('Can Not Sign Out'); 
-    	}
-	}
+		if (success) {
+			navigate("/login");
+		} else {
+			alert("Can Not Sign Out");
+		}
+	};
 
 	return (
 		<div className="home-container">
-			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+			<Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
 			<div className="main">
 				<Header
 					sidebarOpen={sidebarOpen}
-					onMenuToggle={() => setSidebarOpen(true)}
+					onMenuToggle={openSidebar}
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
 				/>
@@ -113,9 +111,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 						{/* Left side */}
 						<div className="profile-section">
 							<div className="profile-picture-large"></div>
-							<button className="change-picture-btn">
-								Change Picture
-							</button>
+							<button className="change-picture-btn">Change Picture</button>
 
 							<div className="profile-info">
 								<h3>
@@ -135,7 +131,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 
 							<div className="form-row">
 								<div className="form-field">
-									<label>First Name *</label>
+									<label>First Name</label>
 									<input
 										type="text"
 										name="fname"
@@ -145,7 +141,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 								</div>
 
 								<div className="form-field">
-									<label>Last Name *</label>
+									<label>Last Name</label>
 									<input
 										type="text"
 										name="lname"
@@ -157,7 +153,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 
 							<div className="form-row">
 								<div className="form-field">
-									<label>Email Address *</label>
+									<label>Email Address</label>
 									<input
 										type="email"
 										name="email"
@@ -179,7 +175,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 
 							<div className="form-row">
 								<div className="form-field">
-									<label>Position within MAFES *</label>
+									<label>Position within MAFES</label>
 									<input
 										type="text"
 										name="position"
@@ -189,7 +185,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 								</div>
 
 								<div className="form-field">
-									<label>MAFES Department *</label>
+									<label>MAFES Department</label>
 									<input
 										type="text"
 										name="department"
@@ -200,10 +196,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 							</div>
 
 							<div className="form-buttons">
-								<button
-									className="btn-save"
-									onClick={handleSave}
-								>
+								<button className="btn-save" onClick={handleSave}>
 									Save Changes
 								</button>
 								<button
