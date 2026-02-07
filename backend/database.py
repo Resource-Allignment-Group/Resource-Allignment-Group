@@ -521,7 +521,6 @@ class DatabaseManager:
                 "used": False,
             }
         )
-        print(res)
         link = f"http://${os.environ.get("REACT_APP_API_BASE")}:3000/reset-password?token={token}"  # This will need to change when we host
         return link
 

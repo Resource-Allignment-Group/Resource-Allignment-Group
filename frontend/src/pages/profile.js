@@ -7,6 +7,7 @@ import { API_BASE } from "../config";
 // Import componets that will make up the profile page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import { useSidebar } from "../SidebarContext";
 
 function Profile({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();

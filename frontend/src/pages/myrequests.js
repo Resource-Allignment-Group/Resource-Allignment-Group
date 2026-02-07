@@ -5,6 +5,8 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import MyRequestsCard from "../components/myRequestsCard";
 import { API_BASE } from "../config";
+import { useSidebar } from "../SidebarContext";
+
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);

@@ -6,8 +6,10 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
 import { API_BASE } from "../config";
+import { useSidebar } from "../SidebarContext";
+
 function Home({num_of_notifications, setNumNotifications}) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
 	const [selectedEquipment, setSelectedEquipment] = useState(new Set());
@@ -43,7 +45,7 @@ function Home({num_of_notifications, setNumNotifications}) {
 	// that equipment can be filtered by
 	const GetFilterOptions = async () => {
 		try {
-			const res = await fetch("http://localhost:5000/get_filter_options", {
+			const res = await fetch(`http://${API_BASE}:5000/get_filter_options`, {
 				credentials: "include",
 			});
 			const data = await res.json();
@@ -80,7 +82,7 @@ function Home({num_of_notifications, setNumNotifications}) {
 
 			// If there's a search query, call the search endpoint
 			if (filters.search && filters.search.trim() !== "") {
-				const res = await fetch("http://localhost:5000/search_equipment", {
+				const res = await fetch(`http://${API_BASE}:5000/search_equipment`, {
 					method: "POST",
 					credentials: "include",
 					headers: { "Content-Type": "application/json" },
