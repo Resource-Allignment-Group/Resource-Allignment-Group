@@ -2,11 +2,11 @@
 // Shows equipment currently checked out to the user
 import "../styles/myequipment.css";
 import { MdArrowForwardIos } from "react-icons/md";
-
+import { API_BASE } from "../config";
 function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 	const ReturnEquipment = async () => {
 		try{
-			const res = await fetch("http://localhost:5000/return_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/return_equipment`, {
 				method: "POST",	
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",

@@ -3,7 +3,7 @@ import "../styles/profile.css";
 import { useState, useEffect } from "react";
 import { useAuth } from "../Authentication"
 import { useNavigate } from 'react-router-dom';
-
+import { API_BASE } from "../config";
 // Import componets that will make up the profile page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
@@ -24,7 +24,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/get_profile_info", {
+				const res = await fetch(`http://${API_BASE}:5000/get_profile_info`, {
 					method: "GET",
 					credentials: "include",
 				});
@@ -54,7 +54,7 @@ function Profile({num_of_notifications, setNumNotifications}) {
 
 	const handleSave = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/save_new_profile_info", {
+				const res = await fetch(`http://${API_BASE}:5000/save_new_profile_info`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",

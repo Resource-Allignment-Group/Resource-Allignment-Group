@@ -1,6 +1,6 @@
 import "../styles/default.css";
 import { useState, useEffect } from "react";
-
+import { API_BASE } from "../config";
 // Import componets that will make up the my equipment page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
@@ -14,7 +14,7 @@ function MyEquipment({num_of_notifications, setNumNotifications}) {
 	// Sample equipment data, will be replaced with backend info later
 	const fillEquipment = async () => {
 		try {
-			const res = await fetch("http://localhost:5000/get_user_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/get_user_equipment`, {
 				credentials: "include",
 			});
 			const data = await res.json();

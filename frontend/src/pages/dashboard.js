@@ -1,7 +1,7 @@
 import "../styles/default.css";
 import "../styles/dashboard.css";
 import { useState, useEffect } from "react";
-
+import { API_BASE } from "../config";
 // Import componets that will make up the dashboard page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
@@ -19,7 +19,7 @@ function Dashboard({num_of_notifications, setNumNotifications}) {
 	useEffect(() => {
 		const GetDashboardInfo = async () => {
 			try{
-				const res = await fetch("http://localhost:5000/get_dashboard_info", {
+				const res = await fetch(`http://${API_BASE}:5000/get_dashboard_info`, {
 				credentials: "include",
 				})
 				const data = await res.json()

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import MyRequestsCard from "../components/myRequestsCard";
-
+import { API_BASE } from "../config";
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
@@ -18,7 +18,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 	useEffect(() => {
 		const fillRequests = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/get_requests", {
+				const res = await fetch(`http://${API_BASE}:5000/get_requests`, {
 					credentials: "include",
 				});
 

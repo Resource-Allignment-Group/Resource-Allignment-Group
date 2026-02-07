@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import UserManagementCard from "../components/userManagementCard";
-
+import { API_BASE } from "../config";
 function UserManagement({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
@@ -11,7 +11,7 @@ function UserManagement({num_of_notifications, setNumNotifications}) {
 	useEffect(() => {
 		const GetUsersInfo = async () => {
 			try{
-				const res = await fetch("http://localhost:5000/get_users", {
+				const res = await fetch(`http://${API_BASE}:5000/get_users`, {
 				credentials: "include",
 				})
 				const data = await res.json()

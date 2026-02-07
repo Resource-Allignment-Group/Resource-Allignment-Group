@@ -2,7 +2,7 @@
 
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
-
+import { API_BASE } from "../config";
 function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
@@ -29,7 +29,7 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 
 	const handleCheckOut = async () => {
 		try {
-			const res = await fetch("http://localhost:5000/request_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/request_equipment`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },

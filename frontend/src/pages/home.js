@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
-
+import { API_BASE } from "../config";
 function Home({num_of_notifications, setNumNotifications}) {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [expandedCard, setExpandedCard] = useState(null);
@@ -13,7 +13,7 @@ function Home({num_of_notifications, setNumNotifications}) {
 
 	const GetEquipment = async () => {
 		try {
-			const res = await fetch("http://localhost:5000/get_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/get_equipment`, {
 				credentials: "include",
 			});
 			const data = await res.json();
