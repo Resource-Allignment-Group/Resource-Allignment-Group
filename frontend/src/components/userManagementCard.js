@@ -1,7 +1,7 @@
 // This component is used on the User Management page
 // Shows user accounts with their role and checked out equipment
 
-import '../styles/userManagementCard.css';
+import "../styles/userManagementCard.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react"; // Temp needed for visibility, removed when backend connected
 
@@ -9,42 +9,41 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 	// Placeholder for changing the user's role in the dropdown
 	// Connect to the backend later
 	const [role, setRole] = useState(user.role);
-	
+
 	const ChangeRole = async (new_role) => {
-		try{
-			setRole(new_role)
+		try {
+			setRole(new_role);
 			const res = await fetch("http://localhost:5000/change_user_role", {
-					method: "POST",
-					credentials: "include",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ new_role: new_role, user: user}),			
-				}
-			)
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ new_role: new_role, user: user }),
+			});
 			const data = await res.json();
+			if (data.result) {
+				alert("User's Role Was Successfully Updated");
+			}
+		} catch (error) {
+			alert("There Were Problems Changing The User's Role");
 		}
-		catch(error){
-			alert("There Were Problems Changing The User's Role")
-		}
-	}
+	};
 
 	const DeleteUser = async () => {
-		try{
+		try {
 			const res = await fetch("http://localhost:5000/delete_user_account", {
-					method: "POST",
-					credentials: "include",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({user: user}),			
-				}
-			)
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ user: user }),
+			});
 			const data = await res.json();
-			if (data.result){
-				alert("User Was Successfully Deleted")
+			if (data.result) {
+				alert("User Was Successfully Deleted");
 			}
+		} catch (error) {
+			alert("There Were Problems Deleting The User");
 		}
-		catch(error){
-			alert("There Were Problems Deleting The User")
-		}
-	}
+	};
 	return (
 		<div className="user-management-card">
 			<div className="card-header">
@@ -55,26 +54,19 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 				<div className="equipment-info">
 					<h3>{user.name}</h3>
 					<p className="user-contact-info">
-
-
-
-
-
 						{/* change back to email */}
 						{user.email} | {user.phone}
-
-
-
-
-
-
 					</p>
 				</div>
 
 				{/* User role dropdown - displays user's assigned role */}
 				{/* Placeholder until conencted to the backend */}
 				<div className="user-role-section">
-					<select className="role-dropdown" value={role} onChange={(e) => ChangeRole(e.target.value)}>
+					<select
+						className="role-dropdown"
+						value={role}
+						onChange={(e) => ChangeRole(e.target.value)}
+					>
 						<option value="a">Admin</option>
 						<option value="s">Superintendent</option>
 						<option value="u">User</option>
@@ -82,7 +74,10 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 				</div>
 
 				{/* Button state for opening and closing the user card  */}
-				<button className={`expand-button ${isExpanded ? "rotated" : ""}`} onClick={onToggle}>
+				<button
+					className={`expand-button ${isExpanded ? "rotated" : ""}`}
+					onClick={onToggle}
+				>
 					<MdArrowForwardIos />
 				</button>
 			</div>
@@ -105,7 +100,8 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 
 						<div className="details-column">
 							<h4>Checked Out Equipment</h4>
-							{user.checkedOutEquipment && user.checkedOutEquipment.length > 0 ? (
+							{user.checkedOutEquipment &&
+							user.checkedOutEquipment.length > 0 ? (
 								user.checkedOutEquipment.map((equipment, index) => (
 									<div key={index} className="detail-row">
 										<span className="label">{equipment.name}</span>
@@ -128,7 +124,9 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 
 					<div className="card-footer">
 						<div className="action-buttons">
-							<button className="btn-danger" onClick={DeleteUser}>Delete</button>
+							<button className="btn-danger" onClick={DeleteUser}>
+								Delete
+							</button>
 						</div>
 					</div>
 				</div>

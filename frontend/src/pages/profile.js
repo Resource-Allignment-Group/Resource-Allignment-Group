@@ -98,6 +98,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={openSidebar}
+					activeTab="Profile"
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
 				/>

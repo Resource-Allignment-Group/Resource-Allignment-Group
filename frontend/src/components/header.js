@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { MdDensityMedium } from "react-icons/md";
+import { MdNotifications } from "react-icons/md";
+import { MdPerson } from "react-icons/md";
 
 function Header({
 	sidebarOpen,
@@ -25,7 +27,7 @@ function Header({
 		};
 
 		fetchUserInfo();
-	}, []);
+	}, [setNotificationsNum]);
 
 	return (
 		<header className="header">
@@ -42,18 +44,21 @@ function Header({
 				{/* Notification and profile items */}
 				<div className="header-right">
 					<div
-						className="notification-icon"
+						className={`notification-icon ${activeTab === "Notifications" ? "active" : ""}`}
 						onClick={() => navigate("/notifications")}
 					>
 						{num_of_notifications > 0 && (
 							<span className="notification-bubble">
-								{num_of_notifications}
+								{num_of_notifications > 99 ? "99+" : num_of_notifications}
 							</span>
 						)}
-						<p>&#x1F514;</p>
+						<MdNotifications className="header-icon" />
 					</div>
-					<div className="profile-icon" onClick={() => navigate("/profile")}>
-						<p>&#x1F464;</p>
+					<div
+						className={`profile-icon ${activeTab === "Profile" ? "active" : ""}`}
+						onClick={() => navigate("/profile")}
+					>
+						<MdPerson className="header-icon" />
 					</div>
 				</div>
 			</div>
