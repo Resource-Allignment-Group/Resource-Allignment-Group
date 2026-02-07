@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import MyRequestsCard from "../components/myRequestsCard";
+import { useSidebar } from "../SidebarContext";
 
 function MyRequests({ num_of_notifications, setNumNotifications }) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
-
 	const [notifications, setNotifications] = useState([]);
 	const [equipment, setEquipment] = useState([]);
 
@@ -28,7 +28,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				const equipArray = data.equipment || [];
 
 				setNotifications(notifArray);
-				setEquipment(equipArray);
+				setEquipment(equipArray.reverse());
 
 				//this creates the mapping of equipment and notification
 				const notifMap = {};
@@ -36,7 +36,6 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 					notifMap[notif.equipment_id] = notif;
 				}
 				setNotificationsByEquipment(notifMap);
-			
 			} catch (error) {
 				console.error("Failed to load requests:", error);
 			}
@@ -47,12 +46,12 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 
 	return (
 		<div className="home-container">
-			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+			<Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
 			<div className="main">
 				<Header
 					sidebarOpen={sidebarOpen}
-					onMenuToggle={() => setSidebarOpen(true)}
+					onMenuToggle={openSidebar}
 					activeTab="My Requests"
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
@@ -66,18 +65,17 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				<div className="content">
 					{equipment.map((item) => {
 						const notif = notificationsByEquipment[item.id];
-						console.log("item.id:", item.id);
+						// Use notification ID if available, otherwise use equipment ID
+						const cardId = notif?._id || notif?.id || item.id;
 						return (
 							<MyRequestsCard
-								key={item.id}
+								key={cardId}
 								equipment={item}
 								notification={notif}
-								isExpanded={expandedCard === notif.id}
-								onToggle={() =>
-									setExpandedCard(
-										expandedCard === notif.id ? null : notif.id
-									)
-								}
+								isExpanded={expandedCard === cardId}
+								onToggle={() => {
+									setExpandedCard(expandedCard === cardId ? null : cardId);
+								}}
 							/>
 						);
 					})}

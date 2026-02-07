@@ -13,7 +13,24 @@ This will hold the equipment card items */
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	width: 35%;
+	width: 17%;
+}
+
+.status-actions {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.delete-text-link {
+	cursor: pointer;
+	color: #d32f2f;
+	text-decoration: underline;
+	font-size: 14px;
+}
+
+.delete-text-link:hover {
+	color: #b71c1c;
 }
 
 /* This is the Available, Checked 
@@ -43,6 +60,12 @@ Out, and Damaged badges */
 	color: #c62828;
 }
 
+/* Status Badge for Unavailable */
+.status-unavailable {
+	background-color: #b3b7ba;
+	color: #000000;
+}
+
 /* The "Mark Unavailable" checkbox */
 .checkbox-label {
 	display: flex;
@@ -50,7 +73,7 @@ Out, and Damaged badges */
 	gap: 8px;
 	font-size: 14px;
 	cursor: pointer;
-	color: #000000;
+	color: #ffffff;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -94,6 +117,70 @@ Out, and Damaged badges */
 	background-color: #051d36;
 }
 
+/* Spacing for text stating how many equipment are
+being shown from the total pool due to filtering */
+.filter-indicator {
+	color: white;
+	margin-bottom: 0.5em;
+	font-size: 16px;
+	opacity: 0.9;
+}
+
+/* Styling for the mark unavailable/available buttons */
+.btn-secondary {
+	padding: 10px 20px;
+	background-color: #f5f5f5;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+	transition: all 0.2s;
+	color: #333;
+}
+
+.btn-secondary:hover {
+	background-color: #e3e3e3;
+}
+
+/* Controls for selecting all displayed equipment */
+/* This is where the admin can select bulk equipment and
+mark them as unavailable or available in the database */
+.admin-controls {
+	display: block;
+	background-color: #082e58;
+	padding: 0px 25px 15px;
+}
+
+.select-all {
+	display: flex;
+	padding-bottom: 20px;
+}
+
+.select-all label {
+	font-size: 16px;
+	opacity: 0.9;
+}
+
+.select-all input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+	color: #000000;
+}
+
+.mark-buttons {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	background-color: #082e58;
+}
+
+.no-results {
+	color: white;
+	font-size: 16px;
+	opacity: 0.9;
+}
+
 .btn-danger {
 	padding: 10px 20px;
 	background-color: white;
@@ -107,4 +194,15 @@ Out, and Damaged badges */
 .btn-danger:hover {
 	background-color: #d32f2f;
 	color: white;
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.btn-delete-header {
+	padding: 8px 16px;
+	font-size: 13px;
 }

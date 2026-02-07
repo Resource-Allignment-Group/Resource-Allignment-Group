@@ -19,6 +19,7 @@ class Equipment:
         checked_out: bool = False,
         description: str = None,
         damaged: bool = False,
+        unavailable: bool = False,
     ):
         self.id = uuid
         self._class = _class
@@ -33,6 +34,7 @@ class Equipment:
         self.checked_out = checked_out
         self.description = description
         self.damaged = damaged
+        self.unavailable = unavailable
 
     def get_images(self, db):
         img_bytes = []
@@ -70,6 +72,7 @@ class Equipment:
         self.checked_out = json_info["checked_out"]
         self.description = json_info["description"]
         self.damaged = json_info["damaged"]
+        self.unavailable = json_info.get("unavailable", False)
         return 1
 
     def to_dict(self):
@@ -91,5 +94,6 @@ class Equipment:
                 "attachments": 0,  # Change later
                 "replacementCost": 100000,  # change lateer
                 "damaged": self.damaged,
+                "unavailable": self.unavailable,
             }
         )

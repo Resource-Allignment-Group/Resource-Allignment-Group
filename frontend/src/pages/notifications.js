@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import NotificationCard from "../components/notificationCard";
+import { useSidebar } from "../SidebarContext";
 
 function Notifications({ num_of_notifications, setNumNotifications}) {
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [notifications, setNotifications] = useState([]);
 
 	useEffect(() => {
@@ -46,13 +47,13 @@ function Notifications({ num_of_notifications, setNumNotifications}) {
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
-			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+			<Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
 
 			<div className="main">
 				{/* Header is a separate component */}
 				<Header
 					sidebarOpen={sidebarOpen}
-					onMenuToggle={() => setSidebarOpen(true)}
+					onMenuToggle={openSidebar}
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
 				/>

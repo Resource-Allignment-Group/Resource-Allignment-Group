@@ -9,6 +9,7 @@ import Login from "./pages/login";
 import Home from "./pages/home";
 import Profile from "./pages/profile";
 import { AuthProvider } from "./Authentication";
+import { SidebarProvider } from "./SidebarContext";
 import ProtectedRoute from "./ProtectedRoute";
 import Register from "./pages/register";
 import MyRequests from "./pages/myrequests";
@@ -26,7 +27,8 @@ function App() {
 	return (
 		<Router>
 			<AuthProvider>
-				<Routes>
+				<SidebarProvider>
+					<Routes>
 					<Route path="/" element={<Navigate to="/login" />} />
 					<Route path="/register" element={<Register />} />
 					<Route path="/reset-password" element={<ResetPassword />} />
@@ -89,6 +91,7 @@ function App() {
 						}
 					/>
 				</Routes>
+				</SidebarProvider>
 			</AuthProvider>
 		</Router>
 	);

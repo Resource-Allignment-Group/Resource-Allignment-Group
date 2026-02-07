@@ -2,22 +2,39 @@
 
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
+import { useAuth } from "../Authentication";
 
-function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
+function HomeEquipmentCard({
+	equipment,
+	isExpanded,
+	onToggle,
+	isSelected,
+	onSelect,
+	onDelete,
+}) {
+	const { role } = useAuth();
+	const isAdmin = role === "a";
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
-	function getEquipmentStatus({ checked_out, damaged }) {
+	function getEquipmentStatus({ checked_out, damaged, unavailable }) {
+		if (unavailable) {
+			return {
+				label: "Unavailable",
+				className: "status-unavailable",
+			};
+		}
+
 		if (damaged) {
 			return {
-			label: "Damaged",
-			className: "status-damaged",
+				label: "Damaged",
+				className: "status-damaged",
 			};
 		}
 
 		if (checked_out) {
 			return {
-			label: "Checked Out",
-			className: "status-checked-out",
+				label: "Checked Out",
+				className: "status-checked-out",
 			};
 		}
 
@@ -28,30 +45,73 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 	}
 
 	const handleCheckOut = async () => {
+		// Don't let the user checkout equipment if it's been marked unavailable
+		if (equipment.unavailable) {
+			alert("This equipment is currently unavailble and can't be checked out.");
+			return;
+		}
+
 		try {
 			const res = await fetch("http://localhost:5000/request_equipment", {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-        			equip_id: equipment.id,
-        			equip_name: equipment.name,
-     			}),
+					equip_id: equipment.id,
+					equip_name: equipment.name,
+				}),
 			});
 			const data = await res.json();
-			if (data.result){
-				alert("Your Request Has Been Sent")
-			}
-			else{
-				alert("Something Went Wrong With Your Request")
+			if (data.result) {
+				alert("Your Request Has Been Sent");
+			} else {
+				alert("Something Went Wrong With Your Request");
 			}
 		} catch (error) {
 			console.log(error);
+		}
+	};
+
+	const handleDelete = async () => {
+		if (!isAdmin) {
+			alert("Only administrators can delete equipment");
+			return;
+		}
+
+		const confirmDelete = window.confirm(
+			`Are you sure you want to delete "${equipment.name}"? `,
+		);
+
+		if (!confirmDelete) {
+			return;
+		}
+
+		try {
+			const res = await fetch("http://localhost:5000/delete_equipment", {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					equipment_id: equipment.id,
+				}),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("Equipment deleted successfully");
+				if (onDelete) {
+					onDelete();
+				}
+			} else {
+				alert(data.message || "Failed to delete equipment");
+			}
+		} catch (error) {
+			console.log(error);
+			alert("There Were Problems Deleting The Equipment");
 		}		
 	}
 
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
-	
+
 	return (
 		<div className="equipment-card">
 			<div className="card-header">
@@ -67,11 +127,11 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 					{/* Show who has the equipment checked out
           			If it's not checked out, keep blank line "Empty Text" (not visible) */}
 					<p className="checkout-info">
-					{equipment.checked_out === "Checked Out" && equipment.checkedOutBy && (
-						<>
-						<strong>Checked Out By:</strong> {equipment.checkedOutBy}
-						</>
-					)}
+						{equipment.checked_out && equipment.checkedOutBy && (
+							<>
+								<strong>Checked Out By:</strong> {equipment.checkedOutBy}
+							</>
+						)}
 					</p>
 
 					{/* Show the status badge for the current equipment item
@@ -81,13 +141,20 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 							{status.label}
 						</span>
 
-						<label className="checkbox-label">
-							Mark as Unavailable
-							<input
-							type="checkbox"
-							//should add an onChange flag that will do something
-							/>
-						</label>
+						<div className="status-actions">
+							<label className="checkbox-label">
+								<input
+									type="checkbox"
+									checked={isSelected}
+									onChange={() => onSelect(equipment.id)}
+								/>
+							</label>
+							{isAdmin && (
+								<span className="delete-text-link" onClick={handleDelete}>
+									Delete Equipment
+								</span>
+							)}
+						</div>
 					</div>
 				</div>
 
@@ -165,8 +232,16 @@ function HomeEquipmentCard({ equipment, isExpanded, onToggle }) {
 							<button className="link-button">Upload</button>
 						</div>
 						<div className="action-buttons">
-							<button className="btn-primary" onClick={handleCheckOut} hidden={equipment.checked_out}>Request Checkout</button>
-							<button className="btn-primary" hidden={equipment.checked_out}>Edit Equipment</button>
+							<button
+								className="btn-primary"
+								onClick={handleCheckOut}
+								hidden={equipment.checked_out}
+							>
+								Request Checkout
+							</button>
+							<button className="btn-primary" hidden={equipment.checked_out}>
+								Edit Equipment
+							</button>
 							<button className="btn-danger">Delete</button>
 						</div>
 					</div>

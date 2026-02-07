@@ -12,6 +12,7 @@ from bson.objectid import ObjectId
 from equipment import Equipment
 from typing import Literal
 from datetime import timedelta
+from logger import SystemLogger
 
 _client = None  # Needed so that only one client call is made
 load_dotenv()
@@ -24,12 +25,15 @@ class DatabaseManager:
             _client = MongoClient(os.environ.get("DATABASE_URI"))
         return _client
 
-    def __init__(self, testing):
+    def __init__(self, testing=False):
         self.get_client()
         if testing:
             self.db = _client["TEST_RAM_DB"]
+            self.txt_logger = SystemLogger("test_log.txt")
         else:
             self.db = _client["RAM_DB"]
+            self.txt_logger = SystemLogger("system_logs.txt")
+            
         self.users_db = self.db["users"]
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
@@ -38,7 +42,6 @@ class DatabaseManager:
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
 
-    # Setters
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
 
@@ -93,10 +96,14 @@ class DatabaseManager:
 
     def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
         self.equipment_db.update_one(
-            {"_id": id}, {"$set": {"checked_out": checked_out}}
+            {"_id": ObjectId(id)},
+            {"$set": {"checked_out": checked_out}}
         )
 
-    def add_user(self, fname: str, lname: str, phone: int, email: str, password):
+    def add_log(self, user_id: ObjectId, action: str, details: str = None, target_id: ObjectId = None):
+        self.txt_logger.log_action(user_id, action, details, target_id)
+
+    def add_user(self, fname: str, lname: str, phone: int, email: str, password, admin_id: ObjectId):
         if (
             self.users_db.count_documents({"email": email}) != 0
         ):  # Checks to make sure email does not already exist
@@ -110,12 +117,19 @@ class DatabaseManager:
                 "checked_out_equipment": [],
                 "inbox": [],
                 "position": None,
-                "name": fname.capitalize() + lname.capitalize(),
+                "name": fname.capitalize() + " " + lname.capitalize(),
                 "phone": phone,
             }
         )
 
         if result.acknowledged:
+            new_user_id = result.inserted_id
+            
+            self.add_log(
+                user_id=admin_id, 
+                action="ADD_USER",  
+                details=f"Added new user: {email} (ID: {new_user_id})"
+            )
             return {
                 "result": True,
                 "message": f"User {email} has sucessfully been added to the system",
@@ -154,31 +168,52 @@ class DatabaseManager:
             }
         )
 
-    def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
+    def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, admin_id: ObjectId):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
         if equipment["checked_out"] is True:
             return f"Equipment {equipment_id} is already checked out"
 
         self.users_db.update_one(
-            {"_id": user_id}, {"$push": {"checked_out_equipment": equipment_id}}
+            {"_id": user_id}, {"$addToSet": {"checked_out_equipment": equipment_id}}
         )
 
         self.equipment_db.update_one(
             {"_id": equipment_id}, {"$set": {"checked_out": True}}
         )
+        self.add_log(
+                user_id=admin_id, 
+                action="CHECK_OUT", 
+                target_id=equipment_id, 
+                details=f"Assigned to user: {user_id}"
+            )
 
-    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId):
+    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
-        if not equipment["checked_out"]:
+        if not equipment or not equipment.get("checked_out"):
             return f"Equipment {equipment_id} is not checked out"
 
         self.users_db.update_one(
-            {"_id": user_id}, {"$pull": {"checked_out_equipment": equipment_id}}
+            {"_id": user_id}, 
+            {"$pull": {"checked_out_equipment": equipment_id}}
         )
+
         self.equipment_db.update_one(
-            {"_id": equipment_id}, {"$set": {"checked_out": False}}
+            {"_id": equipment_id}, 
+            {"$set": {"checked_out": False, "damaged": damaged}}
+        )
+
+        if damaged:
+            status_msg = "Item returned DAMAGED"
+        else:
+            status_msg = "Item returned in good condition"
+
+        self.add_log(
+            user_id=user_id, 
+            action="CHECK_IN", 
+            target_id=equipment_id, 
+            details=status_msg
         )
 
     def get_password_by_email(self, email: str):
@@ -200,10 +235,12 @@ class DatabaseManager:
         return new_user
 
     def add_image(self, equipment_id: ObjectId, image: Image):
-        img_uuid = ObjectId()
+        img_uuid = str(ObjectId())
+        image_path = self.images_db / img_uuid
+        image.save(image_path)
         while True:
             if (self.images_db / img_uuid).exists():
-                img_uuid = ObjectId()
+                img_uuid = str(ObjectId())
             else:
                 break
         image.save(self.images_db / img_uuid)
@@ -217,16 +254,16 @@ class DatabaseManager:
             return f"Image {img_uuid} could not be added"
 
     def add_report(self, equipment_id: ObjectId, report_content):
-        report_uuid = ObjectId()
+        report_uuid = str(ObjectId())
         while True:
             if (self.reports_db / report_uuid).exists():
-                report_uuid = ObjectId()
+                report_uuid = str(ObjectId())
             else:
                 break
 
         with open(self.reports_db / report_uuid, "w") as f:
             f.write(report_content)
-        f.close()
+        
         change_result = self.equipment_db.update_one(
             {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
         )
@@ -235,10 +272,7 @@ class DatabaseManager:
         else:
             return f"Report {report_uuid} could not be added"
 
-    def get_image(self, uuid: ObjectId):
-        if type(uuid) is not ObjectId:
-            return f"{uuid} is not a ObjectId"
-
+    def get_image(self, uuid: str):
         if not (self.images_db / uuid).exists():
             return f"{uuid} image does not exist"
 
@@ -248,14 +282,13 @@ class DatabaseManager:
 
         return buffer.getvalue()
 
-    def delete_image(self, uuid: ObjectId):
-        os.remove(self.images_db / uuid)
+    def delete_image(self, uuid: str):
+        path = self.images_db / uuid
+        if path.exists():
+            path.unlink()
 
-    def get_report(self, uuid: ObjectId):
-        if type(uuid) is not ObjectId:
-            return f"{uuid} is not a ObjectId"
-
-        if not (self.images_db / uuid).exists():
+    def get_report(self, uuid: str):
+        if not (self.reports_db / uuid).exists():
             return f"{uuid} report does not exist"
 
         with open(self.reports_db / uuid, "rb") as f:
@@ -263,21 +296,24 @@ class DatabaseManager:
 
         return report_data
 
-    def delete_report(self, uuid: ObjectId):
-        os.remove(self.reports_db / uuid)
+    def delete_report(self, uuid: str):
+        path = self.reports_db / uuid
+        if path.exists():
+            path.unlink()
 
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
         if not user_doc:
-            return 0
+            return []
 
         notification_ids = user_doc.get("inbox", [])
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
     def get_notifications_by_user(self, user_id):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
+        if not user: return []
         notes = []
-        for note_id in user["inbox"]:
+        for note_id in user.get("inbox", []):
             notes.append(self.get_notification_by_id(note_id=note_id))
         return notes
 
@@ -294,7 +330,7 @@ class DatabaseManager:
         return note
 
     def delete_notification(self, note_id):
-        res = self.notifications_db.delete_one({"_id": note_id})
+        self.notifications_db.delete_one({"_id": ObjectId(note_id)})
         return True
 
     def get_email_by_id(self, user_id: str):
@@ -324,7 +360,7 @@ class DatabaseManager:
     def send_notification(self, notification: Notification):
         if notification.id is None:
             notification.id = ObjectId()
-        notification_json = notification_json = {
+        notification_json = {
             "_id": notification.id,
             "sender": notification.sender,
             "receiver": notification.receiver,
@@ -360,18 +396,41 @@ class DatabaseManager:
             equip_list.append(equip)
         return equip_list
 
+    # Allows you to edit a specific field on an equipment
+    def update_equipment_field(self, equip_id, field_name, value):
+        try:
+            result = self.equipment_db.update_one(
+                {"_id": ObjectId(equip_id)},
+                {"$set": {field_name: value}}
+            )
+            return result.modified_count > 0
+        except:
+            return False
+
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
+        if not equip_info: # Added for handling when equipment doesnt exist
+            return None
+        
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
         return equip
 
+    # Get multiple equipment items from a list of ids
+    def get_equipment_by_ids(self, equipment_ids: list):
+        cursor = self.equipment_db.find({"_id": {"$in": equipment_ids}})
+        equip_list = []
+        for equip_info in cursor:
+            equip = Equipment()
+            equip.fill_from_json(equip_info)
+            equip_list.append(equip)
+        return equip_list
+
     def get_equipment_by_user(self, user_id: ObjectId):
         equip_list = []
-
-        for equip_id in self.users_db.find_one({"_id": user_id})[
-            "checked_out_equipment"
-        ]:
+        user = self.users_db.find_one({"_id": user_id})
+        if not user: return []
+        for equip_id in user["checked_out_equipment"]:
             equip_list.append(self.get_equipment_by_id(id=equip_id))
         return equip_list
 
@@ -404,12 +463,15 @@ class DatabaseManager:
         return request_list, equipment_list
 
     def get_dashboard_info(self):
-        num_total = len(self.get_all_equipment())
-        num_available = self.equipment_db.count_documents({"checked_out": False})
+        num_total = self.equipment_db.count_documents({})
+        num_available = self.equipment_db.count_documents({
+            "checked_out": {"$ne": True},
+            "damaged": {"$ne": True},
+            "unavailable": {"$ne": True}
+        })
         num_used = self.equipment_db.count_documents({"checked_out": True})
         num_damaged = self.equipment_db.count_documents({"damaged": True})
-        # add unavalibility later
-        num_unavailable = "add later"
+        num_unavailable = self.equipment_db.count_documents({"unavailable": True})
         return num_total, num_available, num_used, num_damaged, num_unavailable
 
     def get_all_users(self):
@@ -419,23 +481,38 @@ class DatabaseManager:
             all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
         return all_users
 
-    def delete_user(self, user: User):
-        [
+    # See what equipment a user has checked out
+    def get_user_by_equipment(self, equipment_id: ObjectId):
+        user_info = self.users_db.find_one({
+            "checked_out_equipment": equipment_id
+        })
+        
+        if user_info:
+            user = User()
+            user.fill_user_information(user_info)
+            return user
+        return None
+
+    # This is your version with the admin_id (Keep this)
+    def delete_user(self, user: User, admin_id: ObjectId):
+        for equipment_id in user.checked_out_equipment:
             self.equipment_db.update_one(
-                {"_id": equipment_id}, {"$set", {"checked_out": False}}
+                {"_id": equipment_id}, {"$set": {"checked_out": False}}
             )
-            for equipment_id in user.checked_out_equipment
-        ]
 
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
+            self.add_log(
+                user_id=admin_id, 
+                action="DELETE_USER", 
+                details=f"{user.id} is deleted" 
+            )
             return True
         else:
             return False
 
     def create_password_reset(self, user_id: ObjectId, token, token_hash):
-        print(self.password_resets)
-        res = self.password_resets.insert_one(
+        self.password_resets.insert_one(
             {
                 "_id": ObjectId(),
                 "user_id": user_id,
@@ -444,7 +521,6 @@ class DatabaseManager:
                 "used": False,
             }
         )
-        print(res)
         link = f"http://localhost:3000/reset-password?token={token}"  # This will need to change when we host
         return link
 
@@ -453,3 +529,73 @@ class DatabaseManager:
 
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
+
+    # If equipment marked as unavailable and there is a pending 
+    # request for checkout, cancel the request
+    def cancel_pending_requests_for_equipment(self, equipment_ids: list):
+        result = self.notifications_db.update_many(
+            {
+                "equipment_id": {"$in": equipment_ids},
+                "type": "r",
+                "status": {"$ne": "a"}  # Not approved
+            },
+            {"$set": {"status": "r"}}  # Set to rejected
+        )
+        return result.modified_count
+    
+    # Update multiple equipment items as unavailable at once
+    def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
+        if not equipment_ids:
+            return 0
+        
+        result = self.equipment_db.update_many(
+            {
+                "_id": {"$in": equipment_ids}, 
+                "checked_out": False, 
+                "damaged": False,
+            },
+            {"$set": {"unavailable": unavailable}}
+        )
+        return result.modified_count
+
+    def delete_equipment(self, equipment_id: ObjectId):
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+
+        # Remove equipment from all users' checked_out_equipment arrays
+        self.users_db.update_many(
+            {"checked_out_equipment": equipment_id},
+            {"$pull": {"checked_out_equipment": equipment_id}}
+        )
+
+        # Delete all notifications referencing this equipment
+        notifications = self.notifications_db.find({"equipment_id": equipment_id})
+        for notification in notifications:
+            # Remove notification from users' inbox arrays
+            self.users_db.update_many(
+                {"inbox": notification["_id"]},
+                {"$pull": {"inbox": notification["_id"]}}
+            )
+        # Delete the notifications
+        self.notifications_db.delete_many({"equipment_id": equipment_id})
+
+        # Delete associated image files
+        if "images" in equipment and equipment["images"]:
+            for image_id in equipment["images"]:
+                if image_id:
+                    path = self.images_db / str(image_id)
+                    if path.exists():
+                        path.unlink()
+
+        # Delete associated report files
+        if "reports" in equipment and equipment["reports"]:
+            for report_id in equipment["reports"]:
+                if report_id:
+                    path = self.reports_db / str(report_id)
+                    if path.exists():
+                        path.unlink()
+
+        # Finally, delete the equipment document itself
+        result = self.equipment_db.delete_one({"_id": equipment_id})
+        return result.acknowledged and result.deleted_count > 0
