@@ -145,7 +145,7 @@ class Notification_Manager:
         except Exception as e:
             return 0
 
-    def send_inform_notification(self, sender, receiver, message="", equipment_id=None, body="", id=None):
+    def send_inform_notification(self, sender, receiver, message="", equipment_id=None, id=None):
         if id is None:
             id = ObjectId()
 

@@ -254,17 +254,23 @@ def create_app(testing=False):
                         sender=db.get_user_by_id(user_id=admin_id),
                         receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
                         equipment_id=ObjectId(equipment.id),
-                        body=f"Your request for {equipment.name} has been approved."
+                        message=f"Your request for {equipment.name} has been approved."
                     )
                     
                     return jsonify({"result": True, "message": "Equipment successfully checked out"})
                     # send notification to user that their equipment is theirs
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
+                    equipment = db.get_equipment_by_id(new_note.equipment_id)
+                    # Check if equipment exists before asking for its name
+                    if equipment:
+                        equip_name = equipment.name
+                    else:
+                        equip_name = "Unknown Equipment (Deleted)"
                     nm.send_inform_notification(
                         sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
                         receiver=db.get_user_by_id(user_id=new_note.sender),
-                        message=f"Your request has been denied for {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}",
+                        message=f"Your request has been denied for {equip_name}",
                     )
                     return jsonify({"result": True})
 
