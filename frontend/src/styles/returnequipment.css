@@ -1,5 +1,5 @@
-/* The form backgound (blue tint) */
-.add-equipment-overlay {
+/* Background blue tint */
+.return-equipment-overlay {
 	position: fixed;
 	inset: 0;
 	background: rgba(8, 46, 88, 0.7);
@@ -9,43 +9,41 @@
 	z-index: 2000;
 }
 
-/* Form box */
-.add-equipment-modal {
+/* The form view */
+.return-equipment-modal {
 	background-color: white;
-	width: 600px;
+	width: 550px;
 	max-height: 90vh;
 	border-radius: 8px;
 	overflow-y: auto;
 	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
-.add-equipment-modal::-webkit-scrollbar {
+.return-equipment-modal::-webkit-scrollbar {
 	display: none;
 }
 
-.add-equipment-modal {
+.return-equipment-modal {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
 }
 
 /* Header */
-.add-equipment-header {
+.return-equipment-header {
 	padding: 20px 25px;
 	background-color: #082e58;
-	border-bottom: none;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 }
 
-.add-equipment-header h2 {
+.return-equipment-header h2 {
 	font-size: 22px;
 	font-weight: 600;
 	color: white;
 }
 
-/* The "x" button to close the form */
-.add-equipment-close {
+.return-equipment-close {
 	background: none;
 	border: none;
 	font-size: 32px;
@@ -60,42 +58,38 @@
 	justify-content: center;
 }
 
-.add-equipment-close:hover {
+.return-equipment-close:hover {
 	color: #e0e0e0;
 }
 
 /* Body */
-.add-equipment-body {
+.return-equipment-body {
 	padding: 25px;
 }
 
-.add-equipment-body form {
+/* Equipment name display */
+.equipment-name-display {
+	padding: 12px 15px;
+	background-color: #f5f5f5;
+	border-left: 4px solid #082e58;
+	border-radius: 4px;
+	margin-bottom: 20px;
+	font-size: 14px;
+	color: #333;
+}
+
+.equipment-name-display strong {
+	color: #082e58;
+}
+
+/* Form */
+.return-equipment-body form {
 	display: flex;
 	flex-direction: column;
 	gap: 18px;
 }
 
-/* Bulk upload button */
-.bulk-upload-button {
-	padding: 12px 20px;
-	background-color: #e8e8e8;
-	color: #333;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	font-size: 14px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s;
-	margin-bottom: 10px;
-}
-
-.bulk-upload-button:hover {
-	background-color: #d0d0d0;
-	border-color: #999;
-}
-
-/* Form labels and inputs */
-.add-equipment-body label {
+.return-equipment-body label {
 	display: flex;
 	flex-direction: column;
 	font-size: 14px;
@@ -105,9 +99,8 @@
 }
 
 /* Gray form fields */
-.add-equipment-body input[type="text"],
-.add-equipment-body select,
-.add-equipment-body textarea {
+.return-equipment-body select,
+.return-equipment-body textarea {
 	padding: 10px 12px;
 	font-size: 14px;
 	border: 1px solid #ccc;
@@ -118,28 +111,22 @@
 }
 
 /* Change style of form fields when selected */
-.add-equipment-body input[type="text"]:focus,
-.add-equipment-body select:focus,
-.add-equipment-body textarea:focus {
+.return-equipment-body select:focus,
+.return-equipment-body textarea:focus {
 	outline: none;
 	border-color: #082e58;
 	background-color: white;
 }
 
-.add-equipment-body textarea {
+.return-equipment-body textarea {
 	min-height: 100px;
 	resize: vertical;
 	line-height: 1.6;
 }
 
-.add-equipment-body input[type="file"] {
-	font-size: 14px;
-	padding: 8px 0;
-}
-
 /* Footer */
-.add-equipment-footer {
-	padding: 20px 25px 0 25px;
+.return-equipment-footer {
+	padding: 20px 0 0 0;
 	border-top: 1px solid #e0e0e0;
 	margin-top: 10px;
 	display: flex;
@@ -147,7 +134,7 @@
 	gap: 12px;
 }
 
-.add-equipment-submit {
+.return-equipment-submit {
 	padding: 12px 24px;
 	background-color: #082e58;
 	color: white;
@@ -159,16 +146,16 @@
 	transition: background-color 0.2s;
 }
 
-.add-equipment-submit:hover:not(:disabled) {
+.return-equipment-submit:hover:not(:disabled) {
 	background-color: #051d36;
 }
 
-.add-equipment-submit:disabled {
+.return-equipment-submit:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
 }
 
-.add-equipment-cancel {
+.return-equipment-cancel {
 	padding: 12px 24px;
 	background-color: white;
 	color: #333;
@@ -180,20 +167,19 @@
 	transition: all 0.2s;
 }
 
-.add-equipment-cancel:hover {
+.return-equipment-cancel:hover {
 	background-color: #f5f5f5;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-	.add-equipment-modal {
+	.return-equipment-modal {
 		width: 95%;
 		max-height: 95vh;
 	}
 
-	.add-equipment-header,
-	.add-equipment-body,
-	.add-equipment-footer {
+	.return-equipment-header,
+	.return-equipment-body {
 		padding: 15px 20px;
 	}
 }

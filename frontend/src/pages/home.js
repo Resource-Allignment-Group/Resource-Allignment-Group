@@ -352,7 +352,15 @@ function Home({ num_of_notifications, setNumNotifications }) {
 									// Refresh equipment list after deletion
 									GetEquipment().then((equip_list) => {
 										setEquipment(equip_list);
-										setExpandedCard(null); // Close any expanded cards
+										if (activeFilters) {
+											applyFilters(activeFilters);
+										} else {
+											setFilteredEquipment(equip_list);
+										}
+
+										setExpandedCard(null);
+										setSelectedEquipment(new Set());
+										setSelectAll(false);
 									});
 								}}
 							/>

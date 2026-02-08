@@ -5,7 +5,7 @@ import "../styles/userManagementCard.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react"; // Temp needed for visibility, removed when backend connected
 
-function UserManagementCard({ user, isExpanded, onToggle }) {
+function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 	// Placeholder for changing the user's role in the dropdown
 	// Connect to the backend later
 	const [role, setRole] = useState(user.role);
@@ -29,21 +29,15 @@ function UserManagementCard({ user, isExpanded, onToggle }) {
 	};
 
 	const DeleteUser = async () => {
-		try {
-			const res = await fetch("http://localhost:5000/delete_user_account", {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ user: user }),
-			});
-			const data = await res.json();
-			if (data.result) {
-				alert("User Was Successfully Deleted");
-			}
-		} catch (error) {
-			alert("There Were Problems Deleting The User");
+		const confirmDelete = window.confirm(
+			`Are you sure you want to delete "${user.name}"? `,
+		);
+		if (!confirmDelete) {
+			return;
 		}
+		onDelete(user);
 	};
+
 	return (
 		<div className="user-management-card">
 			<div className="card-header">

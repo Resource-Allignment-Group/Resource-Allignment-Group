@@ -5,25 +5,46 @@ import Sidebar from "../components/sidebar";
 import UserManagementCard from "../components/userManagementCard";
 import { useSidebar } from "../SidebarContext";
 
-function UserManagement({num_of_notifications, setNumNotifications}) {
+function UserManagement({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [users, setUsers] = useState([]);
+
 	useEffect(() => {
 		const GetUsersInfo = async () => {
-			try{
+			try {
 				const res = await fetch("http://localhost:5000/get_users", {
+					credentials: "include",
+				});
+				const data = await res.json();
+				setUsers(data.users);
+			} catch (error) {
+				alert("Something Went Wrong Gathering The User's Information");
+			}
+		};
+		GetUsersInfo();
+	}, []);
+
+	const handleDeleteUser = async (userToDelete) => {
+		try {
+			const res = await fetch("http://localhost:5000/delete_user_account", {
+				method: "POST",
 				credentials: "include",
-				})
-				const data = await res.json()
-				setUsers(data.users)
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ user: userToDelete }),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("User Was Successfully Deleted");
+				setUsers((prevUsers) =>
+					prevUsers.filter((u) => u.id !== userToDelete.id),
+				);
 			}
-			catch(error){
-				alert("Something Went Wrong Gathering The User's Information")
-			}
+		} catch (error) {
+			alert("There Were Problems Deleting The User");
 		}
-		GetUsersInfo()
-	}, [])
+	};
+
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -49,17 +70,18 @@ function UserManagement({num_of_notifications, setNumNotifications}) {
 				<div className="content">
 					{/* Scrollable users are a seperate component */}
 					{users
-					.filter((item) => item.role !== "p")
-					.map((item) => (
-						<UserManagementCard
-							key={item.id}
-							user={item}
-							isExpanded={expandedCard === item.id}
-							onToggle={() =>
-								setExpandedCard(expandedCard === item.id ? null : item.id)
-							}
-						/>
-					))}
+						.filter((item) => item.role !== "p")
+						.map((item) => (
+							<UserManagementCard
+								key={item.id}
+								user={item}
+								isExpanded={expandedCard === item.id}
+								onToggle={() =>
+									setExpandedCard(expandedCard === item.id ? null : item.id)
+								}
+								onDelete={handleDeleteUser}
+							/>
+						))}
 				</div>
 			</div>
 		</div>

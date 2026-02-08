@@ -67,7 +67,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				</div>
 
 				<div className="content">
-					{notifications.length > 0 ? (
+					{notifications.length > 0 &&
 						notifications.map((n, i) => (
 							<NotificationCard
 								key={i}
@@ -75,10 +75,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 								onApprove={() => handleNotification(n, true)}
 								onReject={() => handleNotification(n, false)}
 							/>
-						))
-					) : (
-						<p>No notifications</p>
-					)}
+						))}
 				</div>
 			</div>
 		</div>

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { MdDensityMedium } from "react-icons/md";
 import { MdNotifications } from "react-icons/md";
 import { MdPerson } from "react-icons/md";
+import { useAuth } from "../Authentication";
 
 function Header({
 	sidebarOpen,
@@ -11,6 +12,10 @@ function Header({
 	setNotificationsNum,
 	activeTab = null,
 }) {
+	const { role } = useAuth();
+	const isAdmin = role === "a";
+	const isSuperintendent = role === "s";
+
 	const navigate = useNavigate();
 	useEffect(() => {
 		const fetchUserInfo = async () => {
@@ -84,20 +89,24 @@ function Header({
 				>
 					My Equipment
 				</button>
-				<button
-					className={`nav-tab ${activeTab === "Dashboard" ? "active" : ""}`}
-					onClick={() => navigate("/dashboard")}
-				>
-					Dashboard
-				</button>
-				<button
-					className={`nav-tab ${
-						activeTab === "User Management" ? "active" : ""
-					}`}
-					onClick={() => navigate("/usermanagement")}
-				>
-					User Management
-				</button>
+				{isAdmin && (
+					<button
+						className={`nav-tab ${activeTab === "Dashboard" ? "active" : ""}`}
+						onClick={() => navigate("/dashboard")}
+					>
+						Dashboard
+					</button>
+				)}
+				{(isAdmin || isSuperintendent) && (
+					<button
+						className={`nav-tab ${
+							activeTab === "User Management" ? "active" : ""
+						}`}
+						onClick={() => navigate("/usermanagement")}
+					>
+						User Management
+					</button>
+				)}
 			</nav>
 		</header>
 	);

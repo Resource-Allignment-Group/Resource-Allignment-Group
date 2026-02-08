@@ -338,16 +338,6 @@ and profile buttons are in */
 	overflow-y: auto;
 }
 
-/* Disables the scrollbar in the main views */
-/* .content::-webkit-scrollbar {
-	display: none;
-} */
-
-/* .content {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
-} */
-
 /* WebKit browsers */
 .content::-webkit-scrollbar {
 	width: 15px;
