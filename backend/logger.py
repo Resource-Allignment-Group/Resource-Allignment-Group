@@ -13,7 +13,7 @@ class SystemLogger:
             stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
             
             self.logger.addHandler(file_handler)
-            self.logger.addHandler(stream_handler)
+            # self.logger.addHandler(stream_handler)
 
 
         logging.getLogger('werkzeug').setLevel(logging.ERROR) 
