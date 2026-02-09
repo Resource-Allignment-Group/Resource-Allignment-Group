@@ -77,3 +77,6 @@
 2026-02-08 17:00:15,676 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: ADD_USER] - Details: Added new user: mckade.wing@maine.edu (ID: 6989076f809b73a0d0f0fd16)
 2026-02-08 17:01:50,772 - INFO - [User: 692de50af70425df636857bd] [Action: DELETE_USER] - Details: 6989076f809b73a0d0f0fd16 is deleted
 2026-02-08 18:08:50,113 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b125d61182fc67a28232] - Details: Item returned in good condition
+2026-02-09 10:31:13,741 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28236] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-09 10:36:14,474 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28237] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-09 10:37:01,561 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28237] - Details: Item returned in good condition
