@@ -1,3 +1,6 @@
+// This component is used on the dashboard page
+// and serves as the form to add new equipment to the database
+
 import { useState } from "react";
 import "../styles/addequipment.css";
 import "../styles/default.css";
@@ -69,7 +72,9 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 			<div className="add-equipment-modal" onClick={(e) => e.stopPropagation()}>
 				<div className="add-equipment-header">
 					<h2>Add Equipment</h2>
-					<button className="add-equipment-close">×</button>
+					<button className="add-equipment-close" onClick={onClose}>
+						×
+					</button>
 				</div>
 
 				<div className="add-equipment-body">
@@ -93,7 +98,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 								onChange={handleChange}
 								required
 							>
-								<option value="">Select class</option>
+								<option value="">Select Class</option>
 								<option value="tractor">Tractor</option>
 								<option value="handheld">Handheld</option>
 								<option value="harvest">Harvest</option>
@@ -109,7 +114,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 								onChange={handleChange}
 								required
 							>
-								<option value="">Select class</option>
+								<option value="">Select Farm</option>
 								<option value="arrostook">Arrostook</option>
 								<option value="blueberry_hill">Blueberry Hill B</option>
 								<option value="greenhouse/garden">Greenhouse / Garden</option>
@@ -160,7 +165,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 								onChange={handleChange}
 								required
 							>
-								<option value="">Select use</option>
+								<option value="">Select Use</option>
 								<option value="field">Field</option>
 								<option value="lab">Lab</option>
 								<option value="training">Training</option>
@@ -169,7 +174,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 						</label>
 
 						<label>
-							Images (optional)
+							Images (Optional)
 							<input
 								type="file"
 								multiple
@@ -179,7 +184,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 						</label>
 
 						<label>
-							Reports (optional)
+							Reports (Optional)
 							<input
 								type="file"
 								multiple
@@ -188,14 +193,16 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 						</label>
 
 						<label>
-							Description (optional)
+							Description (Optional)
 							<textarea
 								name="description"
 								value={formData.description}
 								onChange={handleChange}
 							/>
 						</label>
-
+						<button type="button" className="bulk-upload-button">
+							Bulk Upload Equipment
+						</button>
 						<div className="add-equipment-footer">
 							<button
 								className="add-equipment-submit"

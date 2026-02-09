@@ -107,8 +107,8 @@ function HomeEquipmentCard({
 		} catch (error) {
 			console.log(error);
 			alert("There Were Problems Deleting The Equipment");
-		}		
-	}
+		}
+	};
 
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
 
@@ -149,11 +149,6 @@ function HomeEquipmentCard({
 									onChange={() => onSelect(equipment.id)}
 								/>
 							</label>
-							{isAdmin && (
-								<span className="delete-text-link" onClick={handleDelete}>
-									Delete Equipment
-								</span>
-							)}
 						</div>
 					</div>
 				</div>
@@ -242,7 +237,11 @@ function HomeEquipmentCard({
 							<button className="btn-primary" hidden={equipment.checked_out}>
 								Edit Equipment
 							</button>
-							<button className="btn-danger">Delete</button>
+							{isAdmin && (
+								<button className="btn-danger" onClick={handleDelete}>
+									Delete
+								</button>
+							)}
 						</div>
 					</div>
 				</div>

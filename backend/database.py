@@ -318,9 +318,23 @@ class DatabaseManager:
         return notes
 
     def get_notification_by_id(self, note_id):
-        note_info = self.notifications_db.find_one({"_id": ObjectId(note_id)})
+        if isinstance(note_id, dict):
+            note_info = note_id
+        else:
+            # If it's a string/ObjectId, query the database
+            try:
+                note_info = self.notifications_db.find_one({"_id": ObjectId(note_id)})
+            except Exception:
+                note_info = None
+
+        # Create the Notification object
         note = Notification()
-        note.populate_from_json(json_info=note_info)
+        # Only populate if we actually found data
+        if note_info:
+            note.populate_from_json(json_info=note_info)
+        else:
+            return None 
+            
         return note
 
     def get_notifications_by_equipment(self, equip_id):
@@ -335,7 +349,9 @@ class DatabaseManager:
 
     def get_email_by_id(self, user_id: str):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
-        return user["email"]
+        if user:
+            return user.get("email", "No Email Found")
+        return "Deleted User"
 
     def get_administrators(self):
         cursor = self.users_db.find({"role": "a"})
@@ -530,7 +546,7 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
-    # If equipment marked as unavailable and there is a pending 
+    # If equipment marked as unavailable or request and there is a pending 
     # request for checkout, cancel the request
     def cancel_pending_requests_for_equipment(self, equipment_ids: list):
         result = self.notifications_db.update_many(

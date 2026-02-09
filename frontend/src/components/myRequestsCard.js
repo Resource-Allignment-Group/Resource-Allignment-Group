@@ -4,7 +4,7 @@ import "../styles/myrequests.css";
 import { MdArrowForwardIos } from "react-icons/md";
 
 function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
-		const STATUS_MAP = {
+	const STATUS_MAP = {
 		a: "Approved",
 		p: "Pending",
 		r: "Denied",
@@ -13,13 +13,6 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 	//defaults to pending if it does not have one, we should be implimenting these fail-safes  more when we get the chance
 	const rawStatus = notification?.status ?? "p";
 	const status = STATUS_MAP[rawStatus] ?? "Pending";
-
-	function getStatusClass(status) {
-		if (status === "Approved") return "status-approved";
-		if (status === "Pending") return "status-pending";
-		if (status === "Denied") return "status-denied";
-		return "";
-	}
 
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
@@ -50,9 +43,7 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 					{/* Show the current state of the users equipment request. This will
 					be replaced with content found in the notifications module*/}
 					<div className="status-row">
-						<span
-							className={`status-badge ${getStatusClass(status)}`}
-						>
+						<span className={`status-badge ${getStatusClass(status)}`}>
 							{status}
 						</span>
 					</div>
@@ -60,7 +51,10 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 
 				{/* Button state for opening and closing the equipment card  */}
 				{/* Button state for opening and closing the equipment card  */}
-				<button className={`expand-button ${isExpanded ? "rotated" : ""}`} onClick={onToggle}>
+				<button
+					className={`expand-button ${isExpanded ? "rotated" : ""}`}
+					onClick={onToggle}
+				>
 					<MdArrowForwardIos />
 				</button>
 			</div>

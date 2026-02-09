@@ -10,7 +10,8 @@ import { useSidebar } from "../SidebarContext";
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
-	const [notifications, setNotifications] = useState([]);
+	// Only need the setter operation (valid)
+	const [, setNotifications] = useState([]);
 	const [equipment, setEquipment] = useState([]);
 
 	// notifications get connected to their equipment

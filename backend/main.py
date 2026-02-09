@@ -49,14 +49,11 @@ def create_app(testing=False):
                 origional_password=password, hashed_password=hashed_passowrd
             ):  # check with the the hashing algorithm
                 if user.role == "p":
-                    print("1")
                     return "Account is still pending approval from admin"
                 else:
-                    print("2")
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
-                    print(session)
                     return jsonify(
                         {"result": True, "message": "success", "role": user.role}
                     )
@@ -64,7 +61,6 @@ def create_app(testing=False):
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})
         except Exception as e:
-            print(str(e))
             return jsonify({"result": False, "message": str(e)})
 
     @app.route("/forgot_password", methods=["POST"])
@@ -175,7 +171,6 @@ def create_app(testing=False):
         # add profile pic retrevial and any other import stuff here
 
         # This needs so re factoring once we get more features implimented
-        print(session)
         inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
         unread_messages = db.get_unread_messages_by_user(
             user_id=ObjectId(session["id"])
@@ -261,17 +256,23 @@ def create_app(testing=False):
                         sender=db.get_user_by_id(user_id=admin_id),
                         receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
                         equipment_id=ObjectId(equipment.id),
-                        body=f"Your request for {equipment.name} has been approved."
+                        message=f"Your request for {equipment.name} has been approved."
                     )
                     
                     return jsonify({"result": True, "message": "Equipment successfully checked out"})
                     # send notification to user that their equipment is theirs
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
+                    equipment = db.get_equipment_by_id(new_note.equipment_id)
+                    # Check if equipment exists before asking for its name
+                    if equipment:
+                        equip_name = equipment.name
+                    else:
+                        equip_name = "Unknown Equipment (Deleted)"
                     nm.send_inform_notification(
                         sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
                         receiver=db.get_user_by_id(user_id=new_note.sender),
-                        message=f"Your request has been denied for {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}",
+                        message=f"Your request has been denied for {equip_name}",
                     )
                     return jsonify({"result": True})
 

@@ -70,3 +70,6 @@
 2026-02-06 10:22:18,839 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b125d61182fc67a28232] - Details: Assigned to user: 691bec888ab2a27e4b77f26f
 2026-02-06 10:22:19,089 - INFO - 127.0.0.1 - - [06/Feb/2026 10:22:19] "POST /admin_account_decision HTTP/1.1" 200 -
 2026-02-09 10:11:30,991 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b125d61182fc67a28232] - Details: Assigned to user: 691bec888ab2a27e4b77f26f
+2026-02-09 11:56:02,276 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: ADD_USER] - Details: Added new user: mckade.wing@maine.edu (ID: 698a11a11ac55da7cd22eddc)
+2026-02-09 11:56:48,459 - INFO - [User: 692de50af70425df636857bd] [Action: DELETE_USER] - Details: 698a11a11ac55da7cd22eddc is deleted
+2026-02-09 13:53:10,626 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28236] - Details: Item returned in good condition
