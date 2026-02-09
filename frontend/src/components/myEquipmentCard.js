@@ -4,7 +4,6 @@ import "../styles/myequipment.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react";
 import ReturnEquipmentModal from "./returnEquipmentWindow";
-// import { API_BASE } from "../config";
 
 function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Display return form
@@ -14,29 +13,6 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 	const handleReturnClick = () => {
 		setShowReturnModal(true);
 	};
-
-	// const ReturnEquipment = async () => {
-	// 	try {
-	// 		const res = await fetch(`http://${API_BASE}:5000/return_equipment`, {
-	// 			method: "POST",
-	// 			headers: { "Content-Type": "application/json" },
-	// 			credentials: "include",
-	// 			body: JSON.stringify({
-	// 				equipment_id: equipment.id,
-	// 			}),
-	// 		});
-	// 		const data = await res.json();
-	// 		if (data.result) {
-	// 			alert("Your Equipment has been returned");
-	// 		} else {
-	// 			alert(
-	// 				"Something Has Gone Wrong, Please Refresh Your Page to See if Your Equipment was Returned",
-	// 			);
-	// 		}
-	// 	} catch (error) {
-	// 		console.log(error);
-	// 	}
-	// };
 
 	// Handle successful return
 	const handleReturnSuccess = () => {
