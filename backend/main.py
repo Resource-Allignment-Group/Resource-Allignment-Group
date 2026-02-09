@@ -49,14 +49,11 @@ def create_app(testing=False):
                 origional_password=password, hashed_password=hashed_passowrd
             ):  # check with the the hashing algorithm
                 if user.role == "p":
-                    print("1")
                     return "Account is still pending approval from admin"
                 else:
-                    print("2")
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
-                    print(session)
                     return jsonify(
                         {"result": True, "message": "success", "role": user.role}
                     )
@@ -64,7 +61,6 @@ def create_app(testing=False):
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})
         except Exception as e:
-            print(str(e))
             return jsonify({"result": False, "message": str(e)})
 
     @app.route("/forgot_password", methods=["POST"])
@@ -175,7 +171,6 @@ def create_app(testing=False):
         # add profile pic retrevial and any other import stuff here
 
         # This needs so re factoring once we get more features implimented
-        print(session)
         inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
         unread_messages = db.get_unread_messages_by_user(
             user_id=ObjectId(session["id"])

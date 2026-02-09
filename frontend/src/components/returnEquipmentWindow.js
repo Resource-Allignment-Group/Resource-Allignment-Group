@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "../styles/returnequipment.css";
+import { API_BASE } from "../config";
 
 function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 	const [formData, setFormData] = useState({
@@ -28,16 +29,12 @@ function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 		setSubmitting(true);
 
 		try {
-			const res = await fetch("http://localhost:5000/return_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/return_equipment`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",
 				body: JSON.stringify({
 					equipment_id: equipment.id,
-					functioned_properly: formData.functionedProperly,
-					was_cleaned: formData.wasCleaned,
-					has_damage: formData.hasDamage,
-					damage_description: formData.damageDescription,
 				}),
 			});
 

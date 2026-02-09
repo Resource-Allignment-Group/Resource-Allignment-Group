@@ -37,6 +37,9 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 			const data = await res.json();
 			if (data.result) {
 				alert("User Was Successfully Deleted");
+				setUsers((prevUsers) =>
+					prevUsers.filter((u) => u.id !== userToDelete.id),
+				);
 			}
 		} catch (error) {
 			alert("There Were Problems Deleting The User");
