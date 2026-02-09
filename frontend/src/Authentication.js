@@ -1,5 +1,5 @@
 import { useEffect, createContext, useContext, useState } from "react";
-
+import { API_BASE } from "./config";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await fetch("http://localhost:5000/check-session", { //checks to see if user is loged in with Flask sessions
+        const res = await fetch(`http://${API_BASE}:5000/check-session`, { //checks to see if user is loged in with Flask sessions
           method: "GET",
           credentials: "include", 
         });
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch("http://localhost:5000/authenticate", { //logis in the user and starts their session
+      const res = await fetch(`http://${API_BASE}:5000/authenticate`, { //logis in the user and starts their session
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
       if (data.message === "success") {
         setUser({ email });
         setRole(data.role || null)
+        console.log("in auth", email, data)
         return true;
       }
       else{
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch("http://localhost:5000/logout", { //Logs the user out, will need tro impliment into pack end
+      await fetch(`http://${API_BASE}:5000/logout`, { //Logs the user out, will need tro impliment into pack end
         method: "POST",
         credentials: "include",
       });

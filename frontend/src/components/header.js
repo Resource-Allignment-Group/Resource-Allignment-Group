@@ -4,6 +4,7 @@ import { MdDensityMedium } from "react-icons/md";
 import { MdNotifications } from "react-icons/md";
 import { MdPerson } from "react-icons/md";
 import { useAuth } from "../Authentication";
+import { API_BASE } from "../config";
 
 function Header({
 	sidebarOpen,
@@ -20,7 +21,7 @@ function Header({
 	useEffect(() => {
 		const fetchUserInfo = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/get_user_info", {
+				const res = await fetch(`http://${API_BASE}:5000/get_user_info`, {
 					credentials: "include",
 				});
 				const data = await res.json();

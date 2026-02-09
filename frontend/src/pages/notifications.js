@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import NotificationCard from "../components/notificationCard";
+import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
 
 function Notifications({ num_of_notifications, setNumNotifications }) {
@@ -13,7 +14,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 	useEffect(() => {
 		const fillNotification = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/get_notifications", {
+				const res = await fetch(`http://${API_BASE}:5000/get_notifications`, {
 					credentials: "include",
 				});
 				const data = await res.json();
@@ -27,12 +28,15 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 
 	const handleNotification = async (notification, result) => {
 		try {
-			const res = await fetch("http://localhost:5000/admin_account_decision", {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ result: result, notification: notification }),
-			});
+			const res = await fetch(
+				`http://${API_BASE}:5000/admin_account_decision`,
+				{
+					method: "POST",
+					credentials: "include",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ result: result, notification: notification }),
+				},
+			);
 			const data = await res.json();
 			if (data.result) {
 				//might cause problems, if so delete "data."

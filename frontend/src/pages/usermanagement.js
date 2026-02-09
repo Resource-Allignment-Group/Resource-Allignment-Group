@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import UserManagementCard from "../components/userManagementCard";
+import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
 
 function UserManagement({ num_of_notifications, setNumNotifications }) {
@@ -13,7 +14,7 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 	useEffect(() => {
 		const GetUsersInfo = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/get_users", {
+				const res = await fetch(`http://${API_BASE}:5000/get_users`, {
 					credentials: "include",
 				});
 				const data = await res.json();
@@ -27,7 +28,7 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 
 	const handleDeleteUser = async (userToDelete) => {
 		try {
-			const res = await fetch("http://localhost:5000/delete_user_account", {
+			const res = await fetch(`http://${API_BASE}:5000/delete_user_account`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
@@ -36,9 +37,6 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 			const data = await res.json();
 			if (data.result) {
 				alert("User Was Successfully Deleted");
-				setUsers((prevUsers) =>
-					prevUsers.filter((u) => u.id !== userToDelete.id),
-				);
 			}
 		} catch (error) {
 			alert("There Were Problems Deleting The User");

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Authentication";
 import "../styles/login.css";
+import { API_BASE } from "../config";
 
 function Login() {
 	const [email, setEmail] = useState("");
@@ -31,7 +32,7 @@ function Login() {
 			if (!email) {
 				alert("Please Enter Email");
 			} else {
-				const res = await fetch("http://localhost:5000/forgot_password", {
+				const res = await fetch(`http://${API_BASE}:5000/forgot_password`, {
 					method: "POST",
 					credentials: "include",
 					headers: { "Content-Type": "application/json" },

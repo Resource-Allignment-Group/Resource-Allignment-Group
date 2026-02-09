@@ -4,7 +4,7 @@
 import { useState } from "react";
 import "../styles/addequipment.css";
 import "../styles/default.css";
-
+import { API_BASE } from "../config";
 function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -41,8 +41,8 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		images.forEach((file) => payload.append("images", file));
 		reports.forEach((file) => payload.append("reports", file));
 
-		try {
-			const res = await fetch("http://localhost:5000/add_equipment", {
+    try {
+      const res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },

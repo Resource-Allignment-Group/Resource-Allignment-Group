@@ -1,7 +1,7 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../styles/resetPassword.css";
-
+import { API_BASE } from "../config";
 function ResetPassword() {
   const [params] = useSearchParams();
   const token = params.get("token");
@@ -16,7 +16,7 @@ function ResetPassword() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/reset_password", {
+      const res = await fetch(`http://${API_BASE}:5000/reset_password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),
