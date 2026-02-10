@@ -137,19 +137,3 @@
 .btn-save:hover {
 	background-color: #051d36;
 }
-
-.btn-cancel {
-	padding: 12px 30px;
-	background-color: white;
-	color: #333;
-	border: 1px solid #333;
-	border-radius: 4px;
-	font-size: 14px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s;
-}
-
-.btn-cancel:hover {
-	background-color: #f5f5f5;
-}

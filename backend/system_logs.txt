@@ -73,3 +73,7 @@
 2026-02-09 11:56:02,276 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: ADD_USER] - Details: Added new user: mckade.wing@maine.edu (ID: 698a11a11ac55da7cd22eddc)
 2026-02-09 11:56:48,459 - INFO - [User: 692de50af70425df636857bd] [Action: DELETE_USER] - Details: 698a11a11ac55da7cd22eddc is deleted
 2026-02-09 13:53:10,626 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28236] - Details: Item returned in good condition
+2026-02-09 17:48:31,229 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28236] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-09 17:50:19,657 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28236] - Details: Item returned DAMAGED: Headlight shattered...
+2026-02-10 13:49:33,556 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28238] - Details: Assigned to user: 692de50af70425df636857bd
+2026-02-10 13:52:03,720 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28238] - Details: Item returned in good condition

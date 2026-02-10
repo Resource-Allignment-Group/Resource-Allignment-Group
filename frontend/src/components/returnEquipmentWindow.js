@@ -35,19 +35,20 @@ function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 				credentials: "include",
 				body: JSON.stringify({
 					equipment_id: equipment.id,
+					damaged: formData.hasDamage === "yes",
+					damage_description: formData.damageDescription || null,
+					functioned_properly: formData.functionedProperly,
+					was_cleaned: formData.wasCleaned,
 				}),
 			});
 
 			const data = await res.json();
 
 			if (data.result) {
-				alert("Your Equipment has been returned");
 				if (onSuccess) onSuccess();
 				onClose();
 			} else {
-				alert(
-					"Something Has Gone Wrong, Please Refresh Your Page to See if Your Equipment was Returned",
-				);
+				alert("Something Has Gone Wrong.");
 			}
 		} catch (error) {
 			console.log(error);

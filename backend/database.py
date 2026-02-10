@@ -76,7 +76,6 @@ class DatabaseManager:
         self.users_db.update_one({"_id": id}, {"$set": {"name": new_name}})
 
     def set_user_email(self, id: ObjectId, new_email: str):
-        # Might have to change notifications that use this depending on functionality
         self.users_db.update_one({"_id": id}, {"$set": {"email": new_email}})
 
     def set_user_phone(self, id: ObjectId, new_phone: str):
@@ -84,6 +83,9 @@ class DatabaseManager:
 
     def set_user_position(self, id: ObjectId, new_position: str):
         self.users_db.update_one({"_id": id}, {"$set": {"position": new_position}})
+
+    def set_user_department(self, id: ObjectId, new_department: str):
+        self.users_db.update_one({"_id": id}, {"$set": {"department": new_department}})
 
     def set_equipment_year(self, id: ObjectId, year: int):
         self.equipment_db.update_one({"_id": id}, {"$set": {"year": year}})
@@ -188,7 +190,7 @@ class DatabaseManager:
                 details=f"Assigned to user: {user_id}"
             )
 
-    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False):
+    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False, damage_description: str | None = None):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
         if not equipment or not equipment.get("checked_out"):
@@ -205,7 +207,10 @@ class DatabaseManager:
         )
 
         if damaged:
-            status_msg = "Item returned DAMAGED"
+            status_msg = (
+                "Item returned DAMAGED"
+                + (f": {damage_description}" if damage_description else "")
+            )
         else:
             status_msg = "Item returned in good condition"
 

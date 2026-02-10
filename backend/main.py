@@ -359,16 +359,25 @@ def create_app(testing=False):
         try:
             equipment_id = ObjectId(data["equipment_id"])
             user_id = ObjectId(session["id"])
-            is_damaged = data.get("damaged", False) 
+            is_damaged = data["damaged"]
+            damage_description = data["damage_description"]
 
-            db.delete_user_equipment(user_id=user_id, equipment_id=equipment_id, damaged=is_damaged)
+            db.delete_user_equipment(
+                user_id=user_id, 
+                equipment_id=equipment_id, 
+                damaged=is_damaged,
+                damage_description=damage_description
+            )
 
             equipment = db.get_equipment_by_id(id=equipment_id)
             for admin in db.get_administrators():
                 nm.send_inform_notification(
                     sender=db.get_user_by_id(user_id),
                     receiver=admin,
-                    message=f"The Equipment {equipment.name} has been returned",
+                    message=(
+                        f"The Equipment {equipment.name} has been returned" 
+                        + (f" DAMAGED: {damage_description}" if is_damaged else "")
+                    ),
                 )
                 
             return jsonify({"result": True})
@@ -475,6 +484,7 @@ def create_app(testing=False):
         db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
         db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
         db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
+        db.set_user_department(id=ObjectId(session["id"]), new_department=data["department"])
         return jsonify({"result": True})
 
     # A route that flags equipment as unavailable/available based
