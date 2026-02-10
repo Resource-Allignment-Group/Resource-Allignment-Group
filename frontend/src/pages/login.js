@@ -13,12 +13,13 @@ function Login() {
 	const handleLogin = async (e) => {
 		if (e) e.preventDefault();
 		try {
-			const success = await login(email, password); // call login function in AuthProvider.js
+			// Call login function in AuthProvider.js
+			const success = await login(email, password);
 
 			if (success) {
 				navigate("/home");
 			} else {
-				alert("Invalid email or password"); //can make these non alert is decided
+				alert("Invalid email or password");
 			}
 		} catch (error) {
 			console.error("Login error:", error);
@@ -42,7 +43,6 @@ function Login() {
 				});
 				const data = await res.json();
 				if (data.result) {
-					//may return true even if the email was not sent due to security
 					alert("Password recovery email sent to " + email);
 				} else {
 					alert("Something Went Wrong");
@@ -58,7 +58,7 @@ function Login() {
 		<div className="container">
 			<div className="image-side">
 				<img
-					src="/static/mafes-webstie-photos-66.jpg" //Need to find an image that we want to use and adds it path here in the 'static folder'
+					src="/static/mafes-webstie-photos-66.jpg"
 					alt="Ship Yard"
 					className="background-image"
 				/>

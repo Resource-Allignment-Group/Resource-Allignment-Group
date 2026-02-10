@@ -9,7 +9,15 @@ from bson.objectid import ObjectId
 from user import User
 from datetime import datetime, timezone
 from rapidfuzz import fuzz
+import re
 
+# Regex patterns to match valid registration parameters
+# This logic is in the frontend and backend, as it is good practice
+EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+PHONE_REGEX = re.compile(r"^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$")
+PASSWORD_REGEX = re.compile(
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+)
 
 def create_app(testing=False):
     load_dotenv()
@@ -135,23 +143,45 @@ def create_app(testing=False):
     def register():
         admin_session_id = session.get("id")
         if not admin_session_id:
-                return jsonify({"result": False, "message": "Admin session expired. Please log in again."}), 401
-        
-        admin_id = ObjectId(admin_session_id)
-
+                return jsonify({
+                    "result": False, 
+                    "message": "Admin session expired. Please log in again."
+                }), 401
         data = request.json
-        fname, lname, email, password, phone = (
-            data["fname"],
-            data["lname"],
-            data["email"],
-            data["password"],
-            data["phone"],
-        )
-        hashed_password = hash_password(
-            password=password
-        )  # I belive this uses SHA256 but i would have to check
+        # Remove extra whitespaces and normalize input
+        fname = data.get("fname", "").strip()
+        lname = data.get("lname", "").strip()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        phone = data.get("phone", "").strip()
+        # Remove any dashes, parenthesis, etc
+        phone = re.sub(r"\D", "", phone)
+
+        # Validate all inputs
+        if not fname or not lname:
+            return jsonify({"result": False, "message": "First and last name are required"}), 400
+        if not EMAIL_REGEX.match(email):
+            return jsonify({"result": False, "message": "Invalid email format"}), 400
+        if not PHONE_REGEX.match(phone):
+            return jsonify({"result": False, "message": "Invalid phone number"}), 400
+        if not PASSWORD_REGEX.match(password):
+            return jsonify({
+                "result": False,
+                "message": (
+                    "Password must be at least 8 characters and include "
+                    "uppercase, lowercase, number, and special character"
+                )
+            }), 400
+
+        admin_id = ObjectId(admin_session_id)
+        hashed_password = hash_password(password=password)
         result = db.add_user(
-            email=email, password=hashed_password, fname=fname, lname=lname, phone=phone, admin_id=admin_id
+            email=email, 
+            password=hashed_password, 
+            fname=fname, 
+            lname=lname, 
+            phone=phone, 
+            admin_id=admin_id
         )
 
         if result["result"]:
