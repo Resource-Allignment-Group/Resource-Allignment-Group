@@ -32,7 +32,7 @@ class Notification:
         self.read = read
         self.status = status
 
-    def populate_from_json(self, json_info): # Changed to .get to prevent crashes when missing info
+    def populate_from_json(self, json_info):
         self.id = ObjectId(json_info.get("_id"))
         self.sender = ObjectId(json_info.get("sender"))
         self.receiver = ObjectId(json_info.get("receiver")) 
@@ -41,6 +41,7 @@ class Notification:
         self.type = json_info.get("type", "i")
         self.equipment_id = ObjectId(json_info.get("equipment_id"))
         self.read = json_info.get("read", False)
+        self.status = json_info.get("status", "p")
 
     def to_dict(self, sender_name):
         return {  # need to convert to strings in order to make the json serializable

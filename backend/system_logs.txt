@@ -79,3 +79,12 @@
 2026-02-10 13:52:03,720 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28238] - Details: Item returned in good condition
 2026-02-10 14:44:17,261 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: mckade.wing@maine.edu (ID: 698b8a9137cfaa237db71f9b)
 2026-02-10 14:46:09,332 - INFO - [User: 698b8a9137cfaa237db71f9b] [Action: DELETE_USER] - Details: 698b8a9137cfaa237db71f9b is deleted
+2026-02-10 15:33:01,234 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823b] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 15:33:02,117 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823a] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 15:33:02,652 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28239] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 16:19:54,723 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823c] - Details: Assigned to user: 692de50af70425df636857bd
+2026-02-10 16:33:41,821 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823d] - Details: Assigned to user: 692de50af70425df636857bd
+2026-02-10 16:51:54,892 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823d] - Details: Item returned in good condition
+2026-02-10 16:52:05,367 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823c] - Details: Item returned in good condition
+2026-02-10 16:53:08,198 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823c] - Details: Assigned to user: 692de50af70425df636857bd
+2026-02-10 16:53:39,570 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823c] - Details: Item returned in good condition

@@ -1,6 +1,5 @@
 import "../styles/default.css";
 import { useState, useEffect } from "react";
-
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import MyRequestsCard from "../components/myRequestsCard";
@@ -10,12 +9,7 @@ import { useSidebar } from "../SidebarContext";
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
-	// Only need the setter operation (valid)
-	const [, setNotifications] = useState([]);
-	const [equipment, setEquipment] = useState([]);
-
-	// notifications get connected to their equipment
-	const [notificationsByEquipment, setNotificationsByEquipment] = useState({});
+	const [requests, setRequests] = useState([]);
 
 	useEffect(() => {
 		const fillRequests = async () => {
@@ -25,19 +19,16 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				});
 
 				const data = await res.json();
-
 				const notifArray = data.notifications || [];
 				const equipArray = data.equipment || [];
+				// Pair each notification with its equipment directly
+				const pairedRequests = notifArray.map((notif, index) => ({
+					notification: notif,
+					equipment: equipArray[index],
+					id: notif._id,
+				}));
 
-				setNotifications(notifArray);
-				setEquipment(equipArray.reverse());
-
-				//this creates the mapping of equipment and notification
-				const notifMap = {};
-				for (const notif of notifArray) {
-					notifMap[notif.equipment_id] = notif;
-				}
-				setNotificationsByEquipment(notifMap);
+				setRequests(pairedRequests.reverse());
 			} catch (error) {
 				console.error("Failed to load requests:", error);
 			}
@@ -65,22 +56,19 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 				</div>
 
 				<div className="content">
-					{equipment.map((item) => {
-						const notif = notificationsByEquipment[item.id];
-						// Use notification ID if available, otherwise use equipment ID
-						const cardId = notif?._id || notif?.id || item.id;
-						return (
-							<MyRequestsCard
-								key={cardId}
-								equipment={item}
-								notification={notif}
-								isExpanded={expandedCard === cardId}
-								onToggle={() => {
-									setExpandedCard(expandedCard === cardId ? null : cardId);
-								}}
-							/>
-						);
-					})}
+					{requests.map((request) => (
+						<MyRequestsCard
+							key={request.id}
+							equipment={request.equipment}
+							notification={request.notification}
+							isExpanded={expandedCard === request.id}
+							onToggle={() => {
+								setExpandedCard(
+									expandedCard === request.id ? null : request.id,
+								);
+							}}
+						/>
+					))}
 				</div>
 			</div>
 		</div>

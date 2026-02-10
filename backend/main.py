@@ -454,7 +454,20 @@ def create_app(testing=False):
     @app.route("/get_users", methods=["GET"])
     def get_users():
         users = db.get_all_users()
-        user_dicts = [user.to_dict() for user in users]
+        user_dicts = []
+        for user in users:
+            user_dict = user.to_dict()
+            # Populate equipment details if user has checked out equipment
+            if user_dict.get("checked_out_equipment"):
+                equipment_details = []
+                for equip_id in user_dict["checked_out_equipment"]:
+                    equipment = db.get_equipment_by_id(equip_id)
+                    if equipment:
+                        equipment_details.append({
+                            "name": equipment.name,
+                        })
+                user_dict["checked_out_equipment"] = equipment_details
+            user_dicts.append(user_dict)
         return jsonify({"result": True, "users": user_dicts})
 
     @app.route("/change_user_role", methods=["POST"])
