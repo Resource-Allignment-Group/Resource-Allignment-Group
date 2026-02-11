@@ -1,14 +1,19 @@
 import logging
+import shutil
+from pathlib import Path
 
 class SystemLogger:
     def __init__(self, filename="system_logs.txt"):
+        log_dir = Path("large_files_db/reports")
+        full_path = log_dir / filename
+
         self.logger = logging.getLogger("RAM_System")
         self.logger.setLevel(logging.INFO)
         
         if not self.logger.handlers:
-            file_handler = logging.FileHandler(filename)
+            file_handler = logging.FileHandler(full_path)
             file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-            
+                        
             stream_handler = logging.StreamHandler()
             stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
             
