@@ -50,7 +50,7 @@
 	border: none;
 }
 
-.form button {
+.form button[type="submit"] {
 	padding: 12px;
 	background-color: #a0c5ff;
 	border: none;
@@ -58,12 +58,27 @@
 	cursor: pointer;
 	font-weight: bold;
 }
+/* Container for link-style actions */
+.form-links {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 12px;
+}
 
-.sign-up-reference {
-	margin-top: 10px;
-	text-align: left;
-	text-decoration: underline;
+/* Link-style buttons */
+.form .link-button {
+	background: none;
+	border: none;
+	padding: 0;
+
 	color: #cfe2ff;
-	font-size: 0.85rem;
+	text-decoration: underline;
 	cursor: pointer;
+
+	font: inherit;
+	font-size: 0.85rem;
+}
+
+.form .link-button:hover {
+	color: #ffffff;
 }

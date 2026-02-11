@@ -16,7 +16,8 @@ def create_app(testing=False):
 
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-    CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+    CORS(app, supports_credentials=True, origins='*')
+
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
 
@@ -53,8 +54,9 @@ def create_app(testing=False):
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
-                    print(email)
-                    return jsonify({"result": True, "message": "success", "role": user.role})
+                    return jsonify(
+                        {"result": True, "message": "success", "role": user.role}
+                    )
 
             else:
                 return jsonify({"result": False, "message": "Something went wrong"})
@@ -254,17 +256,23 @@ def create_app(testing=False):
                         sender=db.get_user_by_id(user_id=admin_id),
                         receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
                         equipment_id=ObjectId(equipment.id),
-                        body=f"Your request for {equipment.name} has been approved."
+                        message=f"Your request for {equipment.name} has been approved."
                     )
                     
                     return jsonify({"result": True, "message": "Equipment successfully checked out"})
                     # send notification to user that their equipment is theirs
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
+                    equipment = db.get_equipment_by_id(new_note.equipment_id)
+                    # Check if equipment exists before asking for its name
+                    if equipment:
+                        equip_name = equipment.name
+                    else:
+                        equip_name = "Unknown Equipment (Deleted)"
                     nm.send_inform_notification(
                         sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
                         receiver=db.get_user_by_id(user_id=new_note.sender),
-                        message=f"Your request has been denied for {db.get_equipment_by_id(ObjectId(new_note.equipment_id)).name}",
+                        message=f"Your request has been denied for {equip_name}",
                     )
                     return jsonify({"result": True})
 
@@ -692,4 +700,9 @@ def create_app(testing=False):
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)
-    app.run(debug=os.environ.get("FLASK_DEBUG"), port=5000, use_reloader=False)
+    app.run(
+        host="0.0.0.0",
+        debug=os.environ.get("FLASK_DEBUG"),
+        port=5000,
+        use_reloader=False,
+    )

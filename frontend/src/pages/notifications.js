@@ -4,20 +4,21 @@ import { useState, useEffect } from "react";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import NotificationCard from "../components/notificationCard";
+import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
 
-function Notifications({ num_of_notifications, setNumNotifications}) {
+function Notifications({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [notifications, setNotifications] = useState([]);
 
 	useEffect(() => {
 		const fillNotification = async () => {
 			try {
-				const res = await fetch("http://localhost:5000/get_notifications", {
+				const res = await fetch(`http://${API_BASE}:5000/get_notifications`, {
 					credentials: "include",
 				});
 				const data = await res.json();
-				setNotifications(data.messages || []);
+				setNotifications((data.messages || []).reverse());
 			} catch (error) {
 				console.log(error);
 			}
@@ -27,14 +28,18 @@ function Notifications({ num_of_notifications, setNumNotifications}) {
 
 	const handleNotification = async (notification, result) => {
 		try {
-			const res = await fetch("http://localhost:5000/admin_account_decision", {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ result: result, notification: notification}),
-			});
+			const res = await fetch(
+				`http://${API_BASE}:5000/admin_account_decision`,
+				{
+					method: "POST",
+					credentials: "include",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ result: result, notification: notification }),
+				},
+			);
 			const data = await res.json();
-			if (data.result) { //might cause problems, if so delete "data."
+			if (data.result) {
+				//might cause problems, if so delete "data."
 				setNumNotifications((num) => num - 1);
 			}
 			//change notification to an inform class
@@ -54,6 +59,7 @@ function Notifications({ num_of_notifications, setNumNotifications}) {
 				<Header
 					sidebarOpen={sidebarOpen}
 					onMenuToggle={openSidebar}
+					activeTab="Notifications"
 					num_of_notifications={num_of_notifications}
 					setNotificationsNum={setNumNotifications}
 				/>
@@ -65,7 +71,7 @@ function Notifications({ num_of_notifications, setNumNotifications}) {
 				</div>
 
 				<div className="content">
-					{notifications.length > 0 ? (
+					{notifications.length > 0 &&
 						notifications.map((n, i) => (
 							<NotificationCard
 								key={i}
@@ -73,10 +79,7 @@ function Notifications({ num_of_notifications, setNumNotifications}) {
 								onApprove={() => handleNotification(n, true)}
 								onReject={() => handleNotification(n, false)}
 							/>
-						))
-					) : (
-						<p>No notifications</p>
-					)}
+						))}
 				</div>
 			</div>
 		</div>

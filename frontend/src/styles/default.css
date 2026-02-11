@@ -16,10 +16,6 @@ body,
 	font-family: Arial, sans-serif;
 }
 
-body {
-	zoom: 0.95;
-}
-
 .home-container {
 	display: flex;
 	height: 100%;
@@ -232,30 +228,58 @@ and profile buttons are in */
 	gap: 15px;
 }
 
-/* Placeholder class for these icons */
-
+/* Holds the number of unread notifs */
 .notification-bubble {
 	position: absolute;
-	top: -1px;
-	right: -1px;
+	top: -4px;
+	right: -4px;
+	min-width: 18px;
+	height: 18px;
 	background: red;
 	color: white;
 	border-radius: 50%;
-	padding: 2px 6px;
-	font-size: 12px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 11px;
 	font-weight: bold;
+	line-height: 1;
 }
 
+/* Notif and Profile icon styling */
 .notification-icon,
 .profile-icon {
-	width: 40px;
-	height: 40px;
+	width: 44px;
+	height: 44px;
 	border-radius: 50%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	cursor: pointer;
 	position: relative;
+	background-color: #f5f5f5;
+	border: 1px solid #ddd;
+}
+
+.header-icon {
+	font-size: 24px;
+	color: black;
+}
+
+/* Active page indicators */
+.notification-icon:hover,
+.profile-icon:hover {
+	background-color: #e3e3e3;
+}
+
+.notification-icon.active,
+.profile-icon.active {
+	background-color: #082e58;
+}
+
+.notification-icon.active .header-icon,
+.profile-icon.active .header-icon {
+	color: white;
 }
 
 /* Navigation items in the header */
@@ -313,16 +337,6 @@ and profile buttons are in */
 	background-color: #082e58;
 	overflow-y: auto;
 }
-
-/* Disables the scrollbar in the main views */
-/* .content::-webkit-scrollbar {
-	display: none;
-} */
-
-/* .content {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
-} */
 
 /* WebKit browsers */
 .content::-webkit-scrollbar {

@@ -3,7 +3,7 @@
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
-
+import { API_BASE } from "../config";
 function HomeEquipmentCard({
 	equipment,
 	isExpanded,
@@ -52,7 +52,7 @@ function HomeEquipmentCard({
 		}
 
 		try {
-			const res = await fetch("http://localhost:5000/request_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/request_equipment`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
@@ -107,8 +107,8 @@ function HomeEquipmentCard({
 		} catch (error) {
 			console.log(error);
 			alert("There Were Problems Deleting The Equipment");
-		}		
-	}
+		}
+	};
 
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
 
@@ -149,11 +149,6 @@ function HomeEquipmentCard({
 									onChange={() => onSelect(equipment.id)}
 								/>
 							</label>
-							{isAdmin && (
-								<span className="delete-text-link" onClick={handleDelete}>
-									Delete Equipment
-								</span>
-							)}
 						</div>
 					</div>
 				</div>
@@ -242,7 +237,11 @@ function HomeEquipmentCard({
 							<button className="btn-primary" hidden={equipment.checked_out}>
 								Edit Equipment
 							</button>
-							<button className="btn-danger">Delete</button>
+							{isAdmin && (
+								<button className="btn-danger" onClick={handleDelete}>
+									Delete
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
