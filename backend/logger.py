@@ -4,7 +4,7 @@ from pathlib import Path
 
 class SystemLogger:
     def __init__(self, filename="system_logs.txt"):
-        log_dir = Path("backend/large_files_db/reports")
+        log_dir = Path("large_files_db/reports")
         full_path = log_dir / filename
 
         self.logger = logging.getLogger("RAM_System")
