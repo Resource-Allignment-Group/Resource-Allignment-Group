@@ -418,7 +418,7 @@ class DatabaseManager:
         return equip_list
 
     # Allows you to edit a specific field on an equipment
-    def update_equipment_field(self, equip_id, field_name, value):
+    def update_equipment_field(self, equip_id, field_name, value):  #### I Don't think that this function if being called from anywhere?
         try:
             result = self.equipment_db.update_one(
                 {"_id": ObjectId(equip_id)},
@@ -551,16 +551,72 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
-    # If equipment marked as unavailable or request and there is a pending 
-    # request for checkout, cancel the request
-    def cancel_pending_requests_for_equipment(self, equipment_ids: list):
+    # Cancels pending equipment requests for equipment that have been
+    # assigned to someone else, deleted, marked unavailable, etc
+    # def cancel_pending_requests_for_equipment(self, equipment_ids: list):
+    #     result = self.notifications_db.update_many(
+    #         {
+    #             "equipment_id": {"$in": equipment_ids},
+    #             "type": "r",
+    #             "status": "p"  # Pending
+    #         },
+    #         {"$set": {"status": "r"}}  # Set to rejected
+    #     )
+    #     return result.modified_count
+    
+    # Cancels pending equipment requests for equipment that have been
+    # assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
+    # You can also, optionally, specify a notification ID to exclude an equip item
+    # from being denied (when only one user is approved to chekout an equip, it cancels for all others)
+    def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Only pending
+        }
+        
+        # If we want to exclude a specific notification (e.g., the one being approved)
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
         result = self.notifications_db.update_many(
-            {
-                "equipment_id": {"$in": equipment_ids},
-                "type": "r",
-                "status": {"$ne": "a"}  # Not approved
-            },
-            {"$set": {"status": "r"}}  # Set to rejected
+            query,
+            {"$set": {"status": "r"}}
+        )
+        return result.modified_count
+    
+    # Get IDs of pending requests for specific equipment before denying them
+    # Used to remove them from admin inboxes and notify affected users
+    def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Pending
+        }
+        
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
+        denied_requests = self.notifications_db.find(query, {"_id": 1, "sender": 1})
+        
+        notification_ids = []
+        # Use set to avoid duplicate user IDs
+        sender_ids = set()
+        
+        for req in denied_requests:
+            notification_ids.append(req["_id"])
+            sender_ids.add(ObjectId(req["sender"]))
+        
+        return notification_ids, list(sender_ids)
+
+    # Remove a notification from all admin inboxes 
+    # EX: An equip is approved to a usr, all notifs requesting that same equip are removed
+    def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
+        if not notification_ids:
+            return 0
+        result = self.users_db.update_many(
+            {"role": "a"},
+            {"$pullAll": {"inbox": notification_ids}}
         )
         return result.modified_count
     

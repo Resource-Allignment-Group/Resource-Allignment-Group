@@ -88,3 +88,15 @@
 2026-02-10 16:52:05,367 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823c] - Details: Item returned in good condition
 2026-02-10 16:53:08,198 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823c] - Details: Assigned to user: 692de50af70425df636857bd
 2026-02-10 16:53:39,570 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823c] - Details: Item returned in good condition
+2026-02-10 17:07:07,214 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823c] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 20:49:01,989 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823b] - Details: Item returned in good condition
+2026-02-10 20:49:09,998 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823a] - Details: Item returned in good condition
+2026-02-10 20:49:17,638 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28239] - Details: Item returned in good condition
+2026-02-10 20:49:23,800 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823c] - Details: Item returned in good condition
+2026-02-10 20:50:17,222 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28239] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 20:51:46,875 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28239] - Details: Item returned in good condition
+2026-02-10 20:53:13,962 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28239] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 21:01:51,273 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a28239] - Details: Item returned in good condition
+2026-02-10 21:05:32,043 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823a] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 21:12:52,117 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28239] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-10 21:33:38,884 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28237] - Details: Assigned to user: 698781dbf629c6523b0cf65c

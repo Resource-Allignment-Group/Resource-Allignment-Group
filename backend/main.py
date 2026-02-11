@@ -264,7 +264,7 @@ def create_app(testing=False):
             ):  # If the notification is a equipment request, update the equipment
                 db.remove_notification_from_inbox(notification=new_note)
                 db.set_notification_read(id=ObjectId(new_note.id), read=True)
-
+                # Request is approved
                 if data["result"]:
                     admin_session_id = session.get("id")
                     
@@ -274,6 +274,7 @@ def create_app(testing=False):
                     admin_id = ObjectId(admin_session_id)
                     equipment = db.get_equipment_by_id(id=new_note.equipment_id)
                     
+                    # Mark the uses equipment request as approved, then checkout the equip
                     db.set_notification_status(id=new_note.id, status="a")
                     db.add_user_equipment(
                         user_id=ObjectId(new_note.sender),
@@ -282,6 +283,28 @@ def create_app(testing=False):
                     )
                     db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
 
+                    # Get info about pending requests
+                    pending_notification_ids, pending_user_ids = db.get_pending_request_info(
+                        equipment_ids=[new_note.equipment_id],
+                        exclude_notification_id=new_note.id
+                    )
+                    # Auto-deny all other pending requests for this equipment
+                    db.cancel_pending_requests_for_equipment(
+                        equipment_ids=[new_note.equipment_id],
+                        exclude_notification_id=new_note.id
+                    )
+                    # Remove denied requests from all admin inboxes
+                    db.remove_notifications_from_all_admin_inboxes(notification_ids=pending_notification_ids)
+                    
+                    # Notify users whose requests were auto-denied
+                    for user_id in pending_user_ids:
+                        nm.send_inform_notification(
+                            sender=db.get_user_by_id(user_id=admin_id),
+                            receiver=db.get_user_by_id(user_id=user_id),
+                            message=f"Your request for {equipment.name} was denied because it was approved for another user."
+                        )
+
+                    # send notification to user that their equipment is theirs
                     nm.send_inform_notification(
                         sender=db.get_user_by_id(user_id=admin_id),
                         receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
@@ -290,7 +313,7 @@ def create_app(testing=False):
                     )
                     
                     return jsonify({"result": True, "message": "Equipment successfully checked out"})
-                    # send notification to user that their equipment is theirs
+                # Request was denied
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
                     equipment = db.get_equipment_by_id(new_note.equipment_id)
