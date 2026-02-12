@@ -9,7 +9,7 @@ def test_register(client):
         "/register",
         json={
             "email": "user@gmail.com",
-            "password": "test_pass",
+            "password": "test_Pass2",
             "fname": "Joe",
             "lname": "Smith",
             "phone": "3333333333",
@@ -21,7 +21,7 @@ def test_register(client):
         "/register",
         json={
             "email": "user@gmail.com",
-            "password": "test_pass",
+            "password": "test_Pass2",
             "fname": "Joe",
             "lname": "Smith",
             "phone": "3333333333",

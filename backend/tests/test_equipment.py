@@ -226,7 +226,7 @@ def test_cancel_pending(login_user):
     db.users_db.insert_one({
         "_id": user_id,
         "email": "test@test.com",
-        "password": "test",
+        "password": "test_Pass2",
         "role": "p",
         "checked_out_equipment": [],
         "inbox": [],
@@ -334,6 +334,8 @@ def test_request_equipment(login_user):
 
     # Return equipment
     res = login_user.post("/return_equipment", json={
-        "equipment_id": "000000000000000000000000"
+        "equipment_id": "000000000000000000000000",
+        "damaged": False,
+        "damage_description": ""
     })
     assert res.get_json()["result"]

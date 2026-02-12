@@ -213,12 +213,12 @@ def create_app(testing=False):
     @app.route("/get_notifications", methods=["GET"])
     def get_notifications():
         if "id" not in session:
-            return jsonify({"messages": []}), 401
+            return jsonify({"result": False, "messages": []})
         try:
             user_id = session["id"]
             notifications = db.get_notifications_by_user(user_id=user_id)
             if not notifications:
-                return jsonify({"messages": []})
+                return jsonify({"result": True, "messages": []})
             # Collect all unique sender IDs
             sender_ids = list(set([note.sender for note in notifications if note.sender])) 
             # Get all of the sender data (1 query)
@@ -234,9 +234,9 @@ def create_app(testing=False):
                 sender_name = sender_map.get(note.sender, "Unknown User")
                 messages.append(note.to_dict(sender_name=sender_name))
             
-            return jsonify({"messages": messages})
+            return jsonify({"result": True, "messages": messages})
         except Exception as e:
-            return jsonify({"messages": [], "error": str(e)})
+            return jsonify({"result": False, "messages": []})
     
     # Used to remove notifications that the user clicked "X" on
     @app.route("/dismiss_notification", methods=["POST"])
