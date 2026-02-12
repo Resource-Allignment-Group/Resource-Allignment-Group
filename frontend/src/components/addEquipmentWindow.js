@@ -1,10 +1,11 @@
 // This component is used on the dashboard page
 // and serves as the form to add new equipment to the database
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/addequipment.css";
 import "../styles/default.css";
 import { API_BASE } from "../config";
+
 function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -17,9 +18,34 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		farm: "",
 	});
 
+	const [options, setOptions] = useState({
+		farms: [],
+		classes: [],
+		makes: [],
+	});
+
 	const [images, setImages] = useState([]);
 	const [reports, setReports] = useState([]);
 	const [submitting, setSubmitting] = useState(false);
+
+	useEffect(() => {
+		if (!isOpen) return;
+
+		fetch(`http://${API_BASE}:5000/get_filter_options`, {
+			credentials: "include",
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				if (data.result) {
+					setOptions({
+						farms: data.farms,
+						classes: data.classes,
+						makes: data.makes,
+					});
+				}
+			})
+			.catch(console.error);
+	}, [isOpen]);
 
 	if (!isOpen) return null;
 
@@ -41,8 +67,8 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		images.forEach((file) => payload.append("images", file));
 		reports.forEach((file) => payload.append("reports", file));
 
-    try {
-      const res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
@@ -58,9 +84,20 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 			}
 
 			if (onSuccess) onSuccess();
+			setFormData({
+				name: "",
+				class: "",
+				year: "",
+				model: "",
+				make: "",
+				use: "",
+				description: "",
+				farm: "",
+			});
+			setImages([]);
+			setReports([]);
 			onClose();
 		} catch (err) {
-			console.error(err);
 			alert("Error submitting equipment");
 		} finally {
 			setSubmitting(false);
@@ -92,36 +129,36 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 
 						<label>
 							Class
-							<select
+							<input
+								type="text"
+								list="class-options"
 								name="class"
 								value={formData.class}
 								onChange={handleChange}
 								required
-							>
-								<option value="">Select Class</option>
-								<option value="tractor">Tractor</option>
-								<option value="handheld">Handheld</option>
-								<option value="harvest">Harvest</option>
-								<option value="None">Add More</option>
-							</select>
+							/>
+							<datalist id="class-options">
+								{options.classes.map((c) => (
+									<option key={c} value={c} />
+								))}
+							</datalist>
 						</label>
 
 						<label>
 							Farm
-							<select
+							<input
+								type="text"
+								list="farm-options"
 								name="farm"
 								value={formData.farm}
 								onChange={handleChange}
 								required
-							>
-								<option value="">Select Farm</option>
-								<option value="arrostook">Arrostook</option>
-								<option value="blueberry_hill">Blueberry Hill B</option>
-								<option value="greenhouse/garden">Greenhouse / Garden</option>
-								<option value="witter">Witter</option>
-								<option value="rogers">Rogers</option>
-								<option value="highmoor">Highmoor</option>
-							</select>
+							/>
+							<datalist id="farm-options">
+								{options.farms.map((farm) => (
+									<option key={farm} value={farm} />
+								))}
+							</datalist>
 						</label>
 
 						<label>
@@ -150,16 +187,24 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 							Make
 							<input
 								type="text"
+								list="make-options"
 								name="make"
 								value={formData.make}
 								onChange={handleChange}
 								required
 							/>
+							<datalist id="make-options">
+								{options.makes.map((m) => (
+									<option key={m} value={m} />
+								))}
+							</datalist>
 						</label>
 
+						{/* We need to determine what "use" is */}
 						<label>
 							Use
 							<select
+								type="text"
 								name="use"
 								value={formData.use}
 								onChange={handleChange}
@@ -195,6 +240,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 						<label>
 							Description (Optional)
 							<textarea
+								type="text"
 								name="description"
 								value={formData.description}
 								onChange={handleChange}

@@ -1,12 +1,7 @@
 import "../styles/notificationCard.css";
 import { useState } from "react";
 
-function NewRequestNotification({
-	notification,
-	onApprove,
-	onReject,
-	onDismiss,
-}) {
+function NewRequestNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
 
 	const handleApproveClick = () => {
@@ -69,12 +64,7 @@ function NewRequestNotification({
 	);
 }
 
-function NewAccountNotification({
-	notification,
-	onApprove,
-	onReject,
-	onDismiss,
-}) {
+function NewAccountNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
 
 	const handleApproveClick = () => {
@@ -131,16 +121,6 @@ function NewAccountNotification({
 				<span className="notification-date">
 					{new Date(notification.date).toLocaleString()}
 				</span>
-
-				{/* Dismiss button */}
-				{onDismiss && (
-					<button
-						className="dismiss-button"
-						onClick={() => onDismiss(notification)}
-					>
-						✕
-					</button>
-				)}
 			</div>
 		</div>
 	);
@@ -188,7 +168,6 @@ export default function NotificationCard({
 					notification={notification}
 					onApprove={onApprove}
 					onReject={onReject}
-					onDismiss={onDismiss}
 				/>
 			);
 
@@ -198,11 +177,12 @@ export default function NotificationCard({
 					notification={notification}
 					onApprove={onApprove}
 					onReject={onReject}
-					onDismiss={onDismiss}
 				/>
 			);
 		case "i":
-			return <InformNotification notification={notification} />;
+			return (
+				<InformNotification notification={notification} onDismiss={onDismiss} />
+			);
 		default:
 			return (
 				<div className="notification-card">

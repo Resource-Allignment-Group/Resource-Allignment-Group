@@ -9,6 +9,7 @@ class User:
         self.position = None
         self.phone = None
         self.name = None
+        self.department = None
 
     def fill_inbox(self, db):
         notifications = db.get_notifications_by_user(self.id)
@@ -26,6 +27,7 @@ class User:
             self.inbox = db_object.get("inbox", [])
             self.checked_out_equipment = db_object.get("checked_out_equipment", [])
             self.position = db_object.get("position", "")
+            self.department = db_object.get("department", "")
             self.phone = db_object.get("phone", "")
             self.name = db_object.get("name", "Unknown")
             self.email = db_object.get("email", "")
@@ -37,6 +39,7 @@ class User:
             "email": self.email,
             "inbox": [str(id) for id in self.inbox],
             "position": self.position,
+            "department": self.department,
             "name": self.name,
             "phone": self.phone,
             "checked_out_equipment": [

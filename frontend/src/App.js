@@ -1,4 +1,3 @@
-import "./App.css";
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -19,7 +18,7 @@ import UserManagement from "./pages/usermanagement";
 import Notifications from "./pages/notifications";
 import ResetPassword from "./pages/resetPassword";
 import AdminRoute from "./AdminRoute";
-import {useState} from "react"
+import { useState } from "react";
 
 function App() {
 	const [num_of_notifications, setNumNotifications] = useState(0);
@@ -29,68 +28,89 @@ function App() {
 			<AuthProvider>
 				<SidebarProvider>
 					<Routes>
-					<Route path="/" element={<Navigate to="/login" />} />
-					<Route path="/register" element={<Register />} />
-					<Route path="/reset-password" element={<ResetPassword />} />
-					<Route path="/login" element={<Login />} />
-					
-					<Route
-						path="/profile"
-						element={
-							<ProtectedRoute>
-								<Profile num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
-						}
-					/>
-					<Route
-						path="/home"
-						element={
-							<ProtectedRoute>
-								<Home num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
-						}
-					/>
-					<Route
-						path="/myrequests"
-						element={
-							<ProtectedRoute>
-								<MyRequests num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
-						}
-					/>
-					<Route
-						path="/myequipment"
-						element={
-							<ProtectedRoute>
-								<MyEquipment num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
-						}
-					/>
-					<Route
-						path="/dashboard"
-						element={
-							<AdminRoute>
-								<Dashboard num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</AdminRoute>
-						}
-					/>
-					<Route
-						path="/usermanagement"
-						element={
-							<AdminRoute>
-								<UserManagement num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</AdminRoute>
-						}
-					/>
-					<Route
-						path="/notifications"
-						element={
-							<ProtectedRoute>
-								<Notifications num_of_notifications={num_of_notifications} setNumNotifications = {setNumNotifications} />
-							</ProtectedRoute>
-						}
-					/>
-				</Routes>
+						<Route path="/" element={<Navigate to="/login" />} />
+						<Route path="/register" element={<Register />} />
+						<Route path="/reset-password" element={<ResetPassword />} />
+						<Route path="/login" element={<Login />} />
+
+						<Route
+							path="/profile"
+							element={
+								<ProtectedRoute>
+									<Profile
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/home"
+							element={
+								<ProtectedRoute>
+									<Home
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/myrequests"
+							element={
+								<ProtectedRoute>
+									<MyRequests
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/myequipment"
+							element={
+								<ProtectedRoute>
+									<MyEquipment
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/dashboard"
+							element={
+								<AdminRoute>
+									<Dashboard
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</AdminRoute>
+							}
+						/>
+						<Route
+							path="/usermanagement"
+							element={
+								<AdminRoute>
+									<UserManagement
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</AdminRoute>
+							}
+						/>
+						<Route
+							path="/notifications"
+							element={
+								<ProtectedRoute>
+									<Notifications
+										num_of_notifications={num_of_notifications}
+										setNumNotifications={setNumNotifications}
+									/>
+								</ProtectedRoute>
+							}
+						/>
+					</Routes>
 				</SidebarProvider>
 			</AuthProvider>
 		</Router>

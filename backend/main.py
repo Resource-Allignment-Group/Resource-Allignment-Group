@@ -9,7 +9,15 @@ from bson.objectid import ObjectId
 from user import User
 from datetime import datetime, timezone
 from rapidfuzz import fuzz
+import re
 
+# Regex patterns to match valid registration parameters
+# This logic is in the frontend and backend, as it is good practice
+EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+PHONE_REGEX = re.compile(r"^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$")
+PASSWORD_REGEX = re.compile(
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+)
 
 def create_app(testing=False):
     load_dotenv()
@@ -135,23 +143,45 @@ def create_app(testing=False):
     def register():
         admin_session_id = session.get("id")
         if not admin_session_id:
-                return jsonify({"result": False, "message": "Admin session expired. Please log in again."}), 401
-        
-        admin_id = ObjectId(admin_session_id)
-
+                return jsonify({
+                    "result": False, 
+                    "message": "Admin session expired. Please log in again."
+                }), 401
         data = request.json
-        fname, lname, email, password, phone = (
-            data["fname"],
-            data["lname"],
-            data["email"],
-            data["password"],
-            data["phone"],
-        )
-        hashed_password = hash_password(
-            password=password
-        )  # I belive this uses SHA256 but i would have to check
+        # Remove extra whitespaces and normalize input
+        fname = data.get("fname", "").strip()
+        lname = data.get("lname", "").strip()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "")
+        phone = data.get("phone", "").strip()
+        # Remove any dashes, parenthesis, etc
+        phone = re.sub(r"\D", "", phone)
+
+        # Validate all inputs
+        if not fname or not lname:
+            return jsonify({"result": False, "message": "First and last name are required"}), 400
+        if not EMAIL_REGEX.match(email):
+            return jsonify({"result": False, "message": "Invalid email format"}), 400
+        if not PHONE_REGEX.match(phone):
+            return jsonify({"result": False, "message": "Invalid phone number"}), 400
+        if not PASSWORD_REGEX.match(password):
+            return jsonify({
+                "result": False,
+                "message": (
+                    "Password must be at least 8 characters and include "
+                    "uppercase, lowercase, number, and special character"
+                )
+            }), 400
+
+        admin_id = ObjectId(admin_session_id)
+        hashed_password = hash_password(password=password)
         result = db.add_user(
-            email=email, password=hashed_password, fname=fname, lname=lname, phone=phone, admin_id=admin_id
+            email=email, 
+            password=hashed_password, 
+            fname=fname, 
+            lname=lname, 
+            phone=phone, 
+            admin_id=admin_id
         )
 
         if result["result"]:
@@ -179,21 +209,50 @@ def create_app(testing=False):
             {"result": True, "messages": [], "num_notifications": len(unread_messages)}
         )
 
+    # Get notifications to display in the user's inbox
     @app.route("/get_notifications", methods=["GET"])
     def get_notifications():
-        user_notifications = db.get_notifications_by_user(
-            user_id=ObjectId(session["id"])
-        )
-        msgs = []
-        for note in user_notifications:
-            msgs.append(
-                note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
-            )  # not the best way to do this, but once again, van not think of a better way
-            if note.type == "i":
-                # kind of a jerry-rigged way to see if the user has read the message but I can't really think of a better way without massive overhead in developments
-                db.set_notification_read(id=note.id, read=True)
-
-        return jsonify({"result": True, "messages": msgs})
+        if "id" not in session:
+            return jsonify({"result": False, "messages": []})
+        try:
+            user_id = session["id"]
+            notifications = db.get_notifications_by_user(user_id=user_id)
+            if not notifications:
+                return jsonify({"result": True, "messages": []})
+            # Collect all unique sender IDs
+            sender_ids = list(set([note.sender for note in notifications if note.sender])) 
+            # Get all of the sender data (1 query)
+            sender_map = {}
+            if sender_ids:
+                senders = db.users_db.find({"_id": {"$in": sender_ids}})
+                for sender_doc in senders:
+                    sender_map[sender_doc["_id"]] = sender_doc.get("name", "Unknown User")
+            
+            # Convert to dict
+            messages = []
+            for note in notifications:
+                sender_name = sender_map.get(note.sender, "Unknown User")
+                messages.append(note.to_dict(sender_name=sender_name))
+            
+            return jsonify({"result": True, "messages": messages})
+        except Exception as e:
+            return jsonify({"result": False, "messages": []})
+    
+    # Used to remove notifications that the user clicked "X" on
+    @app.route("/dismiss_notification", methods=["POST"])
+    def dismiss_notification():
+        try:
+            data = request.json
+            note_info = data["notification"]
+            # Get the notification ID
+            note_id = note_info.get("id") or note_info.get("_id")
+            if not note_id:
+                return jsonify({"result": False, "error": "No notification ID provided"})
+            # Delete the notification from inbox and DB
+            db.delete_notification_completely(note_id=note_id)
+            return jsonify({"result": True})
+        except Exception as e:
+            return jsonify({"result": False, "error": str(e)})
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
@@ -234,7 +293,7 @@ def create_app(testing=False):
             ):  # If the notification is a equipment request, update the equipment
                 db.remove_notification_from_inbox(notification=new_note)
                 db.set_notification_read(id=ObjectId(new_note.id), read=True)
-
+                # Request is approved
                 if data["result"]:
                     admin_session_id = session.get("id")
                     
@@ -244,6 +303,7 @@ def create_app(testing=False):
                     admin_id = ObjectId(admin_session_id)
                     equipment = db.get_equipment_by_id(id=new_note.equipment_id)
                     
+                    # Mark the uses equipment request as approved, then checkout the equip
                     db.set_notification_status(id=new_note.id, status="a")
                     db.add_user_equipment(
                         user_id=ObjectId(new_note.sender),
@@ -252,6 +312,28 @@ def create_app(testing=False):
                     )
                     db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
 
+                    # Get info about pending requests
+                    pending_notification_ids, pending_user_ids = db.get_pending_request_info(
+                        equipment_ids=[new_note.equipment_id],
+                        exclude_notification_id=new_note.id
+                    )
+                    # Auto-deny all other pending requests for this equipment
+                    db.cancel_pending_requests_for_equipment(
+                        equipment_ids=[new_note.equipment_id],
+                        exclude_notification_id=new_note.id
+                    )
+                    # Remove denied requests from all admin inboxes
+                    db.remove_notifications_from_all_admin_inboxes(notification_ids=pending_notification_ids)
+                    
+                    # Notify users whose requests were auto-denied
+                    for user_id in pending_user_ids:
+                        nm.send_inform_notification(
+                            sender=db.get_user_by_id(user_id=admin_id),
+                            receiver=db.get_user_by_id(user_id=user_id),
+                            message=f"Your request for {equipment.name} was denied because it was approved for another user."
+                        )
+
+                    # send notification to user that their equipment is theirs
                     nm.send_inform_notification(
                         sender=db.get_user_by_id(user_id=admin_id),
                         receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
@@ -260,7 +342,7 @@ def create_app(testing=False):
                     )
                     
                     return jsonify({"result": True, "message": "Equipment successfully checked out"})
-                    # send notification to user that their equipment is theirs
+                # Request was denied
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
                     equipment = db.get_equipment_by_id(new_note.equipment_id)
@@ -359,16 +441,25 @@ def create_app(testing=False):
         try:
             equipment_id = ObjectId(data["equipment_id"])
             user_id = ObjectId(session["id"])
-            is_damaged = data.get("damaged", False) 
+            is_damaged = data["damaged"]
+            damage_description = data["damage_description"]
 
-            db.delete_user_equipment(user_id=user_id, equipment_id=equipment_id, damaged=is_damaged)
+            db.delete_user_equipment(
+                user_id=user_id, 
+                equipment_id=equipment_id, 
+                damaged=is_damaged,
+                damage_description=damage_description
+            )
 
             equipment = db.get_equipment_by_id(id=equipment_id)
             for admin in db.get_administrators():
                 nm.send_inform_notification(
                     sender=db.get_user_by_id(user_id),
                     receiver=admin,
-                    message=f"The Equipment {equipment.name} has been returned",
+                    message=(
+                        f"The Equipment {equipment.name} has been returned" 
+                        + (f" DAMAGED: {damage_description}" if is_damaged else "")
+                    ),
                 )
                 
             return jsonify({"result": True})
@@ -415,7 +506,20 @@ def create_app(testing=False):
     @app.route("/get_users", methods=["GET"])
     def get_users():
         users = db.get_all_users()
-        user_dicts = [user.to_dict() for user in users]
+        user_dicts = []
+        for user in users:
+            user_dict = user.to_dict()
+            # Populate equipment details if user has checked out equipment
+            if user_dict.get("checked_out_equipment"):
+                equipment_details = []
+                for equip_id in user_dict["checked_out_equipment"]:
+                    equipment = db.get_equipment_by_id(equip_id)
+                    if equipment:
+                        equipment_details.append({
+                            "name": equipment.name,
+                        })
+                user_dict["checked_out_equipment"] = equipment_details
+            user_dicts.append(user_dict)
         return jsonify({"result": True, "users": user_dicts})
 
     @app.route("/change_user_role", methods=["POST"])
@@ -475,6 +579,7 @@ def create_app(testing=False):
         db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
         db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
         db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
+        db.set_user_department(id=ObjectId(session["id"]), new_department=data["department"])
         return jsonify({"result": True})
 
     # A route that flags equipment as unavailable/available based

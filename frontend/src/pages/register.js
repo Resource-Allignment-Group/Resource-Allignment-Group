@@ -1,96 +1,119 @@
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import "../styles/register.css";
 import { API_BASE } from "../config";
+
 function Register() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fname, setFirstName] = useState('')
-  const [lname, setLastName] = useState('')
-  const [phone_number, setPhoneNumber] = useState('')
-  // const [adminEmail, setAdminEmail] = useState('')
-  const navigate = useNavigate() 
-  
-  const handleRegister = async (e) => {
-  if (e) e.preventDefault();
-    try{
-      const res = await fetch(`http://${API_BASE}:5000/register`, { //logis in the user and starts their session
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          "email": email, 
-          "password": password,
-          "fname": fname,
-          "lname": lname,
-          "phone": phone_number
-        }),
-        credentials: "include", 
-      });
-      const data = await res.json();
-      
-      if(data.message === "success") {
-        alert("Account Request has been sent to Admin\nAwaiting Approval")
-        navigate("/login")
-      }
-      else{
-        alert("Rugh Rough Raggy, something is wrong")
-      }
-    }
-    catch (error) {
-    console.error('Login error:', error);
-    alert('Something went wrong');
-  }
-  }
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [fname, setFirstName] = useState("");
+	const [lname, setLastName] = useState("");
+	const [phone_number, setPhoneNumber] = useState("");
+	const navigate = useNavigate();
 
-  return (
-    <div className="container">
-      <div className="image-side">
-        <img
-          src="/static/mafes-webstie-photos-35.jpg" //Need to find an image that we want to use and adds it path here in the 'static folder'
-          alt="Forrest #2"
-          className="background-image"
-        />
-      </div>
+	// Frontend regex cases to check user-input, for quick error handling
+	// These exist more extensively in the backend to ensure proper formats
+	const isValidEmail = (email) => EMAIL_REGEX.test(email);
+	const isValidPhone = (phone) => PHONE_REGEX.test(phone);
+	const isValidPassword = (password) => PASSWORD_REGEX.test(password);
+	const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	const PHONE_REGEX = /^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$/;
+	const PASSWORD_REGEX =
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
-      <div className="register-side">
-        <h2 className="title">Register</h2>
+	const handleRegister = async (e) => {
+		if (e) e.preventDefault();
 
-        <form className="form">
-          <label>First Name</label>
-          <input
-          type="text"
-          onChange={(e) => setFirstName(e.target.value)} 
-          />
+		// Validate user input
+		if (!fname || !lname) {
+			alert("Please enter your first and last name");
+			return;
+		}
 
-          <label>Last Name</label>
-          <input 
-          type="text"
-          onChange={(e) => setLastName(e.target.value)} 
-          />
+		if (!isValidEmail(email)) {
+			alert("Please enter a valid email address");
+			return;
+		}
 
-          <label>Email</label>
-          <input
-          type="email" 
-          onChange={(e) => setEmail(e.target.value)} 
-          />
+		if (!isValidPassword(password)) {
+			alert(
+				"Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol",
+			);
+			return;
+		}
 
-          <label>Password</label>
-          <input 
-          type="password"
-          onChange={(e) => setPassword(e.target.value)} 
-          />
+		if (!isValidPhone(phone_number)) {
+			alert("Please enter a valid phone number");
+			return;
+		}
 
-          <label>Phone Number</label>
-          <input
-          type="tel" 
-          onChange={(e) => setPhoneNumber(e.target.value)} 
-          />
+		// If initial checks pass, got to backend (run regex again there)
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/register`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					email: email,
+					password: password,
+					fname: fname,
+					lname: lname,
+					phone: phone_number,
+				}),
+				credentials: "include",
+			});
+			const data = await res.json();
 
-          <button type="submit" onClick={handleRegister}>Sign Up</button>
-        </form>
-      </div>
-    </div>
-  );
+			if (data.message === "success") {
+				alert("Account Request has been sent to Admin\nAwaiting Approval");
+				navigate("/login");
+			} else {
+				alert("Rugh Rough Raggy, something is wrong");
+			}
+		} catch (error) {
+			console.error("Login error:", error);
+			alert("Something went wrong");
+		}
+	};
+
+	return (
+		<div className="container">
+			<div className="image-side">
+				<img
+					src="/static/mafes-webstie-photos-35.jpg"
+					alt="Forrest #2"
+					className="background-image"
+				/>
+			</div>
+
+			<div className="register-side">
+				<h2 className="title">Register</h2>
+
+				<form className="form">
+					<label>First Name</label>
+					<input type="text" onChange={(e) => setFirstName(e.target.value)} />
+
+					<label>Last Name</label>
+					<input type="text" onChange={(e) => setLastName(e.target.value)} />
+
+					<label>Email</label>
+					<input type="email" onChange={(e) => setEmail(e.target.value)} />
+
+					<label>Password</label>
+					<input
+						type="password"
+						onChange={(e) => setPassword(e.target.value)}
+					/>
+
+					<label>Phone Number</label>
+					<input type="tel" onChange={(e) => setPhoneNumber(e.target.value)} />
+
+					<button type="submit" onClick={handleRegister}>
+						Sign Up
+					</button>
+				</form>
+			</div>
+		</div>
+	);
 }
 
 export default Register;

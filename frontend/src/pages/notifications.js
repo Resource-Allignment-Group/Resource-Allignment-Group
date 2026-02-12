@@ -1,6 +1,5 @@
 import "../styles/default.css";
 import { useState, useEffect } from "react";
-
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import NotificationCard from "../components/notificationCard";
@@ -10,17 +9,27 @@ import { useSidebar } from "../SidebarContext";
 function Notifications({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [notifications, setNotifications] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
 		const fillNotification = async () => {
 			try {
+				setIsLoading(true);
+
 				const res = await fetch(`http://${API_BASE}:5000/get_notifications`, {
 					credentials: "include",
 				});
+
+				if (!res.ok) {
+					throw new Error(`Failed to fetch notifications: ${res.status}`);
+				}
+
 				const data = await res.json();
 				setNotifications((data.messages || []).reverse());
 			} catch (error) {
-				console.log(error);
+				console.log("Error loading notifications: ", error);
+			} finally {
+				setIsLoading(false);
 			}
 		};
 		fillNotification();
@@ -28,6 +37,13 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 
 	const handleNotification = async (notification, result) => {
 		try {
+			// Remove notif from UI first, revert if needed
+			const prevNotifications = notifications;
+			setNotifications((prev) =>
+				prev.filter((n) => n._id !== notification._id),
+			);
+			setNumNotifications((num) => Math.max(0, num - 1));
+
 			const res = await fetch(
 				`http://${API_BASE}:5000/admin_account_decision`,
 				{
@@ -38,14 +54,51 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				},
 			);
 			const data = await res.json();
-			if (data.result) {
-				//might cause problems, if so delete "data."
-				setNumNotifications((num) => num - 1);
+			if (!data.result) {
+				setNotifications(prevNotifications);
+				setNumNotifications((num) => num + 1);
+				alert(data.message || "Something went wrong");
 			}
-			//change notification to an inform class
 		} catch (error) {
-			console.log(error);
-			alert("Something went wrong");
+			console.log("Error handling notification: ", error);
+			// Revert on error
+			setNotifications((prev) => [...prev, notification]);
+			setNumNotifications((num) => num + 1);
+			alert("Failed to process request. Please try again.");
+		}
+	};
+
+	// Allows users to dismiss notifications
+	const handleDismiss = async (notificationToRemove) => {
+		try {
+			// Update UI first for instant feedback
+			const prevNotifications = notifications;
+			setNotifications((prev) =>
+				prev.filter((n) => n._id !== notificationToRemove._id),
+			);
+			setNumNotifications((num) => Math.max(0, num - 1));
+
+			const res = await fetch(`http://${API_BASE}:5000/dismiss_notification`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ notification: notificationToRemove }),
+			});
+
+			const data = await res.json();
+
+			// If the API call fails, revert the prev quick update
+			if (!res.ok || !data.result) {
+				setNotifications(prevNotifications);
+				setNumNotifications((num) => num + 1);
+				alert(data.error || "Failed to dismiss notification");
+			}
+		} catch (error) {
+			console.log("Error dismissing notification: ", error);
+			// Revert on error
+			setNotifications((prev) => [...prev, notificationToRemove]);
+			setNumNotifications((num) => num + 1);
+			alert("Failed to dismiss notification. Please try again.");
 		}
 	};
 
@@ -71,15 +124,25 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				</div>
 
 				<div className="content">
-					{notifications.length > 0 &&
-						notifications.map((n, i) => (
+					{isLoading ? (
+						<div className="loading-container">
+							<p>Loading Notifications...</p>
+						</div>
+					) : notifications.length > 0 ? (
+						notifications.map((n) => (
 							<NotificationCard
-								key={i}
+								key={n._id}
 								notification={n}
 								onApprove={() => handleNotification(n, true)}
 								onReject={() => handleNotification(n, false)}
+								onDismiss={handleDismiss}
 							/>
-						))}
+						))
+					) : (
+						<div className="empty-state">
+							<p>No notifications to display</p>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

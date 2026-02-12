@@ -148,6 +148,7 @@ function HomeEquipmentCard({
 									checked={isSelected}
 									onChange={() => onSelect(equipment.id)}
 								/>
+								<span className="mark-text">Mark as Unavailable</span>
 							</label>
 						</div>
 					</div>

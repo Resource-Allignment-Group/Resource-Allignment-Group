@@ -95,14 +95,11 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 
 						<div className="details-column">
 							<h4>Checked Out Equipment</h4>
-							{user.checkedOutEquipment &&
-							user.checkedOutEquipment.length > 0 ? (
-								user.checkedOutEquipment.map((equipment, index) => (
+							{user.checked_out_equipment &&
+							user.checked_out_equipment.length > 0 ? (
+								user.checked_out_equipment.map((equipment, index) => (
 									<div key={index} className="detail-row">
 										<span className="label">{equipment.name}</span>
-										<span className="value">
-											Checked Out: {equipment.checkedOutDate}
-										</span>
 									</div>
 								))
 							) : (

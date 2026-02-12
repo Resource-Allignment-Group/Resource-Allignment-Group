@@ -1,10 +1,9 @@
 import "../styles/default.css";
 import "../styles/profile.css";
 import { useState, useEffect } from "react";
-import { useAuth } from "../Authentication"
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../Authentication";
+import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config";
-// Import componets that will make up the profile page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import { useSidebar } from "../SidebarContext";
@@ -22,6 +21,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 		position: "",
 		department: "",
 	});
+
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
@@ -54,15 +54,15 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 	}, []);
 
 	const handleSave = async () => {
-			try {
-				const res = await fetch(`http://${API_BASE}:5000/save_new_profile_info`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					credentials: "include",
-					body: JSON.stringify(profile),
-				});
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/save_new_profile_info`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+				body: JSON.stringify(profile),
+			});
 
 			if (!res.ok) throw new Error("Failed to save profile");
 
@@ -200,12 +200,6 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 							<div className="form-buttons">
 								<button className="btn-save" onClick={handleSave}>
 									Save Changes
-								</button>
-								<button
-									className="btn-cancel"
-									onClick={() => window.location.reload()}
-								>
-									Cancel
 								</button>
 							</div>
 						</div>
