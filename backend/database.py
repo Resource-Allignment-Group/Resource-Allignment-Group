@@ -33,7 +33,7 @@ class DatabaseManager:
         else:
             self.db = _client["RAM_DB"]
             self.txt_logger = SystemLogger("system_logs.txt")
-            
+
         self.users_db = self.db["users"]
         self.equipment_db = self.db["equipment"]
         self.requests_db = self.db["requests"]
@@ -98,14 +98,27 @@ class DatabaseManager:
 
     def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
         self.equipment_db.update_one(
-            {"_id": ObjectId(id)},
-            {"$set": {"checked_out": checked_out}}
+            {"_id": ObjectId(id)}, {"$set": {"checked_out": checked_out}}
         )
 
-    def add_log(self, user_id: ObjectId, action: str, details: str = None, target_id: ObjectId = None):
+    def add_log(
+        self,
+        user_id: ObjectId,
+        action: str,
+        details: str = None,
+        target_id: ObjectId = None,
+    ):
         self.txt_logger.log_action(user_id, action, details, target_id)
 
-    def add_user(self, fname: str, lname: str, phone: int, email: str, password, admin_id: ObjectId):
+    def add_user(
+        self,
+        fname: str,
+        lname: str,
+        phone: int,
+        email: str,
+        password,
+        admin_id: ObjectId,
+    ):
         if (
             self.users_db.count_documents({"email": email}) != 0
         ):  # Checks to make sure email does not already exist
@@ -126,11 +139,11 @@ class DatabaseManager:
 
         if result.acknowledged:
             new_user_id = result.inserted_id
-            
+
             self.add_log(
-                user_id=admin_id, 
-                action="ADD_USER",  
-                details=f"Added new user: {email} (ID: {new_user_id})"
+                user_id=admin_id,
+                action="ADD_USER",
+                details=f"Added new user: {email} (ID: {new_user_id})",
             )
             return {
                 "result": True,
@@ -170,7 +183,9 @@ class DatabaseManager:
             }
         )
 
-    def add_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, admin_id: ObjectId):
+    def add_user_equipment(
+        self, user_id: ObjectId, equipment_id: ObjectId, admin_id: ObjectId
+    ):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
 
         if equipment["checked_out"] is True:
@@ -184,11 +199,11 @@ class DatabaseManager:
             {"_id": equipment_id}, {"$set": {"checked_out": True}}
         )
         self.add_log(
-                user_id=admin_id, 
-                action="CHECK_OUT", 
-                target_id=equipment_id, 
-                details=f"Assigned to user: {user_id}"
-            )
+            user_id=admin_id,
+            action="CHECK_OUT",
+            target_id=equipment_id,
+            details=f"Assigned to user: {user_id}",
+        )
 
     def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False, damage_description: str | None = None):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
@@ -197,13 +212,11 @@ class DatabaseManager:
             return f"Equipment {equipment_id} is not checked out"
 
         self.users_db.update_one(
-            {"_id": user_id}, 
-            {"$pull": {"checked_out_equipment": equipment_id}}
+            {"_id": user_id}, {"$pull": {"checked_out_equipment": equipment_id}}
         )
 
         self.equipment_db.update_one(
-            {"_id": equipment_id}, 
-            {"$set": {"checked_out": False, "damaged": damaged}}
+            {"_id": equipment_id}, {"$set": {"checked_out": False, "damaged": damaged}}
         )
 
         if damaged:
@@ -215,10 +228,10 @@ class DatabaseManager:
             status_msg = "Item returned in good condition"
 
         self.add_log(
-            user_id=user_id, 
-            action="CHECK_IN", 
-            target_id=equipment_id, 
-            details=status_msg
+            user_id=user_id,
+            action="CHECK_IN",
+            target_id=equipment_id,
+            details=status_msg,
         )
 
     def get_password_by_email(self, email: str):
@@ -268,7 +281,7 @@ class DatabaseManager:
 
         with open(self.reports_db / report_uuid, "w") as f:
             f.write(report_content)
-        
+
         change_result = self.equipment_db.update_one(
             {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
         )
@@ -368,8 +381,8 @@ class DatabaseManager:
         if note_info:
             note.populate_from_json(json_info=note_info)
         else:
-            return None 
-            
+            return None
+
         return note
 
     def get_notifications_by_equipment(self, equip_id):
@@ -462,8 +475,7 @@ class DatabaseManager:
     def update_equipment_field(self, equip_id, field_name, value):  #### I Don't think that this function if being called from anywhere?
         try:
             result = self.equipment_db.update_one(
-                {"_id": ObjectId(equip_id)},
-                {"$set": {field_name: value}}
+                {"_id": ObjectId(equip_id)}, {"$set": {field_name: value}}
             )
             return result.modified_count > 0
         except:
@@ -471,9 +483,9 @@ class DatabaseManager:
 
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
-        if not equip_info: # Added for handling when equipment doesnt exist
+        if not equip_info:  # Added for handling when equipment doesnt exist
             return None
-        
+
         equip = Equipment()
         equip.fill_from_json(json_info=equip_info)
         return equip
@@ -491,7 +503,8 @@ class DatabaseManager:
     def get_equipment_by_user(self, user_id: ObjectId):
         equip_list = []
         user = self.users_db.find_one({"_id": user_id})
-        if not user: return []
+        if not user:
+            return []
         for equip_id in user["checked_out_equipment"]:
             equip_list.append(self.get_equipment_by_id(id=equip_id))
         return equip_list
@@ -526,11 +539,13 @@ class DatabaseManager:
 
     def get_dashboard_info(self):
         num_total = self.equipment_db.count_documents({})
-        num_available = self.equipment_db.count_documents({
-            "checked_out": {"$ne": True},
-            "damaged": {"$ne": True},
-            "unavailable": {"$ne": True}
-        })
+        num_available = self.equipment_db.count_documents(
+            {
+                "checked_out": {"$ne": True},
+                "damaged": {"$ne": True},
+                "unavailable": {"$ne": True},
+            }
+        )
         num_used = self.equipment_db.count_documents({"checked_out": True})
         num_damaged = self.equipment_db.count_documents({"damaged": True})
         num_unavailable = self.equipment_db.count_documents({"unavailable": True})
@@ -545,10 +560,8 @@ class DatabaseManager:
 
     # See what equipment a user has checked out
     def get_user_by_equipment(self, equipment_id: ObjectId):
-        user_info = self.users_db.find_one({
-            "checked_out_equipment": equipment_id
-        })
-        
+        user_info = self.users_db.find_one({"checked_out_equipment": equipment_id})
+
         if user_info:
             user = User()
             user.fill_user_information(user_info)
@@ -565,9 +578,7 @@ class DatabaseManager:
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
             self.add_log(
-                user_id=admin_id, 
-                action="DELETE_USER", 
-                details=f"{user.id} is deleted" 
+                user_id=admin_id, action="DELETE_USER", details=f"{user.id} is deleted"
             )
             return True
         else:
@@ -647,19 +658,19 @@ class DatabaseManager:
             {"$pullAll": {"inbox": notification_ids}}
         )
         return result.modified_count
-    
+
     # Update multiple equipment items as unavailable at once
     def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
         if not equipment_ids:
             return 0
-        
+
         result = self.equipment_db.update_many(
             {
-                "_id": {"$in": equipment_ids}, 
-                "checked_out": False, 
+                "_id": {"$in": equipment_ids},
+                "checked_out": False,
                 "damaged": False,
             },
-            {"$set": {"unavailable": unavailable}}
+            {"$set": {"unavailable": unavailable}},
         )
         return result.modified_count
 
@@ -671,7 +682,7 @@ class DatabaseManager:
         # Remove equipment from all users' checked_out_equipment arrays
         self.users_db.update_many(
             {"checked_out_equipment": equipment_id},
-            {"$pull": {"checked_out_equipment": equipment_id}}
+            {"$pull": {"checked_out_equipment": equipment_id}},
         )
 
         # Delete all notifications referencing this equipment
@@ -680,7 +691,7 @@ class DatabaseManager:
             # Remove notification from users' inbox arrays
             self.users_db.update_many(
                 {"inbox": notification["_id"]},
-                {"$pull": {"inbox": notification["_id"]}}
+                {"$pull": {"inbox": notification["_id"]}},
             )
         # Delete the notifications
         self.notifications_db.delete_many({"equipment_id": equipment_id})
