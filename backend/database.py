@@ -314,12 +314,42 @@ class DatabaseManager:
         notification_ids = user_doc.get("inbox", [])
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
+    # Get all notifs assigned to a given user in a single query
     def get_notifications_by_user(self, user_id):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
         if not user: return []
+        inbox_ids = user.get("inbox", [])
+        if not inbox_ids: return []
+        
+        object_ids = []
+        for item in inbox_ids:
+            try:
+                # This may be able to simplified if we find out that the weird issue with notifs
+                # was due to malformed old notifications. On DB clean, if this is still needed, 
+                # the error is likely elswhere in the codebase.
+                if isinstance(item, dict):
+                    obj_id = item.get("_id") or item.get("id")
+                    object_ids.append(ObjectId(obj_id))
+                elif isinstance(item, ObjectId):
+                    object_ids.append(item)
+                else:
+                    object_ids.append(ObjectId(item))
+            except Exception as e:
+                print(f"Error processing inbox item: {e}")
+                continue
+        
+        if not object_ids: return []
+        notification_docs = list(self.notifications_db.find({
+            "_id": {"$in": object_ids}
+        }))
+        
+        # Convert to Notification objects
         notes = []
-        for note_id in user.get("inbox", []):
-            notes.append(self.get_notification_by_id(note_id=note_id))
+        for note_info in notification_docs:
+            note = Notification()
+            note.populate_from_json(json_info=note_info)
+            notes.append(note)
+        
         return notes
 
     def get_notification_by_id(self, note_id):
@@ -368,15 +398,26 @@ class DatabaseManager:
             user_list.append(user)
         return user_list
 
-    def remove_notification_from_inbox(self, notification: Notification):
-        result = self.users_db.update_many(
+    # Remove a notif from a user's inbox
+    def remove_notification_from_inbox(self, notification):
+        # Remove from all users who have it in their inbox
+        self.users_db.update_many(
             {"inbox": ObjectId(notification.id)},
-            {"$pull": {"inbox": ObjectId(notification.id)}},
+            {"$pull": {"inbox": ObjectId(notification.id)}}
         )
-        self.notifications_db.update_one(
-            {"_id": notification.id}, {"$set": {"read": True}}
+        return True
+    
+    # Delete a notification from the users inbox and the DB
+    def delete_notification_completely(self, note_id):
+        note_id_obj = ObjectId(note_id)
+        # Remove from all user inboxes
+        self.users_db.update_many(
+            {"inbox": note_id_obj},
+            {"$pull": {"inbox": note_id_obj}}
         )
-        return result
+        # Delete the notification from DB
+        self.notifications_db.delete_one({"_id": note_id_obj})
+        return True
 
     def send_notification(self, notification: Notification):
         if notification.id is None:
@@ -551,19 +592,6 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
-    # Cancels pending equipment requests for equipment that have been
-    # assigned to someone else, deleted, marked unavailable, etc
-    # def cancel_pending_requests_for_equipment(self, equipment_ids: list):
-    #     result = self.notifications_db.update_many(
-    #         {
-    #             "equipment_id": {"$in": equipment_ids},
-    #             "type": "r",
-    #             "status": "p"  # Pending
-    #         },
-    #         {"$set": {"status": "r"}}  # Set to rejected
-    #     )
-    #     return result.modified_count
-    
     # Cancels pending equipment requests for equipment that have been
     # assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
     # You can also, optionally, specify a notification ID to exclude an equip item

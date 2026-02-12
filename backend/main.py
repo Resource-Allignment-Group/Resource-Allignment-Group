@@ -209,21 +209,50 @@ def create_app(testing=False):
             {"result": True, "messages": [], "num_notifications": len(unread_messages)}
         )
 
+    # Get notifications to display in the user's inbox
     @app.route("/get_notifications", methods=["GET"])
     def get_notifications():
-        user_notifications = db.get_notifications_by_user(
-            user_id=ObjectId(session["id"])
-        )
-        msgs = []
-        for note in user_notifications:
-            msgs.append(
-                note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
-            )  # not the best way to do this, but once again, van not think of a better way
-            if note.type == "i":
-                # kind of a jerry-rigged way to see if the user has read the message but I can't really think of a better way without massive overhead in developments
-                db.set_notification_read(id=note.id, read=True)
-
-        return jsonify({"result": True, "messages": msgs})
+        if "id" not in session:
+            return jsonify({"messages": []}), 401
+        try:
+            user_id = session["id"]
+            notifications = db.get_notifications_by_user(user_id=user_id)
+            if not notifications:
+                return jsonify({"messages": []})
+            # Collect all unique sender IDs
+            sender_ids = list(set([note.sender for note in notifications if note.sender])) 
+            # Get all of the sender data (1 query)
+            sender_map = {}
+            if sender_ids:
+                senders = db.users_db.find({"_id": {"$in": sender_ids}})
+                for sender_doc in senders:
+                    sender_map[sender_doc["_id"]] = sender_doc.get("name", "Unknown User")
+            
+            # Convert to dict
+            messages = []
+            for note in notifications:
+                sender_name = sender_map.get(note.sender, "Unknown User")
+                messages.append(note.to_dict(sender_name=sender_name))
+            
+            return jsonify({"messages": messages})
+        except Exception as e:
+            return jsonify({"messages": [], "error": str(e)})
+    
+    # Used to remove notifications that the user clicked "X" on
+    @app.route("/dismiss_notification", methods=["POST"])
+    def dismiss_notification():
+        try:
+            data = request.json
+            note_info = data["notification"]
+            # Get the notification ID
+            note_id = note_info.get("id") or note_info.get("_id")
+            if not note_id:
+                return jsonify({"result": False, "error": "No notification ID provided"})
+            # Delete the notification from inbox and DB
+            db.delete_notification_completely(note_id=note_id)
+            return jsonify({"result": True})
+        except Exception as e:
+            return jsonify({"result": False, "error": str(e)})
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
