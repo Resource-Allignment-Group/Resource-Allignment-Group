@@ -1,1 +1,5 @@
 2026-02-09 10:46:58,053 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: testuser2@gmail.com (ID: 698a0172edb874e5c4d95e67)
+2026-02-13 11:04:21,992 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b127d61182fc67a28252] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-13 11:04:26,831 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b129d61182fc67a28269] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-13 11:05:20,822 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823a] - Details: Item returned DAMAGED: caught on fire
+2026-02-13 11:15:39,369 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b127d61182fc67a28252] - Details: Item returned in good condition

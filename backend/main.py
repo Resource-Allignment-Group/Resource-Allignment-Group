@@ -749,8 +749,52 @@ def create_app(testing=False):
     def delete_equipment():
         data = request.json
         try:
-            equipment_id = data["equipment_id"]
-            result = db.delete_equipment(equipment_id=ObjectId(equipment_id))
+            equipment_id_str = data["equipment_id"]
+            equipment_id = ObjectId(equipment_id_str)
+
+            #Ensure equipment exists
+            equipment = db.get_equipment_by_id(equipment_id)
+            if equipment is None:
+                return jsonify({
+                    "result": False,
+                    "message": "Equipment not found"
+                }), 404
+
+            #Don't allow deletion if equipment is checked out
+            if equipment.checked_out:
+                return jsonify({
+                    "result": False,
+                    "message": "This equipment is currently checked out and cannot be deleted"
+                }), 400
+            
+            # Get info on pending requests (notification IDs and user IDs who made requests)
+            pending_notification_ids, pending_user_ids = db.get_pending_request_info(
+                equipment_ids=[equipment_id]
+            )
+
+            #Deny pending requests for equipment
+            db.cancel_pending_requests_for_equipment(
+                equipment_ids=[equipment_id]
+            )
+
+            #Remove notifications from all admin inboxes
+            db.remove_notifications_from_all_admin_inboxes(
+                notification_ids=pending_notification_ids
+            )
+
+            # Send notifications to users whose requests were denied
+            if "id" in session and pending_user_ids:
+                admin_id = ObjectId(session["id"])
+                admin_user = db.get_user_by_id(user_id=admin_id)
+                for user_id in pending_user_ids:
+                    nm.send_inform_notification(
+                        sender=admin_user,
+                        receiver=db.get_user_by_id(user_id=user_id),
+                        message=f"Your request for {equipment.name} was denied because the equipment was deleted from the system."
+                    )
+
+            #Delete the equipment and its related data (this will also update notifications to [DELETED])
+            result = db.delete_equipment(equipment_id=equipment_id)
             if result:
                 return jsonify({"result": True})
             else:
@@ -761,7 +805,7 @@ def create_app(testing=False):
                     }
                 )
         except Exception as e:
-            return jsonify({"result": False, "message": str(e)})
+            return jsonify({"result": False, "message": str(e)}), 500
 
     return app
 
