@@ -2,25 +2,27 @@ import logging
 import shutil
 from pathlib import Path
 
+
 class SystemLogger:
     def __init__(self, filename="system_logs.txt"):
-        log_dir = Path("large_files_db/reports")
+        log_dir = Path("backend/large_files_db/reports")
         full_path = log_dir / filename
 
         self.logger = logging.getLogger("RAM_System")
         self.logger.setLevel(logging.INFO)
-        
+
         if not self.logger.handlers:
             file_handler = logging.FileHandler(full_path)
-            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-                        
+            file_handler.setFormatter(
+                logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+            )
+
             stream_handler = logging.StreamHandler()
-            stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-            
+            stream_handler.setFormatter(logging.Formatter("%(asctime)s - %(message)s"))
+
             self.logger.addHandler(file_handler)
 
-
-        logging.getLogger('werkzeug').setLevel(logging.ERROR) 
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
     def log_action(self, user_id, action, details="", target_id=None):
         message = f"[User: {user_id}] [Action: {action}]"
