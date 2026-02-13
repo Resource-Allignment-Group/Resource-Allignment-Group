@@ -57,6 +57,9 @@ class DatabaseManager:
     def set_notification_status(self, id: ObjectId, status: Literal["a", "r", "p"]):
         self.notifications_db.update_one({"_id": id}, {"$set": {"status": status}})
 
+    def set_notification_body(self, id: ObjectId, body: str):
+        self.notifications_db.update_one({"_id": id}, {"$set": {"body": body}})
+
     def set_request_active(self, id: ObjectId, active: bool):
         self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
 
@@ -685,16 +688,17 @@ class DatabaseManager:
             {"$pull": {"checked_out_equipment": equipment_id}},
         )
 
-        # Delete all notifications referencing this equipment
+        # Update all notifications referencing this equipment to mark as deleted
         notifications = self.notifications_db.find({"equipment_id": equipment_id})
         for notification in notifications:
-            # Remove notification from users' inbox arrays
-            self.users_db.update_many(
-                {"inbox": notification["_id"]},
-                {"$pull": {"inbox": notification["_id"]}},
-            )
-        # Delete the notifications
-        self.notifications_db.delete_many({"equipment_id": equipment_id})
+            current_body = notification["body"] if "body" in notification else ""
+            # Add [DELETED] prefix if not already present
+            if not current_body.startswith("[DELETED]"):
+                updated_body = f"[DELETED] {current_body}"
+                self.notifications_db.update_one(
+                    {"_id": notification["_id"]},
+                    {"$set": {"body": updated_body}}
+                )
 
         # Delete associated image files
         if "images" in equipment and equipment["images"]:
