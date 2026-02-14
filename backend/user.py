@@ -10,6 +10,7 @@ class User:
         self.phone = None
         self.name = None
         self.department = None
+        self.profile_image = None
 
     def fill_inbox(self, db):
         notifications = db.get_notifications_by_user(self.id)
@@ -20,7 +21,7 @@ class User:
     def fill_user_information(self, db_object):
             # If the user wasn't found in DB, stop here to avoid crashes
             if db_object is None:
-                return 
+                return
 
             self.id = db_object.get("_id")
             self.role = db_object.get("role", "u")
@@ -31,6 +32,7 @@ class User:
             self.phone = db_object.get("phone", "")
             self.name = db_object.get("name", "Unknown")
             self.email = db_object.get("email", "")
+            self.profile_image = db_object.get("profile_image")
 
     def to_dict(self):
         return {
@@ -42,6 +44,7 @@ class User:
             "department": self.department,
             "name": self.name,
             "phone": self.phone,
+            "profile_image": self.profile_image,
             "checked_out_equipment": [
                 str(equip) for equip in self.checked_out_equipment
             ],

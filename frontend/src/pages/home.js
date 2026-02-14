@@ -350,7 +350,6 @@ function Home({num_of_notifications, setNumNotifications}) {
 								isSelected={selectedEquipment.has(item.id)}
 								onSelect={handleEquipmentSelect}
 								onDelete={() => {
-									// Refresh equipment list after deletion
 									GetEquipment().then((equip_list) => {
 										setEquipment(equip_list);
 										if (activeFilters) {
@@ -358,10 +357,19 @@ function Home({num_of_notifications, setNumNotifications}) {
 										} else {
 											setFilteredEquipment(equip_list);
 										}
-
 										setExpandedCard(null);
 										setSelectedEquipment(new Set());
 										setSelectAll(false);
+									});
+								}}
+								onRefresh={() => {
+									GetEquipment().then((equip_list) => {
+										setEquipment(equip_list);
+										if (activeFilters) {
+											applyFilters(activeFilters);
+										} else {
+											setFilteredEquipment(equip_list);
+										}
 									});
 								}}
 							/>
