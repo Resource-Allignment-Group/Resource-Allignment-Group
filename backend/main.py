@@ -653,7 +653,7 @@ def create_app(testing=False):
         ct = db.get_image_content_type(image_id)
         return Response(data, mimetype=ct)
 
-    @app.route(/change_equipment_info", methods=["POST"])
+    @app.route("/change_equipment_info", methods=["POST"])
     def change_equipment_info():
         err = _require_admin()
         if err:
