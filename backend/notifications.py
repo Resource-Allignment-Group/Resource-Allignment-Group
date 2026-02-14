@@ -28,23 +28,24 @@ class Notification:
         self.date = date
         self.body = body
         self.type = _type
-        self.equipment_id = ObjectId(equipment_id)
+        self.equipment_id = ObjectId(equipment_id) if equipment_id else None
         self.read = read
         self.status = status
 
     def populate_from_json(self, json_info):
         self.id = ObjectId(json_info.get("_id"))
         self.sender = ObjectId(json_info.get("sender"))
-        self.receiver = ObjectId(json_info.get("receiver")) 
+        self.receiver = ObjectId(json_info.get("receiver"))
         self.date = json_info.get("date", "")
         self.body = json_info.get("body", "")
         self.type = json_info.get("type", "i")
-        self.equipment_id = ObjectId(json_info.get("equipment_id"))
+        eq_id = json_info.get("equipment_id")
+        self.equipment_id = ObjectId(eq_id) if eq_id else None
         self.read = json_info.get("read", False)
         self.status = json_info.get("status", "p")
 
     def to_dict(self, sender_name):
-        return {  # need to convert to strings in order to make the json serializable
+        d = {
             "sender_name": sender_name,
             "sender": str(self.sender),
             "receiver": str(self.receiver),
@@ -52,10 +53,11 @@ class Notification:
             "body": self.body,
             "type": self.type,
             "_id": str(self.id),
-            "equipment_id": str(self.equipment_id),
             "read": self.read,
             "status": self.status,
         }
+        d["equipment_id"] = str(self.equipment_id) if self.equipment_id else None
+        return d
 
 
 class Notification_Manager:
@@ -157,7 +159,7 @@ class Notification_Manager:
             date=datetime.now(),
             body=message,
             _type="i",  # inform
-            equipment_id=None,
+            equipment_id=equipment_id,
             read=False,
             status=None,
         )

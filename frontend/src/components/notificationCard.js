@@ -1,5 +1,6 @@
 import "../styles/notificationCard.css";
 import { useState } from "react";
+import EquipmentImage from "./EquipmentImage";
 
 function NewRequestNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
@@ -16,12 +17,12 @@ function NewRequestNotification({ notification, onApprove, onReject }) {
 	return (
 		<div className="notification-card">
 			<div className="notification-content">
-				{/* Notification icon */}
-				<div className="notification-icon-circle notification-icon-account">
-					<span>
-						🚜
-						{/* This is where we should put the profile picture for the equipment */}
-					</span>
+				<div className="notification-icon-circle notification-icon-equipment">
+					{notification.equipment ? (
+						<EquipmentImage equipment={notification.equipment} className="notification-equipment-img" />
+					) : (
+						<span>🚜</span>
+					)}
 				</div>
 
 				{/* Notification details */}
@@ -130,8 +131,12 @@ function InformNotification({ notification, onDismiss }) {
 	return (
 		<div className="notification-card">
 			<div className="notification-content">
-				<div className="notification-icon-circle notification-icon-info">
-					<span>ℹ</span>
+				<div className={`notification-icon-circle ${notification.equipment ? "notification-icon-equipment" : "notification-icon-info"}`}>
+					{notification.equipment ? (
+						<EquipmentImage equipment={notification.equipment} className="notification-equipment-img" />
+					) : (
+						<span>ℹ</span>
+					)}
 				</div>
 				<div className="notification-info">
 					<h3>Notification</h3>

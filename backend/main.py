@@ -1,5 +1,6 @@
-from flask import Flask, session, jsonify, request
+from flask import Flask, session, jsonify, request, Response
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import os
 from dotenv import load_dotenv
 from database import DatabaseManager
@@ -220,20 +221,26 @@ def create_app(testing=False):
             if not notifications:
                 return jsonify({"result": True, "messages": []})
             # Collect all unique sender IDs
-            sender_ids = list(set([note.sender for note in notifications if note.sender])) 
-            # Get all of the sender data (1 query)
+            sender_ids = list(set([note.sender for note in notifications if note.sender]))
             sender_map = {}
             if sender_ids:
                 senders = db.users_db.find({"_id": {"$in": sender_ids}})
                 for sender_doc in senders:
                     sender_map[sender_doc["_id"]] = sender_doc.get("name", "Unknown User")
-            
+            # Collect equipment IDs for equipment-related notifications
+            equipment_ids = list(set(note.equipment_id for note in notifications if note.equipment_id))
+            equipment_map = {}
+            if equipment_ids:
+                for equip in db.get_equipment_by_ids(equipment_ids):
+                    equipment_map[str(equip.id)] = equip.to_dict()
             # Convert to dict
             messages = []
             for note in notifications:
                 sender_name = sender_map.get(note.sender, "Unknown User")
-                messages.append(note.to_dict(sender_name=sender_name))
-            
+                msg = note.to_dict(sender_name=sender_name)
+                if note.equipment_id and str(note.equipment_id) in equipment_map:
+                    msg["equipment"] = equipment_map[str(note.equipment_id)]
+                messages.append(msg)
             return jsonify({"result": True, "messages": messages})
         except Exception as e:
             return jsonify({"result": False, "messages": []})
@@ -460,6 +467,7 @@ def create_app(testing=False):
                         f"The Equipment {equipment.name} has been returned" 
                         + (f" DAMAGED: {damage_description}" if is_damaged else "")
                     ),
+                    equipment_id=equipment_id,
                 )
                 
             return jsonify({"result": True})
@@ -554,8 +562,8 @@ def create_app(testing=False):
     def add_equipment():
         equip_data = request.json["data"]
         equip_data["_id"] = ObjectId()
-        equip_data["images"] = request.json["images"]
-        equip_data["reports"] = request.json["reports"]
+        equip_data["images"] = []
+        equip_data["reports"] = []
         equip_data["checked_out"] = False
         equip_data["damaged"] = False
 
@@ -563,6 +571,118 @@ def create_app(testing=False):
         new_equip.fill_from_json(equip_data)
         db.add_equipment(new_equip)
         return jsonify({"result": True})
+
+    def _require_admin():
+        if session.get("role") != "a":
+            return jsonify({"result": False, "message": "Admin access required"}), 403
+        return None
+
+    @app.route("/upload_equipment_image", methods=["POST"])
+    def upload_equipment_image():
+        err = _require_admin()
+        if err:
+            return err
+        if "equipment_id" not in request.form or "image" not in request.files:
+            return jsonify({"result": False, "message": "Missing equipment_id or image"}), 400
+        equipment_id = ObjectId(request.form["equipment_id"])
+        file = request.files["image"]
+        if not file.filename:
+            return jsonify({"result": False, "message": "No file selected"}), 400
+        filename = secure_filename(file.filename)
+        data = file.read()
+        result = db.add_image(equipment_id, data, filename)
+        if "error" in result:
+            return jsonify({"result": False, "message": result["error"]}), 400
+        return jsonify({"result": True, "image_id": result["id"]})
+
+    @app.route("/upload_equipment_report", methods=["POST"])
+    def upload_equipment_report():
+        err = _require_admin()
+        if err:
+            return err
+        if "equipment_id" not in request.form or "report" not in request.files:
+            return jsonify({"result": False, "message": "Missing equipment_id or report"}), 400
+        equipment_id = ObjectId(request.form["equipment_id"])
+        file = request.files["report"]
+        if not file.filename:
+            return jsonify({"result": False, "message": "No file selected"}), 400
+        filename = secure_filename(file.filename)
+        data = file.read()
+        result = db.add_report(equipment_id, data, filename)
+        if "error" in result:
+            return jsonify({"result": False, "message": result["error"]}), 400
+        return jsonify({"result": True, "report_id": result["id"]})
+
+    @app.route("/set_equipment_display_image", methods=["POST"])
+    def set_equipment_display_image():
+        err = _require_admin()
+        if err:
+            return err
+        data = request.json
+        equipment_id = ObjectId(data["equipment_id"])
+        image_id = data["image_id"]
+        if db.set_equipment_display_image(equipment_id, image_id):
+            return jsonify({"result": True})
+        return jsonify({"result": False, "message": "Failed to set display image"}), 400
+
+    @app.route("/remove_equipment_file", methods=["POST"])
+    def remove_equipment_file():
+        err = _require_admin()
+        if err:
+            return err
+        data = request.json
+        equipment_id = ObjectId(data["equipment_id"])
+        file_type = data.get("file_type")  # "image" or "report"
+        file_id = data["file_id"]
+        if file_type == "image":
+            success = db.remove_equipment_image(equipment_id, file_id)
+        elif file_type == "report":
+            success = db.remove_equipment_report(equipment_id, file_id)
+        else:
+            return jsonify({"result": False, "message": "Invalid file_type"}), 400
+        if success:
+            return jsonify({"result": True})
+        return jsonify({"result": False, "message": "Failed to remove file"}), 400
+
+    @app.route("/equipment_image/<path:image_id>", methods=["GET"])
+    def get_equipment_image(image_id):
+        data = db.get_image(image_id)
+        if not data:
+            return Response("Not found", status=404)
+        ct = db.get_image_content_type(image_id)
+        return Response(data, mimetype=ct)
+
+    @app.route("/equipment_report/<path:report_id>", methods=["GET"])
+    def get_equipment_report(report_id):
+        data = db.get_report(report_id)
+        if not data:
+            return Response("Not found", status=404)
+        return Response(data, mimetype="application/pdf")
+
+    @app.route("/upload_profile_image", methods=["POST"])
+    def upload_profile_image():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not authenticated"}), 401
+        if "image" not in request.files:
+            return jsonify({"result": False, "message": "No file selected"}), 400
+        file = request.files["image"]
+        if not file.filename:
+            return jsonify({"result": False, "message": "No file selected"}), 400
+        filename = secure_filename(file.filename)
+        data = file.read()
+        user_id = ObjectId(session["id"])
+        result = db.add_profile_image(user_id, data, filename)
+        if "error" in result:
+            return jsonify({"result": False, "message": result["error"]}), 400
+        return jsonify({"result": True, "image_id": result["id"]})
+
+    @app.route("/profile_image/<path:image_id>", methods=["GET"])
+    def get_profile_image(image_id):
+        data = db.get_profile_image(image_id)
+        if not data:
+            return Response("Not found", status=404)
+        ct = db.get_image_content_type(image_id)
+        return Response(data, mimetype=ct)
 
     @app.route("/get_profile_info", methods=["GET"])
     def get_profile_equipment():

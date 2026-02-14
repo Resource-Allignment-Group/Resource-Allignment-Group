@@ -93,6 +93,169 @@ Out, and Damaged badges */
 	gap: 15px;
 }
 
+/* Equipment and attachment images */
+.equipment-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.attachments-section {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #eee;
+}
+
+.attachments-section h4 {
+	margin-bottom: 12px;
+	font-size: 14px;
+	color: #333;
+}
+
+.attachments-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 12px;
+}
+
+.attachment-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+}
+
+.attachment-thumb {
+	width: 80px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 6px;
+	border: 1px solid #ddd;
+	cursor: pointer;
+}
+
+.attachment-thumb:hover {
+	opacity: 0.9;
+}
+
+.attachment-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.report-label {
+	font-size: 12px;
+	color: #666;
+}
+
+.attachment-upload {
+	display: flex;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.file-upload-label {
+	cursor: pointer;
+}
+
+/* Image Viewer Modal */
+.image-viewer-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.9);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+
+.image-viewer-modal {
+	position: relative;
+	max-width: 90vw;
+	max-height: 90vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.image-viewer-close {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	background: rgba(255, 255, 255, 0.2);
+	border: none;
+	color: white;
+	font-size: 32px;
+	cursor: pointer;
+	line-height: 1;
+	padding: 0;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	z-index: 10000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.image-viewer-close:hover {
+	opacity: 0.8;
+}
+
+.image-viewer-nav {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	background: rgba(255, 255, 255, 0.2);
+	border: none;
+	color: white;
+	font-size: 22px;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10;
+}
+
+.image-viewer-nav:hover {
+	background: rgba(255, 255, 255, 0.4);
+}
+
+.image-viewer-nav-left {
+	left: -55px;
+}
+
+.image-viewer-nav-right {
+	right: -55px;
+}
+
+.image-viewer-content {
+	max-width: 85vw;
+	max-height: 85vh;
+}
+
+.image-viewer-content img {
+	max-width: 100%;
+	max-height: 85vh;
+	object-fit: contain;
+}
+
+.image-viewer-counter {
+	position: absolute;
+	bottom: -35px;
+	left: 50%;
+	transform: translateX(-50%);
+	color: white;
+	font-size: 14px;
+}
+
 /* Placeholder for file upload link */
 .link-button {
 	background: none;

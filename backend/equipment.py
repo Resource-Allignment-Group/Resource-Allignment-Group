@@ -14,8 +14,9 @@ class Equipment:
         model: str = None,
         make: str = None,
         use: str = None,
-        images: list[UUID] = None,
-        reports: list[UUID] = None,
+        images: list = None,
+        reports: list = None,
+        display_image: str = None,
         checked_out: bool = False,
         description: str = None,
         damaged: bool = False,
@@ -29,8 +30,9 @@ class Equipment:
         self.make = make
         self.model = model
         self.use = use
-        self.images = images
-        self.reports = reports
+        self.images = images or []
+        self.reports = reports or []
+        self.display_image = display_image
         self.checked_out = checked_out
         self.description = description
         self.damaged = damaged
@@ -50,7 +52,7 @@ class Equipment:
     def get_reports(self, db):
         report_bytes = []
         for report_id in self.reports:
-            result = db.get_reports(report_id)
+            result = db.get_report(report_id)
             if type(result) is str:
                 return result
             else:
@@ -67,8 +69,9 @@ class Equipment:
         self.make = json_info["make"]
         self.model = json_info["model"]
         self.use = json_info["use"]
-        self.images = json_info["images"]
-        self.reports = json_info["reports"]
+        self.images = json_info.get("images") or []
+        self.reports = json_info.get("reports") or []
+        self.display_image = json_info.get("display_image")
         self.checked_out = json_info["checked_out"]
         self.description = json_info["description"]
         self.damaged = json_info["damaged"]
@@ -76,7 +79,8 @@ class Equipment:
         return 1
 
     def to_dict(self):
-        return (  # should really look through this in order to see what we need and what we don't
+        total_attachments = len(self.images or []) + len(self.reports or []) # should really look through this in order to see what we need and what we don't
+        return (
             {
                 "id": str(self.id),
                 "name": self.name,
@@ -87,11 +91,12 @@ class Equipment:
                 "model": self.model,
                 "make": self.make,
                 "use": self.use,
-                "images": self.images,
-                "reports": self.reports,
+                "images": self.images or [],
+                "reports": self.reports or [],
+                "display_image": self.display_image,
                 "checked_out": self.checked_out,
                 "description": self.description,
-                "attachments": 0,  # Change later
+                "attachments": total_attachments,
                 "replacementCost": 100000,  # change lateer
                 "damaged": self.damaged,
                 "unavailable": self.unavailable,
