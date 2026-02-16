@@ -7,30 +7,29 @@ import Sidebar from "../components/sidebar";
 import MyEquipmentCard from "../components/myEquipmentCard";
 import { useSidebar } from "../SidebarContext";
 
-function MyEquipment({num_of_notifications, setNumNotifications}) {
+function MyEquipment({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
 
-	// Sample equipment data, will be replaced with backend info later
 	const fillEquipment = async () => {
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/get_user_equipment`, {
 				credentials: "include",
 			});
 			const data = await res.json();
-			const equip_list = data["equip_list"]
+			const equip_list = data["equip_list"];
 			return Array.isArray(equip_list) ? equip_list : [];
-		} 
-		catch (error) {
+		} catch (error) {
 			console.log(error);
-			return []
+			return [];
 		}
-	}
+	};
 	useEffect(() => {
-			fillEquipment().then((equip_list) =>{
-				 setEquipment(equip_list)});
-		}, []);
+		fillEquipment().then((equip_list) => {
+			setEquipment([...equip_list].reverse());
+		});
+	}, []);
 
 	return (
 		<div className="home-container">

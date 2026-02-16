@@ -67,7 +67,7 @@ function Register() {
 				alert("Account Request has been sent to Admin\nAwaiting Approval");
 				navigate("/login");
 			} else {
-				alert("Rugh Rough Raggy, something is wrong");
+				alert("Something went wrong");
 			}
 		} catch (error) {
 			console.error("Login error:", error);

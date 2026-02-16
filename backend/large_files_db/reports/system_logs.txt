@@ -1,1 +1,4 @@
 2026-02-09 10:46:58,053 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: testuser2@gmail.com (ID: 698a0172edb874e5c4d95e67)
+2026-02-15 16:01:11,852 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823e] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-15 16:21:09,952 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823f] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-15 18:55:49,251 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: mckade.wing@maine.edu (ID: 69925d05665c7d27e8be8744)

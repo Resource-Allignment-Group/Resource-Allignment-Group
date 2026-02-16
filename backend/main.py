@@ -10,6 +10,9 @@ from user import User
 from datetime import datetime, timezone
 from rapidfuzz import fuzz
 import re
+from report_gen import ReportGenerator
+from report_scheduler import init_scheduler
+from reports import setup_report_routes
 
 # Regex patterns to match valid registration parameters
 # This logic is in the frontend and backend, as it is good practice
@@ -42,6 +45,11 @@ def create_app(testing=False):
         app.config["SESSION_TYPE"] = "filesystem"
         # Change None to 'Lax' - macOS browsers often reject 'None' without HTTPS
         app.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
+
+    # Initialize monthly reports
+    report_generator = ReportGenerator(db)
+    scheduler = init_scheduler(db, nm, report_generator)
+    setup_report_routes(app, report_generator)
 
     @app.route("/authenticate", methods=["POST", "GET"])
     def authenticate():
@@ -475,9 +483,13 @@ def create_app(testing=False):
         notifications_list, equipment_list = [], []
 
         for i, note in enumerate(notifications):
+            if equipment[i] is None:
+                continue
+            
             notifications_list.append(
                 note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
             )
+            
             equipment_list.append(equipment[i].to_dict())
         return jsonify(
             {

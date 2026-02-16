@@ -5,38 +5,48 @@ import { API_BASE } from "../config";
 // Import componets that will make up the dashboard page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
-import AddEquipmentModal from "../components/addEquipmentWindow"
+import AddEquipmentModal from "../components/addEquipmentWindow";
 import { useSidebar } from "../SidebarContext";
 
-function Dashboard({num_of_notifications, setNumNotifications}) {
+function Dashboard({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
-	const [num_damaged, setDamaged] = useState(0)
-	const [num_in_use, setNumInUse] = useState(0)
-	const [num_available, setNumAvailable] = useState(0)
-	const [num_unavailable, setNumUnavailable] = useState(0)
-	const [num_total, setTotal] = useState(0)
+	const [num_damaged, setDamaged] = useState(0);
+	const [num_in_use, setNumInUse] = useState(0);
+	const [num_available, setNumAvailable] = useState(0);
+	const [num_unavailable, setNumUnavailable] = useState(0);
+	const [num_total, setTotal] = useState(0);
 	const [showModal, setShowModal] = useState(false);
-	
+
+	// USed to allow admins to manually download monthly reports
+	const downloadReport = () => {
+		const downloadUrl = `http://${API_BASE}:5000/download_monthly_report`;
+		const link = document.createElement("a");
+		link.href = downloadUrl;
+		link.setAttribute("download", "Monthly_Report.pdf");
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+	};
+
 	useEffect(() => {
 		const GetDashboardInfo = async () => {
-			try{
+			try {
 				const res = await fetch(`http://${API_BASE}:5000/get_dashboard_info`, {
-				credentials: "include",
-				})
-				const data = await res.json()
+					credentials: "include",
+				});
+				const data = await res.json();
 
-				setDamaged(data.damaged)
-				setNumInUse(data.used)
-				setNumAvailable(data.available)
-				setNumUnavailable(data.unavailable)
-				setTotal(data.total)
+				setDamaged(data.damaged);
+				setNumInUse(data.used);
+				setNumAvailable(data.available);
+				setNumUnavailable(data.unavailable);
+				setTotal(data.total);
+			} catch (error) {
+				alert("Something Went Wrong Gathering The Dashboard Information");
 			}
-			catch(error){
-				alert("Something Went Wrong Gathering The Dashboard Information")
-			}
-		}
-		GetDashboardInfo()
-	}, [])
+		};
+		GetDashboardInfo();
+	}, []);
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -96,30 +106,28 @@ function Dashboard({num_of_notifications, setNumNotifications}) {
 
 						{/* Action buttons */}
 						<div className="action-buttons-row">
-							<button className="action-button">
+							<button className="action-button" onClick={downloadReport}>
 								<span>
 									<strong>Generate Monthly Report</strong>
 								</span>
 								<span className="plus-icon">+</span>
 							</button>
-
 							<button className="action-button">
 								<span>
 									<strong
-									onClick={() => setShowModal(true)}
-									style={{ cursor: "pointer" }}
+										onClick={() => setShowModal(true)}
+										style={{ cursor: "pointer" }}
 									>
-									Add Equipment
+										Add Equipment
 									</strong>
-									
 								</span>
 								<span className="plus-icon">+</span>
 							</button>
 							<AddEquipmentModal
-									isOpen={showModal}
-									onClose={() => setShowModal(false)}
-									onSuccess={() => console.log("Equipment added")}
-								/>
+								isOpen={showModal}
+								onClose={() => setShowModal(false)}
+								onSuccess={() => console.log("Equipment added")}
+							/>
 						</div>
 					</div>
 				</div>

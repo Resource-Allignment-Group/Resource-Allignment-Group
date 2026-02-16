@@ -67,12 +67,31 @@ class Notification_Manager:
         self.email_address = "bradancraig2004@gmail.com"  # We should make a email account so that email notifications can go through this
         self.email_password = os.environ.get("EMAIL_PASSWORD")
 
-    def send_email(self, message: str, receiver: str, subject: str):
+    def send_email(self, message: str, receiver: str, subject: str, attachments=None):
         msg = MIMEMultipart()
         msg["From"] = self.email_address
         msg["To"] = receiver
         msg["Subject"] = subject
         msg.attach(MIMEText(message, "plain"))
+
+        # Attach files if provided
+        if attachments:
+            from email.mime.application import MIMEApplication
+            from pathlib import Path
+            for file_path in attachments:
+                try:
+                    file_path = Path(file_path)
+                    if file_path.exists():
+                        with open(file_path, "rb") as f:
+                            attachment = MIMEApplication(f.read(), _subtype="pdf")
+                            attachment.add_header(
+                                "Content-Disposition",
+                                "attachment",
+                                filename=file_path.name
+                            )
+                            msg.attach(attachment)
+                except Exception as e:
+                    print(f"Failed to attach {file_path}: {e}")
         try:
             server = smtplib.SMTP(self.server, self.port)
             server.starttls()

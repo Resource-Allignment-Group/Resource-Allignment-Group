@@ -4,6 +4,7 @@ import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
 import { API_BASE } from "../config";
+
 function HomeEquipmentCard({
 	equipment,
 	isExpanded,
