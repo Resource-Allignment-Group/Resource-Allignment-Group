@@ -41,12 +41,6 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
-        self.profile_images_db = Path("backend/large_files_db/profile_images")
-
-        #Byte file upload limits
-        self.MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
-        self.MAX_REPORT_SIZE = 10 * 1024 * 1024  # 10MB
-        self.MAX_PROFILE_IMAGE_SIZE = 2 * 1024 * 1024  # 2MB
         self.allowed_fields = [
             "_id",
             "name",
@@ -202,11 +196,9 @@ class DatabaseManager:
                 "use": equipment.model,
                 "images": [],
                 "reports": [],
-                "display_image": None,
                 "checked_out": False,
                 "description": equipment.description,
                 "damaged": equipment.damaged,
-                "unavailable": equipment.unavailable if hasattr(equipment, 'unavailable') else False,
             }
         )
 
@@ -278,191 +270,72 @@ class DatabaseManager:
         new_user.fill_user_information(self.users_db.find_one({"_id": user_id}))
         return new_user
 
-    def _ensure_dirs(self):
-        self.images_db.mkdir(parents=True, exist_ok=True)
-        self.reports_db.mkdir(parents=True, exist_ok=True)
-        self.profile_images_db.mkdir(parents=True, exist_ok=True)
-
-    def add_image(self, equipment_id: ObjectId, image_data: bytes, filename: str):
-        """Add image to equipment. image_data is raw bytes, filename used for extension."""
-        ext = Path(filename).suffix.lower()
-        if ext not in (".png", ".jpg", ".jpeg"):
-            return {"error": "Invalid file type. Allowed: PNG, JPG, JPEG"}
-        if len(image_data) > self.MAX_IMAGE_SIZE:
-            return {"error": f"File too large. Max size: {self.MAX_IMAGE_SIZE // (1024*1024)}MB"}
-
-        self._ensure_dirs()
+    def add_image(self, equipment_id: ObjectId, image: Image):
         img_uuid = str(ObjectId())
-        storage_name = f"{img_uuid}{ext}"
-        image_path = self.images_db / storage_name
+        image_path = self.images_db / img_uuid
+        image.save(image_path)
+        while True:
+            if (self.images_db / img_uuid).exists():
+                img_uuid = str(ObjectId())
+            else:
+                break
+        image.save(self.images_db / img_uuid)
 
-        try:
-            img = Image.open(io.BytesIO(image_data))
-            img.save(image_path, format=img.format or "PNG")
-        except Exception as e:
-            return {"error": f"Invalid image file: {str(e)}"}
-
-        #First image becomes the display image automatically
-        equipment = self.equipment_db.find_one({"_id": equipment_id})
-        updates = {"$push": {"images": storage_name}}
-        if not equipment.get("images"):
-            updates["$set"] = {"display_image": storage_name}
         change_result = self.equipment_db.update_one(
-            {"_id": equipment_id}, updates
+            {"_id": equipment_id}, {"$push": {"images": img_uuid}}
         )
         if change_result.acknowledged:
-            return {"success": True, "id": storage_name}
-        return {"error": "Failed to add image"}
+            return f"Image {img_uuid} has been added for {equipment_id}"
+        else:
+            return f"Image {img_uuid} could not be added"
 
-    def add_report(self, equipment_id: ObjectId, report_data: bytes, filename: str):
-        """Add report (PDF) to equipment."""
-        ext = Path(filename).suffix.lower()
-        if ext != ".pdf":
-            return {"error": "Invalid file type. Allowed: PDF only"}
-        if len(report_data) > self.MAX_REPORT_SIZE:
-            return {"error": f"File too large. Max size: {self.MAX_REPORT_SIZE // (1024*1024)}MB"}
-
-        self._ensure_dirs()
+    def add_report(self, equipment_id: ObjectId, report_content):
         report_uuid = str(ObjectId())
-        storage_name = f"{report_uuid}.pdf"
-        report_path = self.reports_db / storage_name
+        while True:
+            if (self.reports_db / report_uuid).exists():
+                report_uuid = str(ObjectId())
+            else:
+                break
 
-        with open(report_path, "wb") as f:
-            f.write(report_data)
+        with open(self.reports_db / report_uuid, "w") as f:
+            f.write(report_content)
 
         change_result = self.equipment_db.update_one(
-            {"_id": equipment_id}, {"$push": {"reports": storage_name}}
+            {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
         )
         if change_result.acknowledged:
-            return {"success": True, "id": storage_name}
-        return {"error": "Failed to add report"}
+            return f"Report {report_uuid} has been added for {equipment_id}"
+        else:
+            return f"Report {report_uuid} could not be added"
 
-    def set_equipment_display_image(self, equipment_id: ObjectId, image_id: str):
-        """Set which image shows on equipment cards. image_id is the stored filename."""
-        equipment = self.equipment_db.find_one({"_id": equipment_id})
-        if not equipment or not equipment.get("images"):
-            return False
-        images = equipment.get("images", [])
-        if image_id not in images:
-            return False
-        result = self.equipment_db.update_one(
-            {"_id": equipment_id}, {"$set": {"display_image": image_id}}
-        )
-        return result.modified_count > 0
+    def get_image(self, uuid: str):
+        if not (self.images_db / uuid).exists():
+            return f"{uuid} image does not exist"
 
-    def remove_equipment_image(self, equipment_id: ObjectId, image_id: str):
-        """Remove image from equipment and clear display_image if it was this image."""
-        path = self.images_db / image_id
-        if path.exists():
-            path.unlink()
-        equip = self.equipment_db.find_one({"_id": equipment_id})
-        if not equip:
-            return False
-        updates = {"$pull": {"images": image_id}}
-        if equip.get("display_image") == image_id:
-            updates["$unset"] = {"display_image": ""}
-        result = self.equipment_db.update_one({"_id": equipment_id}, updates)
-        return result.modified_count > 0
+        img = Image.open(self.images_db / uuid)
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
 
-    def remove_equipment_report(self, equipment_id: ObjectId, report_id: str):
-        """Remove report from equipment."""
-        path = self.reports_db / report_id
-        if path.exists():
-            path.unlink()
-        result = self.equipment_db.update_one(
-            {"_id": equipment_id}, {"$pull": {"reports": report_id}}
-        )
-        return result.modified_count > 0
-
-    def get_image(self, image_id: str):
-        """Get image bytes. image_id can be 'uuid' or 'uuid.png'."""
-        if not image_id:
-            return None
-        base = image_id.split(".")[0] if "." in image_id else image_id
-        for ext in [".png", ".jpg", ".jpeg"]:
-            path = self.images_db / f"{base}{ext}"
-            if path.exists():
-                with open(path, "rb") as f:
-                    return f.read()
-        # Legacy: try exact match
-        path = self.images_db / image_id
-        if path.exists():
-            with open(path, "rb") as f:
-                return f.read()
-        return None
-
-    def get_image_content_type(self, image_id: str):
-        """Get content type for image."""
-        if not image_id:
-            return "image/png"
-        ext = Path(image_id).suffix.lower() if "." in image_id else ""
-        if ext in (".jpg", ".jpeg"):
-            return "image/jpeg"
-        return "image/png"
+        return buffer.getvalue()
 
     def delete_image(self, uuid: str):
-        base = uuid.split(".")[0] if "." in uuid else uuid
-        for ext in [".png", ".jpg", ".jpeg", ""]:
-            path = self.images_db / (f"{base}{ext}" if ext else base)
-            if path.exists():
-                path.unlink()
-                return
-
-    def get_report(self, report_id: str):
-        """Get report bytes. report_id is filename like 'uuid.pdf'."""
-        path = self.reports_db / report_id
-        if not path.exists():
-            return None
-        with open(path, "rb") as f:
-            return f.read()
-
-    def delete_report(self, report_id: str):
-        path = self.reports_db / report_id
+        path = self.images_db / uuid
         if path.exists():
             path.unlink()
 
-    def add_profile_image(self, user_id: ObjectId, image_data: bytes, filename: str):
-        """Add or replace profile image for user."""
-        ext = Path(filename).suffix.lower()
-        if ext not in (".png", ".jpg", ".jpeg"):
-            return {"error": "Invalid file type. Allowed: PNG, JPG, JPEG"}
-        if len(image_data) > self.MAX_PROFILE_IMAGE_SIZE:
-            return {"error": f"File too large. Max size: {self.MAX_PROFILE_IMAGE_SIZE // (1024*1024)}MB"}
+    def get_report(self, uuid: str):
+        if not (self.reports_db / uuid).exists():
+            return f"{uuid} report does not exist"
 
-        self._ensure_dirs()
-        # Remove old profile image if exists
-        user = self.users_db.find_one({"_id": user_id})
-        if user and user.get("profile_image"):
-            old_path = self.profile_images_db / user["profile_image"]
-            if old_path.exists():
-                old_path.unlink()
+        with open(self.reports_db / uuid, "rb") as f:
+            report_data = io.BytesIO(f.read())
 
-        img_uuid = str(ObjectId())
-        storage_name = f"{img_uuid}{ext}"
-        image_path = self.profile_images_db / storage_name
+        return report_data
 
-        try:
-            img = Image.open(io.BytesIO(image_data))
-            img.save(image_path, format=img.format or "PNG")
-        except Exception as e:
-            return {"error": f"Invalid image file: {str(e)}"}
-
-        result = self.users_db.update_one(
-            {"_id": user_id}, {"$set": {"profile_image": storage_name}}
-        )
-        if result.acknowledged:
-            return {"success": True, "id": storage_name}
-        return {"error": "Failed to add profile image"}
-
-    def get_profile_image(self, image_id: str):
-        """Get profile image bytes."""
-        if not image_id:
-            return None
-        path = self.profile_images_db / image_id
+    def delete_report(self, uuid: str):
+        path = self.reports_db / uuid
         if path.exists():
-            with open(path, "rb") as f:
-                return f.read()
-        return None
+            path.unlink()
 
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
@@ -766,7 +639,9 @@ class DatabaseManager:
         if "images" in equipment and equipment["images"]:
             for image_id in equipment["images"]:
                 if image_id:
-                    self.delete_image(str(image_id))
+                    path = self.images_db / str(image_id)
+                    if path.exists():
+                        path.unlink()
 
         # Delete associated report files
         if "reports" in equipment and equipment["reports"]:

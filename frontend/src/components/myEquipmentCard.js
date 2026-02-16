@@ -4,7 +4,6 @@ import "../styles/myequipment.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react";
 import ReturnEquipmentModal from "./returnEquipmentWindow";
-import EquipmentImage from "./EquipmentImage";
 
 function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Display return form
@@ -25,7 +24,10 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 		<>
 			<div className="my-equipment-card">
 				<div className="card-header">
-					<EquipmentImage equipment={equipment} className="equipment-image" />
+					{/* Add placeholder image later  */}
+					<div className="equipment-image">
+						<div className="image-placeholder"></div>
+					</div>
 
 					{/* Equipment details */}
 					<div className="equipment-info-less-text">
@@ -79,7 +81,7 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 								</div>
 								<div className="detail-row">
 									<span className="label">Use Frequency</span>
-									<span className="value">{equipment.useFrequency}</span>
+									<span className="value">{equipment.use}</span>
 								</div>
 								<div className="detail-row">
 									<span className="label">Replacement Cost</span>

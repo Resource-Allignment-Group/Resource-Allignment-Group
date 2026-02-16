@@ -24,6 +24,8 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		makes: [],
 	});
 
+	const [images, setImages] = useState([]);
+	const [reports, setReports] = useState([]);
 	const [submitting, setSubmitting] = useState(false);
 
 	useEffect(() => {
@@ -56,6 +58,15 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		e.preventDefault();
 		setSubmitting(true);
 
+		const payload = new FormData();
+
+		Object.entries(formData).forEach(([key, value]) => {
+			payload.append(key, value);
+		});
+
+		images.forEach((file) => payload.append("images", file));
+		reports.forEach((file) => payload.append("reports", file));
+
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
 				method: "POST",
@@ -63,6 +74,8 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					data: formData,
+					images: images,
+					reports: reports,
 				}),
 			});
 			const data = await res.json();
@@ -81,6 +94,8 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 				description: "",
 				farm: "",
 			});
+			setImages([]);
+			setReports([]);
 			onClose();
 		} catch (err) {
 			alert("Error submitting equipment");
@@ -203,9 +218,24 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 							</select>
 						</label>
 
-						<p className="add-equipment-note">
-							You can add images and reports (PDFs) after creating equipment by expanding its card on the Home page.
-						</p>
+						<label>
+							Images (Optional)
+							<input
+								type="file"
+								multiple
+								accept="image/*"
+								onChange={(e) => setImages([...e.target.files])}
+							/>
+						</label>
+
+						<label>
+							Reports (Optional)
+							<input
+								type="file"
+								multiple
+								onChange={(e) => setReports([...e.target.files])}
+							/>
+						</label>
 
 						<label>
 							Description (Optional)

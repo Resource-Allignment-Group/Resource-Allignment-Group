@@ -2,7 +2,6 @@
 // Shows the user's pending, approved, or denied equipment requests
 import "../styles/myrequests.css";
 import { MdArrowForwardIos } from "react-icons/md";
-import EquipmentImage from "./EquipmentImage";
 
 function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 	const STATUS_MAP = {
@@ -27,7 +26,10 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 	return (
 		<div className="my-requests-card">
 			<div className="card-header">
-				<EquipmentImage equipment={equipment} className="equipment-image" />
+				{/* Add placeholder image later  */}
+				<div className="equipment-image">
+					<div className="image-placeholder"></div>
+				</div>
 
 				{/* Equipment details */}
 				<div className="equipment-info">

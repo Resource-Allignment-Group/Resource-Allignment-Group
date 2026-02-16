@@ -5,7 +5,6 @@ import "../styles/userManagementCard.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react"; // Temp needed for visibility, removed when backend connected
 import { API_BASE } from "../config";
-import UserProfileImage from "./UserProfileImage";
 
 function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 	// Placeholder for changing the user's role in the dropdown
@@ -43,7 +42,8 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 	return (
 		<div className="user-management-card">
 			<div className="card-header">
-				<UserProfileImage user={user} className="user-profile-circle" />
+				{/* User profile circle with temporary color */}
+				<div className="user-profile-circle"></div>
 
 				{/* User details */}
 				<div className="equipment-info">

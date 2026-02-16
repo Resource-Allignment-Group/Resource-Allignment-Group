@@ -1,16 +1,12 @@
 import "../styles/default.css";
 import "../styles/profile.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../Authentication";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import { useSidebar } from "../SidebarContext";
-import UserProfileImage from "../components/UserProfileImage";
-
-const MAX_PROFILE_IMAGE_SIZE = 2 * 1024 * 1024; //2MB
-const ALLOWED_IMAGE_TYPES = [".png", ".jpg", ".jpeg"];
 
 function Profile({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
@@ -24,9 +20,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 		phone: "",
 		position: "",
 		department: "",
-		profile_image: null,
 	});
-	const fileInputRef = useRef(null);
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -50,7 +44,6 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 					phone: user_info.phone || "",
 					position: user_info.position || "",
 					department: user_info.department || "",
-					profile_image: user_info.profile_image,
 				});
 			} catch (err) {
 				console.error(err);
@@ -97,38 +90,6 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 		}
 	};
 
-	const handleProfileImageChange = async (e) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
-		if (!ALLOWED_IMAGE_TYPES.includes(ext)) {
-			alert("Invalid file type. Allowed: PNG, JPG, JPEG");
-			return;
-		}
-		if (file.size > MAX_PROFILE_IMAGE_SIZE) {
-			alert("File too large. Max size: 2MB");
-			return;
-		}
-		const formData = new FormData();
-		formData.append("image", file);
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/upload_profile_image`, {
-				method: "POST",
-				credentials: "include",
-				body: formData,
-			});
-			const data = await res.json();
-			if (data.result) {
-				setProfile((prev) => ({ ...prev, profile_image: data.image_id }));
-			} else {
-				alert(data.message || "Failed to upload image");
-			}
-		} catch (err) {
-			alert("Failed to upload image");
-		}
-		e.target.value = "";
-	};
-
 	return (
 		<div className="home-container">
 			<Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
@@ -151,19 +112,8 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 					<div className="settings-card">
 						{/* Left side */}
 						<div className="profile-section">
-							<div className="profile-picture-large">
-								<UserProfileImage user={profile} className="profile-picture-img" />
-							</div>
-							<label className="change-picture-btn">
-								Change Picture
-								<input
-									ref={fileInputRef}
-									type="file"
-									accept=".png,.jpg,.jpeg"
-									onChange={handleProfileImageChange}
-									hidden
-								/>
-							</label>
+							<div className="profile-picture-large"></div>
+							<button className="change-picture-btn">Change Picture</button>
 
 							<div className="profile-info">
 								<h3>

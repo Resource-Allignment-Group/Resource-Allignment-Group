@@ -1,18 +1,9 @@
 // This component is currently used on the home page
 
-import { useState } from "react";
 import "../styles/home.css";
 import { MdArrowForwardIos, MdCategory } from "react-icons/md";
 import { useAuth } from "../Authentication";
 import { API_BASE } from "../config";
-import EquipmentImage from "./EquipmentImage";
-import ImageViewerModal from "./ImageViewerModal";
-
-//This needs to match backend. File size in bytes.
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; //5MB
-const MAX_REPORT_SIZE = 10 * 1024 * 1024; //10MB
-const ALLOWED_IMAGE_TYPES = [".png", ".jpg", ".jpeg"];
-const ALLOWED_REPORT_TYPES = [".pdf"];
 import { useState } from "react";
 
 function HomeEquipmentCard({
@@ -22,10 +13,10 @@ function HomeEquipmentCard({
 	isSelected,
 	onSelect,
 	onDelete,
-	onRefresh,
 }) {
 	const { role } = useAuth();
 	const isAdmin = role === "a";
+	console.log(isAdmin)
 	const [editedEquipment, setEquipment] = useState({
 		id: equipment.id,
 		name: equipment.name,
@@ -33,7 +24,7 @@ function HomeEquipmentCard({
 		make: equipment.make,
 		model: equipment.model,
 		farm: equipment.farm,
-		useFrequency: equipment.use,
+		use: equipment.use,
 		replacementCost: equipment.replacementCost,
 		description: equipment.description
 		// other fields...
@@ -135,123 +126,6 @@ function HomeEquipmentCard({
 		}
 	};
 
-	const status = getEquipmentStatus(equipment);
-
-	// File upload validation
-	const validateFile = (file, isImage) => {
-		const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
-		const allowed = isImage ? ALLOWED_IMAGE_TYPES : ALLOWED_REPORT_TYPES;
-		const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_REPORT_SIZE;
-		if (!allowed.includes(ext)) {
-			return `Invalid file type. Allowed: ${allowed.join(", ")}`;
-		}
-		if (file.size > maxSize) {
-			return `File too large. Max: ${maxSize / (1024 * 1024)}MB`;
-		}
-		return null;
-	};
-
-	const handleUploadImage = async (e) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		const err = validateFile(file, true);
-		if (err) {
-			alert(err);
-			return;
-		}
-		const formData = new FormData();
-		formData.append("equipment_id", equipment.id);
-		formData.append("image", file);
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/upload_equipment_image`, {
-				method: "POST",
-				credentials: "include",
-				body: formData,
-			});
-			const data = await res.json();
-			if (data.result) {
-				onRefresh?.();
-			} else {
-				alert(data.message || "Upload failed");
-			}
-		} catch (err) {
-			alert("Upload failed");
-		}
-		e.target.value = "";
-	};
-
-	const handleUploadReport = async (e) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		const err = validateFile(file, false);
-		if (err) {
-			alert(err);
-			return;
-		}
-		const formData = new FormData();
-		formData.append("equipment_id", equipment.id);
-		formData.append("report", file);
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/upload_equipment_report`, {
-				method: "POST",
-				credentials: "include",
-				body: formData,
-			});
-			const data = await res.json();
-			if (data.result) {
-				onRefresh?.();
-			} else {
-				alert(data.message || "Upload failed");
-			}
-		} catch (err) {
-			alert("Upload failed");
-		}
-		e.target.value = "";
-	};
-
-	const handleSetDisplayImage = async (imageId) => {
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/set_equipment_display_image`, {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ equipment_id: equipment.id, image_id: imageId }),
-			});
-			const data = await res.json();
-			if (data.result) {
-				onRefresh?.();
-			} else {
-				alert(data.message || "Failed to set display image");
-			}
-		} catch (err) {
-			alert("Failed to set display image");
-		}
-	};
-
-	const handleRemoveFile = async (fileType, fileId) => {
-		if (!window.confirm(`Remove this ${fileType}?`)) return;
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/remove_equipment_file`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          equipment_id: equipment.id,
-          file_type: fileType,
-          file_id: fileId,
-        }),
-      });
-      const data = await res.json();
-      if (data.result) {
-        onRefresh?.();
-      } else {
-        alert(data.message || "Failed to remove file");
-      }
-    } catch (err) {
-      alert("Failed to remove file");
-    }
-  };
-        
 	const handleEquipmentEdit = async () => {
 		setIsEditing(false)
 		try {
@@ -259,31 +133,12 @@ function HomeEquipmentCard({
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ equipment: editedEquipment }),
+				body: JSON.stringify({
+					equipment: editedEquipment,
+				}),
 			});
 			const data = await res.json();
 			if (data.result) {
-        alert("Equipment information changed successfully");
-      } else {
-				alert(data.message || "Failed to change equipment information");
-			}
-		} catch (err) {
-			alert("Failed to remove file");
-		}
-	};
-
-	const imageUrl = (id) => `http://${API_BASE}:5000/equipment_image/${encodeURIComponent(id)}`;
-	const reportUrl = (id) => `http://${API_BASE}:5000/equipment_report/${encodeURIComponent(id)}`;
-
-	const [imageViewerOpen, setImageViewerOpen] = useState(false);
-	const [imageViewerIndex, setImageViewerIndex] = useState(0);
-	const imageUrls = equipment.images?.map((id) => imageUrl(id)) || [];
-
-	const openImageViewer = (index) => {
-		setImageViewerIndex(index);
-		setImageViewerOpen(true);
-	};
-
 				alert("Equipment information changed successfully");
 			} else {
 				alert(data.message || "Failed to change equipment information");
@@ -297,7 +152,10 @@ function HomeEquipmentCard({
 	return (
 		<div className="equipment-card">
 			<div className="card-header">
-				<EquipmentImage equipment={equipment} className="equipment-image" />
+				{/* Add placeholder image later  */}
+				<div className="equipment-image">
+					<div className="image-placeholder"></div>
+				</div>
 
 				{/* Equipment details */}
 				<div className="equipment-info">
@@ -432,12 +290,12 @@ function HomeEquipmentCard({
 								<input
 									className="equipment-value"
 									type="text"
-									value={editedEquipment.useFrequency}
+									value={editedEquipment.use}
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
 										...editedEquipment,
-										useFrequency: e.target.value,
+										use: e.target.value,
 										})
 									}
 								/>
@@ -478,96 +336,17 @@ function HomeEquipmentCard({
 						</div>
 					</div>
 
-					{/* Attachments section - admin can upload, set display, remove */}
-					<div className="attachments-section">
-						<h4>Attachments ({equipment.attachments || 0})</h4>
-						{(equipment.images?.length > 0 || equipment.reports?.length > 0) && (
-							<div className="attachments-list">
-								{equipment.images?.map((imgId, idx) => {
-									const isDisplayImage = equipment.display_image === imgId || (idx === 0 && !equipment.display_image);
-									return (
-										<div key={imgId} className="attachment-item">
-											<img
-												src={imageUrl(imgId)}
-												alt=""
-												className="attachment-thumb"
-												onClick={() => openImageViewer(idx)}
-											/>
-											<div className="attachment-actions">
-												{isAdmin && (
-													<>
-														{!isDisplayImage && (
-															<button
-																className="link-button"
-																onClick={() => handleSetDisplayImage(imgId)}
-																title="Set as card display image"
-															>
-																Set Display
-															</button>
-														)}
-														<button
-															className="link-button delete-text-link"
-															onClick={() => handleRemoveFile("image", imgId)}
-														>
-															Remove
-														</button>
-													</>
-												)}
-											</div>
-										</div>
-									);
-								})}
-								{equipment.reports?.map((rId) => (
-									<div key={rId} className="attachment-item">
-										<span className="report-label">Equipment Report</span>
-										<div className="attachment-actions">
-											<a
-												href={reportUrl(rId)}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="link-button"
-											>
-												View
-											</a>
-											{isAdmin && (
-												<button
-													className="link-button delete-text-link"
-													onClick={() => handleRemoveFile("report", rId)}
-												>
-													Remove
-												</button>
-											)}
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-						{isAdmin && (
-							<div className="attachment-upload">
-								<label className="link-button file-upload-label">
-									Upload Image (PNG, JPG, max 5MB)
-									<input
-										type="file"
-										accept=".png,.jpg,.jpeg"
-										onChange={handleUploadImage}
-										hidden
-									/>
-								</label>
-								<label className="link-button file-upload-label">
-									Upload Report (PDF, max 10MB)
-									<input
-										type="file"
-										accept=".pdf"
-										onChange={handleUploadReport}
-										hidden
-									/>
-								</label>
-							</div>
-						)}
-					</div>
-
-					{/* Bottom of the opened equipment card */}
+					{/* Bottom of the opened equipment card
+          			This is where users can view and attach files, edit details,
+          			checkout equipment item, or delete that item. */}
 					<div className="card-footer">
+						<div className="attachment-buttons">
+							{/* Define how we want to do this later  */}
+							<button className="link-button">
+								View Attachments({equipment.attachments})
+							</button>
+							<button className="link-button">Upload</button>
+						</div>
 						<div className="action-buttons">
 							<button
 								className="btn-primary"
@@ -576,10 +355,10 @@ function HomeEquipmentCard({
 							>
 								Request Checkout
 							</button>
-							<button className="btn-primary" hidden={equipment.checked_out || isEditing} onClick={() => setIsEditing(true)}>
+							<button className="btn-primary" hidden={(equipment.checked_out || isEditing) || !isAdmin} onClick={() => setIsEditing(true)}>
 								Edit Equipment
 							</button>
-							<button className="btn-primary" hidden={equipment.checked_out || !isEditing} onClick={handleEquipmentEdit}>
+							<button className="btn-primary" hidden={equipment.checked_out || !isEditing } onClick={handleEquipmentEdit}>
 								Save
 							</button>
 							{isAdmin && (
@@ -591,14 +370,6 @@ function HomeEquipmentCard({
 					</div>
 				</div>
 			)}
-
-			<ImageViewerModal
-				isOpen={imageViewerOpen}
-				onClose={() => setImageViewerOpen(false)}
-				images={imageUrls}
-				currentIndex={imageViewerIndex}
-				onIndexChange={setImageViewerIndex}
-			/>
 		</div>
 	);
 }
