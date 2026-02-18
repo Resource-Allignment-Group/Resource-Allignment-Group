@@ -16,7 +16,6 @@ function HomeEquipmentCard({
 }) {
 	const { role } = useAuth();
 	const isAdmin = role === "a";
-	console.log(isAdmin)
 	const [editedEquipment, setEquipment] = useState({
 		id: equipment.id,
 		name: equipment.name,
@@ -26,8 +25,8 @@ function HomeEquipmentCard({
 		farm: equipment.farm,
 		use: equipment.use,
 		replacementCost: equipment.replacementCost,
-		description: equipment.description
-		// other fields...
+		description: equipment.description,
+		damaged: equipment.damaged
 	});
 	const [isEditing, setIsEditing] = useState(false);    
 	// Will check the status of the specific equipment item
@@ -311,6 +310,21 @@ function HomeEquipmentCard({
 										setEquipment({
 										...editedEquipment,
 										replacementCost: e.target.value,
+										})
+									}
+								/>
+							</div>
+							<div className="detail-row" hidden={!isEditing}>
+								<span className="label">Damaged</span>
+								<input
+									className="equipment-value"
+									type="checkbox"
+									value={editedEquipment.damaged}
+									checked={editedEquipment?.damaged || false}
+									onChange={(e) =>
+										setEquipment({
+										...editedEquipment,
+										damaged: e.target.checked,
 										})
 									}
 								/>
