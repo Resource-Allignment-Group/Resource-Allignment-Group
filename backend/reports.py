@@ -5,8 +5,9 @@ import tempfile
 import os
 
 def setup_report_routes(app, report_generator):
-    """Add fixed report routes to Flask app."""
     
+    # Route used to manually dowload a monthly report 
+    # from the admin dashboard page
     @app.route('/download_monthly_report', methods=['GET'])
     def download_report():
         try:
@@ -24,25 +25,27 @@ def setup_report_routes(app, report_generator):
             
             # Ensure the file exists before sending
             if not temp_path.exists():
-                return "Report generation failed: File not created", 500
+                return "Report generation failed: File not created"
 
             # Register a cleanup function to run after the response is sent
-            @after_this_request
-            def remove_file(response):
+            file_handle = open(temp_path, 'rb')
+            def stream_and_close():
+                yield from file_handle
+                file_handle.close()
                 try:
-                    if temp_path.exists():
+                    if os.path.exists(temp_path):
                         os.remove(temp_path)
                 except Exception as e:
                     app.logger.error(f"Error deleting temp file: {e}")
-                return response
 
-            return send_file(
-                str(temp_path),
-                as_attachment=True,
-                download_name=f"Report_{start_date.strftime('%Y_%m_%d')}.pdf",
-                mimetype='application/pdf'
+            # Return the custom response class using the generator
+            return app.response_class(
+                stream_and_close(),
+                mimetype='application/pdf',
+                headers={
+                    "Content-Disposition": f"attachment; filename=Report_{start_date.strftime('%Y_%m_%d')}.pdf"
+                }
             )
             
         except Exception as e:
-            print(f"Download Route Error: {e}")
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error": str(e)})

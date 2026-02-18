@@ -449,7 +449,12 @@ class DatabaseManager:
         result_user = self.users_db.update_one(
             {"_id": notification.receiver}, {"$push": {"inbox": notification.id}}
         )
-        result_note = self.notifications_db.insert_one(notification_json)
+        # result_note = self.notifications_db.insert_one(notification_json)
+        result_note = self.notifications_db.update_one(
+            {"_id": notification.id},
+            {"$set": notification_json},
+            upsert=True
+        )
 
         if result_note.acknowledged and result_user.acknowledged:
             return {

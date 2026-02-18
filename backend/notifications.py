@@ -161,9 +161,9 @@ class Notification_Manager:
                     status="p",
                 )
                 self.db.send_notification(notification=new_note)
-            return 1
+            return True
         except Exception as e:
-            return 0
+            return False
 
     def send_inform_notification(self, sender, receiver, message="", equipment_id=None, id=None):
         if id is None:
