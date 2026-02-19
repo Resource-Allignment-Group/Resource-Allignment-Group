@@ -51,7 +51,6 @@ function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 				alert("Something Has Gone Wrong.");
 			}
 		} catch (error) {
-			console.log(error);
 			alert("Error returning equipment");
 		} finally {
 			setSubmitting(false);

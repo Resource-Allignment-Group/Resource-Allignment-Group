@@ -1,8 +1,10 @@
-2026-02-09 10:46:58,053 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: testuser2@gmail.com (ID: 698a0172edb874e5c4d95e67)
-2026-02-15 16:01:11,852 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823e] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-15 16:21:09,952 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a2823f] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-15 18:55:49,251 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: mckade.wing@maine.edu (ID: 69925d05665c7d27e8be8744)
-2026-02-16 19:57:18,098 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28241] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-16 21:05:42,807 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28242] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-16 21:20:42,506 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b127d61182fc67a28244] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-16 21:23:18,643 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b127d61182fc67a28245] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-19 15:12:26,707 - INFO - [User: Mckade Wing] [Action: CHECK_IN] [Target: Bin Piller, Haines, None, 2003 (STORAGE)] [Details: Item returned DAMAGED: Explosion]
+2026-02-19 15:20:13,148 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: a]
+2026-02-19 15:20:55,066 - INFO - [User: Head Huncho the best] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-02-19 15:26:45,216 - INFO - [User: Mckade Wing] [Action: CHECK_OUT] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Mckade Wing : mckade.wing@maine.edu]
+2026-02-19 15:38:12,906 - INFO - [User: Mckade Wing] [Action: CHECK_IN] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Item returned in good condition]
+2026-02-19 15:38:24,026 - INFO - [User: Mckade Wing] [Action: CHECK_OUT] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Mckade Wing : mckade.wing@maine.edu]
+2026-02-19 15:41:30,128 - INFO - [User: Mckade Wing] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-02-19 15:41:38,044 - INFO - [User: Mckade Wing] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-02-19 15:41:48,635 - INFO - [User: Mckade Wing] [Action: DELETE_EQUIPMENT] [Target: Test] [Details: Admin Deleted Equipment]
+2026-02-19 15:41:54,424 - INFO - [User: Mckade Wing] [Action: DELETE_EQUIPMENT] [Target: Test] [Details: Admin Deleted Equipment]

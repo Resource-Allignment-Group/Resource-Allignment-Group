@@ -105,7 +105,7 @@ class DatabaseManager:
         self,
         user_id: ObjectId,
         action: str,
-        details: str = None,
+        details: str = "",
         target_id: ObjectId = None,
     ):
         self.txt_logger.log_action(user_id, action, details, target_id)
@@ -117,7 +117,6 @@ class DatabaseManager:
         phone: int,
         email: str,
         password,
-        admin_id: ObjectId,
     ):
         if (
             self.users_db.count_documents({"email": email}) != 0
@@ -138,13 +137,6 @@ class DatabaseManager:
         )
 
         if result.acknowledged:
-            new_user_id = result.inserted_id
-
-            self.add_log(
-                user_id=admin_id,
-                action="ADD_USER",
-                details=f"Added new user: {email} (ID: {new_user_id})",
-            )
             return {
                 "result": True,
                 "message": f"User {email} has sucessfully been added to the system",
@@ -184,9 +176,10 @@ class DatabaseManager:
         )
 
     def add_user_equipment(
-        self, user_id: ObjectId, equipment_id: ObjectId, admin_id: ObjectId
+        self, user_id: ObjectId, equipment_id: ObjectId, admin_name: str
     ):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
+        user = self.users_db.find_one({"_id": user_id})
 
         if equipment["checked_out"] is True:
             return f"Equipment {equipment_id} is already checked out"
@@ -199,14 +192,15 @@ class DatabaseManager:
             {"_id": equipment_id}, {"$set": {"checked_out": True}}
         )
         self.add_log(
-            user_id=admin_id,
+            user_id=admin_name,
             action="CHECK_OUT",
-            target_id=equipment_id,
-            details=f"Assigned to user: {user_id}",
+            target_id=f"{equipment['name']}",
+            details=f"{user['name']} : {user['email']}",
         )
 
     def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False, damage_description: str | None = None):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
+        user = self.users_db.find_one({"_id": user_id})
 
         if not equipment or not equipment.get("checked_out"):
             return f"Equipment {equipment_id} is not checked out"
@@ -228,9 +222,9 @@ class DatabaseManager:
             status_msg = "Item returned in good condition"
 
         self.add_log(
-            user_id=user_id,
+            user_id=f"{user['name']}",
             action="CHECK_IN",
-            target_id=equipment_id,
+            target_id=f"{equipment.get('name')}",
             details=status_msg,
         )
 
@@ -573,17 +567,26 @@ class DatabaseManager:
             return user
         return None
 
-    # This is your version with the admin_id (Keep this)
-    def delete_user(self, user: User, admin_id: ObjectId):
+    def delete_user(self, user: User, admin_name: str, reason: str = "DELETED"):
         for equipment_id in user.checked_out_equipment:
             self.equipment_db.update_one(
                 {"_id": equipment_id}, {"$set": {"checked_out": False}}
             )
+        
+        # Check to see if regular account deleting or account registration denied
+        if reason == "DENIED":
+            log_details = "Registration Request Denied by Admin"
+        else:
+            log_details = "Account Removed by Admin"
 
+        user_info = f"{user.name} : {user.email}"
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
             self.add_log(
-                user_id=admin_id, action="DELETE_USER", details=f"{user.id} is deleted"
+                user_id=admin_name, 
+                action="DELETE_USER", 
+                target_id=user_info,
+                details=log_details
             )
             return True
         else:

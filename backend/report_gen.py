@@ -25,8 +25,8 @@ class ReportGenerator:
         if not self.log_file_path.exists():
             return entries
         
-        # Regex to parse: 2026-02-09 10:46:58,053 - INFO - [User: ID] [Action: ACTION] [Target: ID] - Details: TEXT
-        pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+ - \w+ - \[User: ([^\]]+)\] \[Action: ([^\]]+)\](?: \[Target: ([^\]]+)\])? - Details: (.+)'
+        # Regex to parse: 2026-02-09 10:46:58,053 - INFO - [User: ID] [Action: ACTION] [Target: TEXT] - [Details: TEXT]
+        pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+ - \w+ - \[User: ([^\]]+)\] \[Action: ([^\]]+)\](?: \[Target: ([^\]]+)\])?(?: \[Details: ([^\]]+)\])?'
         
         # Open the file and use the regex to parse out UUIDs and other info
         with open(self.log_file_path, 'r') as f:
@@ -36,37 +36,19 @@ class ReportGenerator:
                 try:
                     timestamp_str = match.group(1)
                     entry_date = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
-                    # Captures each part of the log
+                    # Captures each part of the log within the monthly date range
                     if start_date <= entry_date <= end_date:
                         entries.append({
                             'timestamp': entry_date,
                             'user_id': match.group(2),
                             'action': match.group(3),
                             'target_id': match.group(4) or '',
-                            'details': match.group(5)
+                            'details': match.group(5) or '',
                         })
                 # If one log/line is malformed, skip it
                 except:
                     continue
         return entries
-    
-    def get_user_name(self, user_id):
-        if not user_id:
-            return "No User ID Received"
-        try:
-            user = self.db.get_user_by_id(ObjectId(user_id))
-            return user.name
-        except:
-            return "Error Fetching User"
-    
-    def get_equipment_name(self, equipment_id):
-        if not equipment_id:
-            return "No Equipment ID Recieved"
-        try:
-            equipment = self.db.get_equipment_by_id(ObjectId(equipment_id))
-            return equipment.name
-        except:
-            return "Error Fetching Equipment"
     
     # Generates a summary for the cover page of the monthly report
     def generate_stats(self, entries):
@@ -75,22 +57,36 @@ class ReportGenerator:
             'unique_users': len(set(e['user_id'] for e in entries if e['user_id'])),
             'by_action': defaultdict(int)
         }
-        
         for entry in entries:
             stats['by_action'][entry['action']] += 1
-        
         return stats
     
     # Convert the log actions into more informative text
     def map_actions(self, action):
         action_vals = {
-            "check_out": "Approved Equipment Check Out",
-            "check_in": "Returned Equipment",
-            "add_user": "Approved User Registration",
-            "update_status": "Promoted User",
-            "add_equipment": "Added New Equipment"
+            "CHECK_OUT": "Equipment Checkout",
+            "CHECK_IN": "Equipment Return",
+            "ADD_USER": "User Registered",
+            "DELETE_USER": "User Deleted",
+            "UPDATE_ROLE": "Role Updated",
+            "ADD_EQUIPMENT": "Equipment Added",
+            "DELETE_EQUIPMENT": "Equipment Deleted"
         }
-        return action_vals.get(action.lower(), action.replace("_", " ").title())
+        return action_vals.get(action, action.replace("_", " ").title())
+
+    # Displays text based on the logged action
+    def get_detailed_info(self, entry):
+        action = entry['action']
+        details = entry['details']
+        # Output role in human readible format
+        if action == "UPDATE_ROLE":
+            role_map = {'a': 'Admin', 'u': 'User', 's': 'Superintendent', 'p': 'Pending'}
+            return f"Role changed to: {role_map.get(details.strip(), details)}"
+        # Report if equip is damaged
+        if action == "CHECK_IN":
+            return f"{details}" if details else "No condition noted"
+
+        return details
 
     # Generates the monthly report with all relevant data
     # The start and end of the reporting period is also displayed
@@ -161,27 +157,22 @@ class ReportGenerator:
 
         # Load parsed log data into the table
         for entry in sorted(entries, key=lambda x: x['timestamp']):
-            # Resolve names using existing backend functions
-            user_name = self.get_user_name(entry['user_id'])
+            user_name = entry['user_id']
             action_name = self.map_actions(entry['action'])
+            target_name = entry['target_id'] or "N/A"
             
-            # Determine target type (user or equipment)
-            if any(word in action_name.lower() for word in ['user', 'registered']):
-                target_name = self.get_user_name(entry['target_id'])
-            else:
-                target_name = self.get_equipment_name(entry['target_id'])
-
+            report_text = self.get_detailed_info(entry)
             # Format log entries into table rows
             column_name.append([
                 Paragraph(entry['timestamp'].strftime('%m/%d %H:%M'), cell_style),
                 Paragraph(user_name, cell_style),
                 Paragraph(action_name, cell_style),
                 Paragraph(target_name, cell_style),
-                Paragraph(entry['details'], cell_style)
+                Paragraph(report_text, cell_style)
             ])
 
         # Format the table
-        lt = Table(column_name, colWidths=[1.1*inch, 1.2*inch, 1.2*inch, 2.8*inch, 1.2*inch], hAlign='LEFT')
+        lt = Table(column_name, colWidths=[.9*inch, 1.1*inch, 1.2*inch, 2.6*inch, 1.7*inch], hAlign='LEFT')
         lt.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.grey),
             ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
@@ -189,6 +180,8 @@ class ReportGenerator:
             ('VALIGN', (0,0), (-1,-1), 'TOP'),
             ('LEFTPADDING', (0,0), (-1,-1), 6),
             ('RIGHTPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
             ('FONTSIZE', (0,0), (-1,0), 10),
         ]))
@@ -229,4 +222,3 @@ class ReportGenerator:
             for line in kept_lines:
                 f.write(line)
         
-        print(f"Log cleanup: kept {len(kept_lines)} entries from last {days_to_keep} days")

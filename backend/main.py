@@ -65,11 +65,12 @@ def create_app(testing=False):
                 origional_password=password, hashed_password=hashed_passowrd
             ):  # check with the the hashing algorithm
                 if user.role == "p":
-                    return "Account is still pending approval from admin"
+                    return jsonify({"result": False, "message": "Account is still pending approval from admin"})
                 else:
                     session["user"] = email
                     session["role"] = user.role
                     session["id"] = str(user.id)  # Object ID can not be serialized
+                    session["name"] = user.name
                     return jsonify(
                         {"result": True, "message": "success", "role": user.role}
                     )
@@ -149,12 +150,6 @@ def create_app(testing=False):
 
     @app.route("/register", methods=["POST"])
     def register():
-        admin_session_id = session.get("id")
-        if not admin_session_id:
-                return jsonify({
-                    "result": False, 
-                    "message": "Admin session expired. Please log in again."
-                }), 401
         data = request.json
         # Remove extra whitespaces and normalize input
         fname = data.get("fname", "").strip()
@@ -181,15 +176,13 @@ def create_app(testing=False):
                 )
             }), 400
 
-        admin_id = ObjectId(admin_session_id)
         hashed_password = hash_password(password=password)
         result = db.add_user(
             email=email, 
             password=hashed_password, 
             fname=fname, 
             lname=lname, 
-            phone=phone, 
-            admin_id=admin_id
+            phone=phone,
         )
 
         if result["result"]:
@@ -275,21 +268,28 @@ def create_app(testing=False):
             ):  # if it is an account creation notification, update the users role
                 db.remove_notification_from_inbox(notification=new_note)
                 db.set_notification_read(id=new_note.id, read=True)
-                if data["result"]:
-                    result_message = f"{db.get_email_by_id(user_id=new_note.sender)} has been added to the system"
-                    db.set_user_role(
-                        id=ObjectId(new_note.sender), role="u"
-                    )  # u for 'user'
 
+                target_user = db.get_user_by_id(user_id=new_note.sender)
+                if not target_user:
+                    return jsonify({"result": False, "message": "User no longer exists"})
+                admin_name = session.get("name")
+
+                if data["result"]:
+                    result_message = f"{target_user.email} has been added to the system"
+                    db.set_user_role(id=target_user.id, role="u")  # u for 'user'
+                    db.add_log(
+                        user_id=admin_name, 
+                        action="ADD_USER", 
+                        target_id=f"{target_user.name} : {target_user.email}",
+                        details="New Account Approved by Admin"
+                    )
                 else:
-                    result_message = f"{db.get_email_by_id(user_id=new_note.sender)} has been rejected from the system"
-                    db.set_user_role(
-                        id=ObjectId(new_note.sender), role="r"
-                    )  # r stand for 'rejected'
+                    result_message = f"{target_user.email} has been rejected from the system"
+                    db.delete_user(user=target_user, admin_name=admin_name, reason="DENIED")
 
                 for admin in db.get_administrators():
                     nm.send_inform_notification(
-                        sender=db.get_user_by_id(user_id=new_note.sender),
+                        sender=target_user,
                         receiver=admin,
                         message=result_message,
                     )  # might want to make the sender a "system" sender or something like that
@@ -316,7 +316,7 @@ def create_app(testing=False):
                     db.add_user_equipment(
                         user_id=ObjectId(new_note.sender),
                         equipment_id=ObjectId(equipment.id),
-                        admin_id=admin_id
+                        admin_name=session.get("name")
                     )
                     db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
 
@@ -536,27 +536,38 @@ def create_app(testing=False):
 
     @app.route("/change_user_role", methods=["POST"])
     def change_user_role():
+        # Get the admin session name for verification and logging
+        admin_name = session.get("name") 
+        if not admin_name:
+            return jsonify({"result": False, "message": "Not logged in"})
+        
         data = request.json
-        db.set_user_role(id=ObjectId(data["user"]["id"]), role=data["new_role"])
-
+        user_id = ObjectId(data["user"]["id"])
+        db.set_user_role(id=user_id, role=data["new_role"])
+        user = db.get_user_by_id(user_id)
+        # Log the role change
+        db.add_log(
+            user_id=admin_name, 
+            action="UPDATE_ROLE", 
+            target_id=f"{user.name} : {user.email}", 
+            details=f"{data['new_role']}"
+        )
         return jsonify({"result": True})
 
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
         data = request.json
 
-        admin_session_id = session.get("id")
-        if not admin_session_id:
+        admin_name = session.get("name")
+        if not admin_name:
             return jsonify({"result": False, "message": "Admin session expired"}), 401
     
-        admin_id = ObjectId(admin_session_id)
-
         notifications = db.get_notifications_by_user(ObjectId(data["user"]["id"]))
         for note in notifications:
             db.delete_notification(note_id=note.id)
             db.remove_notification_from_inbox(notification=note)
         user = db.get_user_by_id(ObjectId(data["user"]["id"]))
-        result = db.delete_user(user=user, admin_id=admin_id)
+        result = db.delete_user(user=user, admin_name=admin_name)
         if result:
             return jsonify({"result": True})
         else:
@@ -564,6 +575,11 @@ def create_app(testing=False):
 
     @app.route("/add_equipment", methods=["POST"])
     def add_equipment():
+        # Get admin name for validation and logging
+        admin_name = session.get("name")
+        if not admin_name:
+            return jsonify({"result": False, "message": "Not logged in"})
+        
         equip_data = request.json["data"]
         equip_data["_id"] = ObjectId()
         equip_data["images"] = request.json["images"]
@@ -574,6 +590,12 @@ def create_app(testing=False):
         new_equip = Equipment()
         new_equip.fill_from_json(equip_data)
         db.add_equipment(new_equip)
+        db.add_log(
+            user_id=admin_name, 
+            action="ADD_EQUIPMENT", 
+            target_id=f"{equip_data['name']}",
+            details="Admin Added Equipment"
+        )
         return jsonify({"result": True})
 
     @app.route("/get_profile_info", methods=["GET"])
@@ -802,11 +824,26 @@ def create_app(testing=False):
     
     @app.route("/delete_equipment", methods=["POST"])
     def delete_equipment():
+        # Get admin name for validation and logging
+        admin_name = session.get("name")
+        if not admin_name:
+            return jsonify({"result": False, "message": "Not logged in"})
+        
         data = request.json
         try:
-            equipment_id = data["equipment_id"]
-            result = db.delete_equipment(equipment_id=ObjectId(equipment_id))
+            equipment_id = ObjectId(data["equipment_id"])
+            equip = db.get_equipment_by_id(equipment_id)
+            equip_info = f"{equip.name}"
+
+            result = db.delete_equipment(equipment_id=equipment_id)
             if result:
+                equip = db.get_equipment_by_id(equipment_id)
+                db.add_log(
+                    user_id=admin_name, 
+                    action="DELETE_EQUIPMENT", 
+                    target_id=equip_info,
+                    details="Admin Deleted Equipment"
+                )
                 return jsonify({"result": True})
             else:
                 return jsonify({"result": False, "message": "Equipment not found or could not be deleted"})
@@ -814,6 +851,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": str(e)})
 
     return app
+
 # make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)

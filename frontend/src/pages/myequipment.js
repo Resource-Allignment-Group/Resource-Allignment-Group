@@ -21,7 +21,7 @@ function MyEquipment({ num_of_notifications, setNumNotifications }) {
 			const equip_list = data["equip_list"];
 			return Array.isArray(equip_list) ? equip_list : [];
 		} catch (error) {
-			console.log(error);
+			alert("Failed to Load Equipment");
 			return [];
 		}
 	};

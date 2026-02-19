@@ -69,7 +69,7 @@ function HomeEquipmentCard({
 				alert("Something Went Wrong With Your Request");
 			}
 		} catch (error) {
-			console.log(error);
+			alert("Failed to Checkout Equipment");
 		}
 	};
 
@@ -106,7 +106,6 @@ function HomeEquipmentCard({
 				alert(data.message || "Failed to delete equipment");
 			}
 		} catch (error) {
-			console.log(error);
 			alert("There Were Problems Deleting The Equipment");
 		}
 	};

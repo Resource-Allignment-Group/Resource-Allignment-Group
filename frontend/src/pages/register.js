@@ -67,11 +67,10 @@ function Register() {
 				alert("Account Request has been sent to Admin\nAwaiting Approval");
 				navigate("/login");
 			} else {
-				alert("Something went wrong");
+				alert(data.message || "Something went wrong");
 			}
 		} catch (error) {
-			console.error("Login error:", error);
-			alert("Something went wrong");
+			alert(error || "Something went wrong");
 		}
 	};
 
@@ -96,11 +95,16 @@ function Register() {
 					<input type="text" onChange={(e) => setLastName(e.target.value)} />
 
 					<label>Email</label>
-					<input type="email" onChange={(e) => setEmail(e.target.value)} />
+					<input
+						type="email"
+						id="email"
+						onChange={(e) => setEmail(e.target.value)}
+					/>
 
 					<label>Password</label>
 					<input
 						type="password"
+						id="password"
 						onChange={(e) => setPassword(e.target.value)}
 					/>
 

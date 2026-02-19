@@ -129,7 +129,6 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 							<AddEquipmentModal
 								isOpen={showModal}
 								onClose={() => setShowModal(false)}
-								onSuccess={() => console.log("Equipment added")}
 							/>
 						</div>
 					</div>

@@ -26,8 +26,8 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 
 				const data = await res.json();
 				setNotifications((data.messages || []).reverse());
-			} catch (error) {
-				console.log("Error loading notifications: ", error);
+			} catch {
+				alert("Error Loading Notifications");
 			} finally {
 				setIsLoading(false);
 			}
@@ -63,8 +63,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				setNumNotifications((num) => num + 1);
 				alert(data.message || "Something went wrong");
 			}
-		} catch (error) {
-			console.log("Error handling notification: ", error);
+		} catch {
 			// Revert on error
 			setNotifications((prev) => [...prev, notification]);
 			setNumNotifications((num) => num + 1);
@@ -97,8 +96,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				setNumNotifications((num) => num + 1);
 				alert(data.error || "Failed to dismiss notification");
 			}
-		} catch (error) {
-			console.log("Error dismissing notification: ", error);
+		} catch {
 			// Revert on error
 			setNotifications((prev) => [...prev, notificationToRemove]);
 			setNumNotifications((num) => num + 1);

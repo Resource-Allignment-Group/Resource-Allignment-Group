@@ -49,7 +49,6 @@ function Login() {
 				}
 			}
 		} catch (error) {
-			console.log(error);
 			alert("Something Went Wrong");
 		}
 	};
@@ -68,7 +67,7 @@ function Login() {
 				<h2 className="title">Login</h2>
 
 				<form className="form">
-					<label>Email *</label>
+					<label>Email</label>
 					<input
 						type="text"
 						id="email"
@@ -77,7 +76,7 @@ function Login() {
 						onChange={(e) => setEmail(e.target.value)}
 					/>
 
-					<label>Password *</label>
+					<label>Password</label>
 					<input
 						type="password"
 						id="password"

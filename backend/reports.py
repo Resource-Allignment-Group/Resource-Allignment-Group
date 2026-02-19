@@ -1,4 +1,4 @@
-from flask import send_file, after_this_request, jsonify
+from flask import jsonify
 from datetime import datetime
 from pathlib import Path
 import tempfile
@@ -39,6 +39,8 @@ def setup_report_routes(app, report_generator):
                     app.logger.error(f"Error deleting temp file: {e}")
 
             # Return the custom response class using the generator
+            # This will allow the cleanup func to run after the doc
+            # has been successfully sent
             return app.response_class(
                 stream_and_close(),
                 mimetype='application/pdf',

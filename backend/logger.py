@@ -27,7 +27,7 @@ class SystemLogger:
         if target_id:
             message += f" [Target: {target_id}]"
         if details:
-            message += f" - Details: {details}"
+            message += f" [Details: {details}]"
         self.logger.info(message)
 
     def log_error(self, message):
