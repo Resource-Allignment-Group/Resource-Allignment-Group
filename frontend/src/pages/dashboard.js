@@ -106,34 +106,23 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 
 						{/* Action buttons */}
 						<div className="action-buttons-row">
-							<button
-								className="action-button"
-								onClick={downloadReport}
-								style={{ cursor: "pointer" }}
-							>
-								<span>
-									<strong>Generate Monthly Report</strong>
-								</span>
-								<span className="plus-icon">+</span>
+							<button className="action-button" onClick={downloadReport}>
+								Generate Monthly Report
 							</button>
 							<button
 								className="action-button"
 								onClick={() => setShowModal(true)}
-								style={{ cursor: "pointer" }}
 							>
-								<span>
-									<strong>Add Equipment</strong>
-								</span>
-								<span className="plus-icon">+</span>
+								Add Equipment
 							</button>
-							<AddEquipmentModal
-								isOpen={showModal}
-								onClose={() => setShowModal(false)}
-							/>
 						</div>
 					</div>
 				</div>
 			</div>
+			<AddEquipmentModal
+				isOpen={showModal}
+				onClose={() => setShowModal(false)}
+			/>
 		</div>
 	);
 }

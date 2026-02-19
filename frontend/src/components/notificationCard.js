@@ -1,5 +1,6 @@
 import "../styles/notificationCard.css";
 import { useState } from "react";
+import { MdPerson } from "react-icons/md";
 
 function NewRequestNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
@@ -82,7 +83,7 @@ function NewAccountNotification({ notification, onApprove, onReject }) {
 			<div className="notification-content">
 				{/* Notification icon */}
 				<div className="notification-icon-circle notification-icon-account">
-					<span>👤</span>
+					<MdPerson />
 				</div>
 
 				{/* Notification details */}
