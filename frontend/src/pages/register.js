@@ -63,10 +63,11 @@ function Register() {
 			});
 			const data = await res.json();
 
-			if (data.message === "success") {
+			if (data.result) {
 				alert("Account Request has been sent to Admin\nAwaiting Approval");
 				navigate("/login");
 			} else {
+				console.log(data.message)
 				alert("Rugh Rough Raggy, something is wrong");
 			}
 		} catch (error) {

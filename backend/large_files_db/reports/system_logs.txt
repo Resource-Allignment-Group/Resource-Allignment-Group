@@ -4,3 +4,5 @@
 2026-02-13 11:05:20,822 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823a] - Details: Item returned DAMAGED: caught on fire
 2026-02-13 11:15:39,369 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b127d61182fc67a28252] - Details: Item returned in good condition
 2026-02-13 21:24:31,338 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28240] - Details: Assigned to user: 698781dbf629c6523b0cf65c
+2026-02-19 18:35:37,497 - INFO - [User: WE NEED TO FIGURE THIS OUT] [Action: ADD_USER] - Details: Added new user: testing@gmail.com (ID: 69979e49204c40d937f8e50a)
+2026-02-19 18:40:20,490 - INFO - [User: WE NEED TO FIGURE THIS OUT] [Action: ADD_USER] - Details: Added new user: testing@gmail.com (ID: 69979f64fa7b8c9b59f868c5)

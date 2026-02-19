@@ -135,16 +135,16 @@ def create_app(testing=False):
 
     @app.route("/register", methods=["POST"])
     def register():
-        admin_session_id = session.get("id")
-        if not admin_session_id:
-            return jsonify(
-                {
-                    "result": False,
-                    "message": "Admin session expired. Please log in again.",
-                }
-            ), 401
+        # admin_session_id = session.get("id")
+        # if not admin_session_id:
+        #     return jsonify(
+        #         {
+        #             "result": False,
+        #             "message": "Admin session expired. Please log in again.",
+        #         }
+        #     ), 401
 
-        admin_id = ObjectId(admin_session_id)
+        # admin_id = ObjectId(admin_session_id)
 
         data = request.json
         fname, lname, email, password, phone = (
@@ -163,7 +163,7 @@ def create_app(testing=False):
             fname=fname,
             lname=lname,
             phone=phone,
-            admin_id=admin_id,
+            admin_id="WE NEED TO FIGURE THIS OUT" #TODO: Figure out what this is
         )
 
         if result["result"]:
@@ -174,6 +174,7 @@ def create_app(testing=False):
                 nm.send_account_approval_message(new_user=new_user)
                 return jsonify({"result": True, "message": "success"})
             except Exception as e:
+                print(e)
                 return jsonify({"result": False, "message": str(e)})
         else:
             return jsonify({"result": False, "message": result["message"]})
