@@ -1,0 +1,3 @@
+2026-02-19 17:02:25,692 - INFO - [User: Test User] [Action: CHECK_OUT] [Target: Testing Equipment] [Details: Test User : user@gmail.com]
+2026-02-19 17:02:26,078 - INFO - [User: Test User] [Action: CHECK_IN] [Target: Testing Equipment] [Details: Item returned in good condition]
+2026-02-19 17:02:37,065 - INFO - [User: Test Admin] [Action: DELETE_USER] [Target: Test User : user@gmail.com] [Details: Account Removed by Admin]
