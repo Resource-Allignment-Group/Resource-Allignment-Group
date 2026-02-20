@@ -17,3 +17,6 @@
 2026-02-19 20:41:01,792 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: This is a post merge test equip title] [Details: Head Huncho the best : test_admin@gmail.com]
 2026-02-19 20:41:23,719 - INFO - [User: Head Huncho the best] [Action: CHECK_IN] [Target: This is a post merge test equip title] [Details: Item returned DAMAGED: test]
 2026-02-19 20:42:06,442 - INFO - [User: Head Huncho the best] [Action: DELETE_EQUIPMENT] [Target: This is a post merge test equip title] [Details: Admin Deleted Equipment]
+2026-02-19 21:14:01,735 - INFO - [User: Head Huncho the best] [Action: DELETE_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: Account Removed by Admin]
+2026-02-19 21:14:57,116 - INFO - [User: Head Huncho the best] [Action: ADD_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: New Account Approved by Admin]
+2026-02-19 21:15:03,916 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: a]

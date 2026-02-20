@@ -80,7 +80,7 @@ class ReportGenerator:
         details = entry['details']
         # Output role in human readible format
         if action == "UPDATE_ROLE":
-            role_map = {'a': 'Admin', 'u': 'User', 's': 'Superintendent', 'p': 'Pending'}
+            role_map = {'a': 'Admin', 'u': 'User', 's': 'Superintendent'}
             return f"Role changed to: {role_map.get(details.strip(), details)}"
         # Report if equip is damaged
         if action == "CHECK_IN":
