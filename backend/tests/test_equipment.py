@@ -376,6 +376,6 @@ def test_request_equipment(login_user):
 
     # Return equipment
     res = login_user.post(
-        "/return_equipment", json={"equipment_id": "000000000000000000000000"}
+        "/return_equipment", json={"equipment_id": "000000000000000000000000", "damage_description": ""}
     )
     assert res.get_json()["result"]
