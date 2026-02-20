@@ -41,6 +41,24 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
+        self.allowed_fields = {
+            "_id",
+            "name",
+            "class",
+            "year",
+            "farm",
+            "model",
+            "make",
+            "use",
+            "images",
+            "reports",
+            "checked_out",
+            "description",
+            "damaged",
+            "unavailable",
+            "category",
+            "replacementCost",
+        }
 
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
@@ -56,6 +74,9 @@ class DatabaseManager:
 
     def set_notification_status(self, id: ObjectId, status: Literal["a", "r", "p"]):
         self.notifications_db.update_one({"_id": id}, {"$set": {"status": status}})
+
+    def set_notification_body(self, id: ObjectId, body: str):
+        self.notifications_db.update_one({"_id":id}, {"$set": {"body": body}})
 
     def set_request_active(self, id: ObjectId, active: bool):
         self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
@@ -471,14 +492,17 @@ class DatabaseManager:
         return equip_list
 
     # Allows you to edit a specific field on an equipment
-    def update_equipment_field(self, equip_id, field_name, value):  #### I Don't think that this function if being called from anywhere?
-        try:
-            result = self.equipment_db.update_one(
-                {"_id": ObjectId(equip_id)}, {"$set": {field_name: value}}
-            )
-            return result.modified_count > 0
-        except:
-            return False
+    def update_equipment_field(self, equip_id, field_name, value):
+        if field_name not in self.allowed_fields:
+            raise Exception(f"Field Name {field_name} is not permitted")
+        result = self.equipment_db.update_one(
+            {
+                "_id": ObjectId(equip_id),
+                field_name: {"$exists": True},
+            }, # needed to make sure no new fields were added that don't already exist
+            {"$set": {field_name: value}},
+        )
+        return result.modified_count > 0
 
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
