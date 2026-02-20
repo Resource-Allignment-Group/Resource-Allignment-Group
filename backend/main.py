@@ -194,6 +194,7 @@ def create_app(testing=False):
                 nm.send_account_approval_message(new_user=new_user)
                 return jsonify({"result": True, "message": "success"})
             except Exception as e:
+                print(e)
                 return jsonify({"result": False, "message": str(e)})
         else:
             return jsonify({"result": False, "message": result["message"]})
