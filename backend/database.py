@@ -41,7 +41,7 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
-
+        
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
 
@@ -76,6 +76,7 @@ class DatabaseManager:
         self.users_db.update_one({"_id": id}, {"$set": {"name": new_name}})
 
     def set_user_email(self, id: ObjectId, new_email: str):
+        # Might have to change notifications that use this depending on functionality
         self.users_db.update_one({"_id": id}, {"$set": {"email": new_email}})
 
     def set_user_phone(self, id: ObjectId, new_phone: str):

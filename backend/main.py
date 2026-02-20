@@ -27,7 +27,7 @@ def create_app(testing=False):
 
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-    CORS(app, supports_credentials=True, origins='*')
+    CORS(app, supports_credentials=True, origins="*")
 
     db = DatabaseManager(testing=testing)
     nm = Notification_Manager(db=db)
@@ -41,10 +41,12 @@ def create_app(testing=False):
 
     else:
         app.config["SESSION_COOKIE_HTTPONLY"] = True
-        app.config["SESSION_COOKIE_SECURE"] = False  # Keep False for localhost (no HTTPS)
+        app.config["SESSION_COOKIE_SECURE"] = (
+            False  # Keep False for localhost (no HTTPS)
+        )
         app.config["SESSION_TYPE"] = "filesystem"
         # Change None to 'Lax' - macOS browsers often reject 'None' without HTTPS
-        app.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     # Initialize monthly reports
     report_generator = ReportGenerator(db)
@@ -175,7 +177,6 @@ def create_app(testing=False):
                     "uppercase, lowercase, number, and special character"
                 )
             }), 400
-
         hashed_password = hash_password(password=password)
         result = db.add_user(
             email=email, 
@@ -238,7 +239,7 @@ def create_app(testing=False):
             return jsonify({"result": True, "messages": messages})
         except Exception as e:
             return jsonify({"result": False, "messages": []})
-    
+
     # Used to remove notifications that the user clicked "X" on
     @app.route("/dismiss_notification", methods=["POST"])
     def dismiss_notification():
@@ -380,24 +381,28 @@ def create_app(testing=False):
             # If equipment is checked out, find who has it
             if equip_dict["checked_out"]:
                 # Find the user who has this equipment in their checked_out_equipment array
-                user = db.get_user_by_equipment(ObjectId(equip_dict['id']))
-                
+                user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
+
                 if user:
-                    equip_dict['checkedOutBy'] = user.email
+                    equip_dict["checkedOutBy"] = user.email
                 else:
-                    equip_dict['checkedOutBy'] = None
+                    equip_dict["checkedOutBy"] = None
             else:
-                equip_dict['checkedOutBy'] = None
-            
+                equip_dict["checkedOutBy"] = None
+
             equip_list.append(equip_dict)
 
         # Sort the output equipment by their assigned status
         # (ie. Available, Checked Out, Damaged, Unavailable)
         def get_priority(equip):
-            if equip["unavailable"]: return 4
-            elif equip["damaged"]: return 3
-            elif equip["checked_out"]: return 2
-            else: return 1
+            if equip["unavailable"]:
+                return 4
+            elif equip["damaged"]:
+                return 3
+            elif equip["checked_out"]:
+                return 2
+            else:
+                return 1
 
         # This will sort the returned equipment by their status
         equip_list.sort(key=get_priority)
@@ -407,21 +412,25 @@ def create_app(testing=False):
     def request_equipment():
         data = request.json
         equip_id = data["equip_id"]
-        
+
         # Making extra sure that equipment can't be requested if it's
         # unavailable or already checked out
         equipment = db.get_equipment_by_id(id=ObjectId(equip_id))
         if equipment:
             if equipment.unavailable:
-                return jsonify({
-                    "result": False, 
-                    "message": "This equipment is unavailable and cannot be checked out"
-                })
+                return jsonify(
+                    {
+                        "result": False,
+                        "message": "This equipment is unavailable and cannot be checked out",
+                    }
+                )
             if equipment.checked_out:
-                return jsonify({
-                    "result": False, 
-                    "message": "This equipment is already checked out"
-                })
+                return jsonify(
+                    {
+                        "result": False,
+                        "message": "This equipment is already checked out",
+                    }
+                )
 
         note_result = nm.send_equipment_request(
             id=ObjectId(),
@@ -449,14 +458,11 @@ def create_app(testing=False):
         try:
             equipment_id = ObjectId(data["equipment_id"])
             user_id = ObjectId(session["id"])
-            is_damaged = data["damaged"]
+            is_damaged = data.get("damaged", False)
             damage_description = data["damage_description"]
 
             db.delete_user_equipment(
-                user_id=user_id, 
-                equipment_id=equipment_id, 
-                damaged=is_damaged,
-                damage_description=damage_description
+                user_id=user_id, equipment_id=equipment_id, damaged=is_damaged, damage_description=damage_description
             )
 
             equipment = db.get_equipment_by_id(id=equipment_id)
@@ -469,7 +475,7 @@ def create_app(testing=False):
                         + (f" DAMAGED: {damage_description}" if is_damaged else "")
                     ),
                 )
-                
+
             return jsonify({"result": True})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
@@ -489,7 +495,6 @@ def create_app(testing=False):
             notifications_list.append(
                 note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
             )
-            
             equipment_list.append(equipment[i].to_dict())
         return jsonify(
             {
@@ -561,7 +566,6 @@ def create_app(testing=False):
         admin_name = session.get("name")
         if not admin_name:
             return jsonify({"result": False, "message": "Admin session expired"}), 401
-    
         notifications = db.get_notifications_by_user(ObjectId(data["user"]["id"]))
         for note in notifications:
             db.delete_notification(note_id=note.id)
@@ -598,6 +602,26 @@ def create_app(testing=False):
         )
         return jsonify({"result": True})
 
+    @app.route("/change_equipment_info", methods=["POST"])
+    def change_equipment_info():
+        equipment_info = request.json["equipment"]
+        try:
+            for key in equipment_info.keys():
+                print(key, equipment_info[key])
+                if key == "id":
+                    continue
+                db.update_equipment_field(
+                    equip_id=ObjectId(equipment_info["id"]),
+                    field_name=key,
+                    value=equipment_info[key],
+                )
+            return jsonify(
+                {"result": True, "message": "Equipment info has been changed"}
+            )
+        except Exception as e:
+            print(str(e))
+            return jsonify({"result": False, "message": str(e)})
+
     @app.route("/get_profile_info", methods=["GET"])
     def get_profile_equipment():
         user = db.get_user_by_id(user_id=ObjectId(session["id"]))
@@ -618,12 +642,12 @@ def create_app(testing=False):
 
     # A route that flags equipment as unavailable/available based
     # on the checkboxes selected on the hompage
-    @app.route("/mark_equipment_unavailable", methods=['POST'])
+    @app.route("/mark_equipment_unavailable", methods=["POST"])
     def mark_equipment_unavailable():
         data = request.get_json()
         equipment_ids = data["equipment_ids"]
         unavailable = data["unavailable"]
-        
+
         # Convert to ObjectIds
         object_ids = [ObjectId(equip_id) for equip_id in equipment_ids]
         # Get all equipment in one query to check status
@@ -631,7 +655,7 @@ def create_app(testing=False):
         # Will track how many items were skipped/not
         skipped_count = 0
         allowed_ids = []
-        
+
         for equipment in all_equipment:
             if unavailable:
                 # Skip if checked out, damaged, or already unavailable
@@ -645,11 +669,13 @@ def create_app(testing=False):
                     skipped_count += 1
                 else:
                     allowed_ids.append(equipment.id)
-        
+
         # Update many equipment status at once
         if allowed_ids:
-            updated_count = db.bulk_update_equipment_unavailable(allowed_ids, unavailable)
-        
+            updated_count = db.bulk_update_equipment_unavailable(
+                allowed_ids, unavailable
+            )
+
             # Cancel pending requests
             if unavailable:
                 db.cancel_pending_requests_for_equipment(allowed_ids)
@@ -674,13 +700,15 @@ def create_app(testing=False):
             else:
                 message = f"Successfully marked {updated_count} item(s) as available."
 
-        return jsonify({
-            "result": True,
-            "updated_count": updated_count,
-            "skipped_count": skipped_count,
-            "message": message
-        })
-    
+        return jsonify(
+            {
+                "result": True,
+                "updated_count": updated_count,
+                "skipped_count": skipped_count,
+                "message": message,
+            }
+        )
+
     # Go through the database and find the possible filter options
     # for farm locations, equipment class, makes, and years
     @app.route("/get_filter_options", methods=["GET"])
@@ -688,25 +716,25 @@ def create_app(testing=False):
         try:
             # Get all equipment
             equipment_cursor = db.get_all_equipment()
-            
+
             # Use sets to collect unique values
             farms = set()
             classes = set()
             makes = set()
-            
+
             # Helper function to format text properly
             def format_text(text):
                 if not text:
                     return text
-                
+
                 # Handle items with slashes like "HAY/FEED"
-                if '/' in text:
-                    parts = text.split('/')
-                    return '/'.join(part.capitalize() for part in parts)
-                elif ' ' in text:
-                    parts = text.split(' ')
-                    return ' '.join(part.capitalize() for part in parts)
-                
+                if "/" in text:
+                    parts = text.split("/")
+                    return "/".join(part.capitalize() for part in parts)
+                elif " " in text:
+                    parts = text.split(" ")
+                    return " ".join(part.capitalize() for part in parts)
+
                 # Regular capitalization
                 return text.capitalize()
 
@@ -714,26 +742,28 @@ def create_app(testing=False):
                 # Add farm if it exists and is not None/empty
                 if equip.farm and equip.farm.strip():
                     farms.add(format_text(equip.farm.strip()))
-                
+
                 # Add class if it exists
                 if equip._class and equip._class.strip():
                     classes.add(format_text(equip._class.strip()))
-                
+
                 # Add make if it exists
                 if equip.make and equip.make.strip():
                     makes.add(format_text(equip.make.strip()))
 
             statuses = ["Available", "Checked Out", "Damaged", "Unavailable"]
-            
+
             # Convert sets to sorted lists
-            return jsonify({
-                "result": True,
-                "farms": sorted(list(farms)),
-                "classes": sorted(list(classes)),
-                "makes": sorted(list(makes)),
-                "statuses": statuses
-            })
-            
+            return jsonify(
+                {
+                    "result": True,
+                    "farms": sorted(list(farms)),
+                    "classes": sorted(list(classes)),
+                    "makes": sorted(list(makes)),
+                    "statuses": statuses,
+                }
+            )
+
         except Exception as e:
             print(f"Error getting filter options: {e}")
             return jsonify({"result": False, "error": str(e)})
@@ -790,14 +820,14 @@ def create_app(testing=False):
                 # Use partial_ratio for substring matching for misspelling, etc
                 token_score = max(
                     fuzz.partial_ratio(token, combined_text),
-                    fuzz.token_sort_ratio(token, combined_text)
+                    fuzz.token_sort_ratio(token, combined_text),
                 )
                 token_scores.append(token_score)
 
             # For multi word queries, use the average score
             if token_scores:
-                score = sum(token_scores) / len(token_scores) 
-            else: 
+                score = sum(token_scores) / len(token_scores)
+            else:
                 score = 0
 
             # Only display the equipment that closely match the search params
@@ -815,13 +845,15 @@ def create_app(testing=False):
         # Sort by relevance (highest first)
         results.sort(key=lambda x: x[0], reverse=True)
 
-        return jsonify({
-            "result": True,
-            "equip_list": [r[1] for r in results],
-            "query": query,
-            "count": len(results),
-        })
-    
+        return jsonify(
+            {
+                "result": True,
+                "equip_list": [r[1] for r in results],
+                "query": query,
+                "count": len(results),
+            }
+        )
+
     @app.route("/delete_equipment", methods=["POST"])
     def delete_equipment():
         # Get admin name for validation and logging
@@ -835,9 +867,48 @@ def create_app(testing=False):
             equip = db.get_equipment_by_id(equipment_id)
             equip_info = f"{equip.name}"
 
+            if equip is None:
+                return jsonify({
+                    "result": False,
+                    "message": "Equipment not found"
+                }), 404
+
+            #Don't allow deletion if equipment is checked out
+            if equip.checked_out:
+                return jsonify({
+                    "result": False,
+                    "message": "This equipment is currently checked out and cannot be deleted"
+                }), 400
+            
+            # Get info on pending requests (notification IDs and user IDs who made requests)
+            pending_notification_ids, pending_user_ids = db.get_pending_request_info(
+                equipment_ids=[equipment_id]
+            )
+
+            #Deny pending requests for equipment
+            db.cancel_pending_requests_for_equipment(
+                equipment_ids=[equipment_id]
+            )
+
+            #Remove notifications from all admin inboxes
+            db.remove_notifications_from_all_admin_inboxes(
+                notification_ids=pending_notification_ids
+            )
+
+            # Send notifications to users whose requests were denied
+            if "id" in session and pending_user_ids:
+                admin_id = ObjectId(session["id"])
+                admin_user = db.get_user_by_id(user_id=admin_id)
+                for user_id in pending_user_ids:
+                    nm.send_inform_notification(
+                        sender=admin_user,
+                        receiver=db.get_user_by_id(user_id=user_id),
+                        message=f"Your request for {equip.name} was denied because the equipment was deleted from the system."
+                    )
+
+            #Delete the equipment and its related data (this will also update notifications to [DELETED])
             result = db.delete_equipment(equipment_id=equipment_id)
             if result:
-                equip = db.get_equipment_by_id(equipment_id)
                 db.add_log(
                     user_id=admin_name, 
                     action="DELETE_EQUIPMENT", 
@@ -846,9 +917,14 @@ def create_app(testing=False):
                 )
                 return jsonify({"result": True})
             else:
-                return jsonify({"result": False, "message": "Equipment not found or could not be deleted"})
+                return jsonify(
+                    {
+                        "result": False,
+                        "message": "Equipment not found or could not be deleted",
+                    }
+                )
         except Exception as e:
-            return jsonify({"result": False, "message": str(e)})
+            return jsonify({"result": False, "message": str(e)}), 500
 
     return app
 

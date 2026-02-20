@@ -1,9 +1,10 @@
 // This component is currently used on the home page
 
 import "../styles/home.css";
-import { MdArrowForwardIos } from "react-icons/md";
+import { MdArrowForwardIos, MdCategory } from "react-icons/md";
 import { useAuth } from "../Authentication";
 import { API_BASE } from "../config";
+import { useState } from "react";
 
 function HomeEquipmentCard({
 	equipment,
@@ -15,6 +16,19 @@ function HomeEquipmentCard({
 }) {
 	const { role } = useAuth();
 	const isAdmin = role === "a";
+	const [editedEquipment, setEquipment] = useState({
+		id: equipment.id,
+		name: equipment.name,
+		category: equipment.class,
+		make: equipment.make,
+		model: equipment.model,
+		farm: equipment.farm,
+		use: equipment.use,
+		replacementCost: equipment.replacementCost,
+		description: equipment.description,
+		damaged: equipment.damaged,
+	});
+	const [isEditing, setIsEditing] = useState(false);
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
 	function getEquipmentStatus({ checked_out, damaged, unavailable }) {
@@ -88,7 +102,7 @@ function HomeEquipmentCard({
 		}
 
 		try {
-			const res = await fetch("http://localhost:5000/delete_equipment", {
+			const res = await fetch(`http://${API_BASE}:5000/delete_equipment`, {
 				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
@@ -110,8 +124,29 @@ function HomeEquipmentCard({
 		}
 	};
 
+	const handleEquipmentEdit = async () => {
+		setIsEditing(false);
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/change_equipment_info`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					equipment: editedEquipment,
+				}),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("Equipment information changed successfully");
+			} else {
+				alert(data.message || "Failed to change equipment information");
+			}
+		} catch (error) {
+			console.log(error);
+			alert("There Were Problems Changing The Equipment Information");
+		}
+	};
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
-
 	return (
 		<div className="equipment-card">
 			<div className="card-header">
@@ -148,7 +183,6 @@ function HomeEquipmentCard({
 									checked={isSelected}
 									onChange={() => onSelect(equipment.id)}
 								/>
-								<span className="mark-text">Mark as Unavailable</span>
 							</label>
 						</div>
 					</div>
@@ -172,19 +206,63 @@ function HomeEquipmentCard({
 							<h4>Basic Information</h4>
 							<div className="detail-row">
 								<span className="label">Name</span>
-								<span className="value">{equipment.name}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.name}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											name: e.target.value,
+										})
+									}
+								/>
 							</div>
 							<div className="detail-row">
 								<span className="label">Category</span>
-								<span className="value">{equipment.class}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.category}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											class: e.target.value,
+										})
+									}
+								/>
 							</div>
 							<div className="detail-row">
 								<span className="label">Make</span>
-								<span className="value">{equipment.make}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.make}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											make: e.target.value,
+										})
+									}
+								/>
 							</div>
 							<div className="detail-row">
 								<span className="label">Model</span>
-								<span className="value">{equipment.model}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.model}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											model: e.target.value,
+										})
+									}
+								/>
 							</div>
 						</div>
 
@@ -192,15 +270,63 @@ function HomeEquipmentCard({
 							<h4>Operations</h4>
 							<div className="detail-row">
 								<span className="label">Assigned Farm</span>
-								<span className="value">{equipment.farm}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.farm}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											farm: e.target.value,
+										})
+									}
+								/>
 							</div>
 							<div className="detail-row">
 								<span className="label">Use Frequency</span>
-								<span className="value">{equipment.use}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.use}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											use: e.target.value,
+										})
+									}
+								/>
 							</div>
 							<div className="detail-row">
 								<span className="label">Replacement Cost</span>
-								<span className="value">{equipment.replacementCost}</span>
+								<input
+									className="equipment-value"
+									type="text"
+									value={editedEquipment.replacementCost}
+									disabled={!isEditing}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											replacementCost: e.target.value,
+										})
+									}
+								/>
+							</div>
+							<div className="detail-row" hidden={!isEditing}>
+								<span className="label">Damaged</span>
+								<input
+									className="equipment-value"
+									type="checkbox"
+									value={editedEquipment.damaged}
+									checked={editedEquipment?.damaged || false}
+									onChange={(e) =>
+										setEquipment({
+											...editedEquipment,
+											damaged: e.target.checked,
+										})
+									}
+								/>
 							</div>
 						</div>
 
@@ -208,10 +334,17 @@ function HomeEquipmentCard({
 							<h4>Description</h4>
 							{/* "Read only" on display, this can change when we open the 
               				form to edit the equipment details */}
-							<textarea
-								className="description-textarea"
-								value={equipment.description}
-								readOnly
+							<input
+								className="equipment-value"
+								type="text"
+								value={editedEquipment.description}
+								disabled={!isEditing}
+								onChange={(e) =>
+									setEquipment({
+										...editedEquipment,
+										description: e.target.value,
+									})
+								}
 							/>
 						</div>
 					</div>
@@ -235,8 +368,19 @@ function HomeEquipmentCard({
 							>
 								Request Checkout
 							</button>
-							<button className="btn-primary" hidden={equipment.checked_out}>
+							<button
+								className="btn-primary"
+								hidden={equipment.checked_out || isEditing || !isAdmin}
+								onClick={() => setIsEditing(true)}
+							>
 								Edit Equipment
+							</button>
+							<button
+								className="btn-primary"
+								hidden={equipment.checked_out || !isEditing}
+								onClick={handleEquipmentEdit}
+							>
+								Save
 							</button>
 							{isAdmin && (
 								<button className="btn-danger" onClick={handleDelete}>

@@ -211,3 +211,26 @@ mark them as unavailable or available in the database */
 	padding: 8px 16px;
 	font-size: 13px;
 }
+
+.equipment-value {
+	background: transparent;
+	border: none;
+	outline: none;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+}
+
+/* Prevent blue highlight on focus */
+.equipment-value:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+/* When disabled, make it fully text-like */
+.equipment-value:disabled {
+	color: inherit;
+	opacity: 1; /* prevents faded look */
+	cursor: default;
+	caret-color: transparent;
+}
