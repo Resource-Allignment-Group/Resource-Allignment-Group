@@ -67,12 +67,31 @@ class Notification_Manager:
         self.email_address = "bradancraig2004@gmail.com"  # We should make a email account so that email notifications can go through this
         self.email_password = os.environ.get("EMAIL_PASSWORD")
 
-    def send_email(self, message: str, receiver: str, subject: str):
+    def send_email(self, message: str, receiver: str, subject: str, attachments=None):
         msg = MIMEMultipart()
         msg["From"] = self.email_address
         msg["To"] = receiver
         msg["Subject"] = subject
         msg.attach(MIMEText(message, "plain"))
+
+        # Attach files if provided
+        if attachments:
+            from email.mime.application import MIMEApplication
+            from pathlib import Path
+            for file_path in attachments:
+                try:
+                    file_path = Path(file_path)
+                    if file_path.exists():
+                        with open(file_path, "rb") as f:
+                            attachment = MIMEApplication(f.read(), _subtype="pdf")
+                            attachment.add_header(
+                                "Content-Disposition",
+                                "attachment",
+                                filename=file_path.name
+                            )
+                            msg.attach(attachment)
+                except Exception as e:
+                    return f"Failed to attach {file_path}: {e}"
         try:
             server = smtplib.SMTP(self.server, self.port)
             server.starttls()
@@ -101,11 +120,9 @@ class Notification_Manager:
             server.login(self.email_address, self.email_password)
             server.sendmail(self.email_address, email, msg.as_string())
             server.quit()
-            print("email sent")
             return "Email sent successfully!"
 
         except Exception as e:
-            print(e)
             return f"Error sending email: {e}"
 
     def send_account_approval_message(self, new_user: User):
@@ -142,9 +159,9 @@ class Notification_Manager:
                     status="p",
                 )
                 self.db.send_notification(notification=new_note)
-            return 1
+            return True
         except Exception as e:
-            return 0
+            return False
 
     def send_inform_notification(self, sender, receiver, message="", equipment_id=None, id=None):
         if id is None:

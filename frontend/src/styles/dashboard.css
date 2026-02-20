@@ -81,32 +81,26 @@
 	border-color: #bdbdbd;
 }
 
+/* Action buttons for adding equipment and generating monthly reports */
 .action-buttons-row {
 	display: flex;
-	gap: 40px;
+	gap: 15px;
 	align-items: center;
+	padding-top: 10px;
 }
 
-/* Action buttons for generating a report & adding equipment */
 .action-button {
-	display: flex;
-	align-items: center;
-	gap: 15px;
-	background: none;
+	padding: 12px 24px;
+	background-color: #082e58;
+	color: white;
 	border: none;
-	font-size: 18px;
-	font-weight: 500;
-	color: #333;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 600;
 	cursor: pointer;
-	padding: 0;
-	transition: color 0.2s;
+	transition: background-color 0.2s;
 }
 
 .action-button:hover {
-	color: #082e58;
-}
-
-.action-button .plus-icon {
-	font-size: 28px;
-	font-weight: 300;
+	background-color: #051d36;
 }

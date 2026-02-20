@@ -329,6 +329,12 @@ and profile buttons are in */
 	opacity: 0.9;
 }
 
+.response-text {
+	font-size: 16px;
+	opacity: 0.9;
+	color: white;
+}
+
 /* THE FOLLOWING IS CONTENT SHARED AMONG SCROLLABLE CARD COMPONENTS */
 
 .content {

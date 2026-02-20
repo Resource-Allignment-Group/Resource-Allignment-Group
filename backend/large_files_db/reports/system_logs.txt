@@ -1,8 +1,22 @@
-2026-02-09 10:46:58,053 - INFO - [User: 692de50af70425df636857bd] [Action: ADD_USER] - Details: Added new user: testuser2@gmail.com (ID: 698a0172edb874e5c4d95e67)
-2026-02-13 11:04:21,992 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b127d61182fc67a28252] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-13 11:04:26,831 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b129d61182fc67a28269] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-13 11:05:20,822 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b126d61182fc67a2823a] - Details: Item returned DAMAGED: caught on fire
-2026-02-13 11:15:39,369 - INFO - [User: 698781dbf629c6523b0cf65c] [Action: CHECK_IN] [Target: 6948b127d61182fc67a28252] - Details: Item returned in good condition
-2026-02-13 21:24:31,338 - INFO - [User: 692de50af70425df636857bd] [Action: CHECK_OUT] [Target: 6948b126d61182fc67a28240] - Details: Assigned to user: 698781dbf629c6523b0cf65c
-2026-02-19 18:35:37,497 - INFO - [User: WE NEED TO FIGURE THIS OUT] [Action: ADD_USER] - Details: Added new user: testing@gmail.com (ID: 69979e49204c40d937f8e50a)
-2026-02-19 18:40:20,490 - INFO - [User: WE NEED TO FIGURE THIS OUT] [Action: ADD_USER] - Details: Added new user: testing@gmail.com (ID: 69979f64fa7b8c9b59f868c5)
+2026-02-19 15:12:26,707 - INFO - [User: Mckade Wing] [Action: CHECK_IN] [Target: Bin Piller, Haines, None, 2003 (STORAGE)] [Details: Item returned DAMAGED: Explosion]
+2026-02-19 15:20:13,148 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: a]
+2026-02-19 15:20:55,066 - INFO - [User: Head Huncho the best] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-02-19 15:26:45,216 - INFO - [User: Mckade Wing] [Action: CHECK_OUT] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Mckade Wing : mckade.wing@maine.edu]
+2026-02-19 15:38:12,906 - INFO - [User: Mckade Wing] [Action: CHECK_IN] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Item returned in good condition]
+2026-02-19 15:38:24,026 - INFO - [User: Mckade Wing] [Action: CHECK_OUT] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Mckade Wing : mckade.wing@maine.edu]
+2026-02-19 15:41:30,128 - INFO - [User: Mckade Wing] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-02-19 15:41:38,044 - INFO - [User: Mckade Wing] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-02-19 15:41:48,635 - INFO - [User: Mckade Wing] [Action: DELETE_EQUIPMENT] [Target: Test] [Details: Admin Deleted Equipment]
+2026-02-19 15:41:54,424 - INFO - [User: Mckade Wing] [Action: DELETE_EQUIPMENT] [Target: Test] [Details: Admin Deleted Equipment]
+2026-02-19 16:49:45,888 - INFO - [User: Head Huncho the best] [Action: DELETE_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: Account Removed by Admin]
+2026-02-19 16:59:08,695 - INFO - [User: Head Huncho the best] [Action: ADD_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: New Account Approved by Admin]
+2026-02-19 20:22:18,850 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: a]
+2026-02-19 20:23:02,556 - INFO - [User: Head Huncho the best] [Action: ADD_EQUIPMENT] [Target: This is a post merge test equip title] [Details: Admin Added Equipment]
+2026-02-19 20:24:08,594 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: This is a post merge test equip title] [Details: Head Huncho the best : test_admin@gmail.com]
+2026-02-19 20:24:38,969 - INFO - [User: Head Huncho the best] [Action: CHECK_IN] [Target: This is a post merge test equip title] [Details: Item returned DAMAGED: Broken Headlight]
+2026-02-19 20:41:01,792 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: This is a post merge test equip title] [Details: Head Huncho the best : test_admin@gmail.com]
+2026-02-19 20:41:23,719 - INFO - [User: Head Huncho the best] [Action: CHECK_IN] [Target: This is a post merge test equip title] [Details: Item returned DAMAGED: test]
+2026-02-19 20:42:06,442 - INFO - [User: Head Huncho the best] [Action: DELETE_EQUIPMENT] [Target: This is a post merge test equip title] [Details: Admin Deleted Equipment]
+2026-02-19 21:14:01,735 - INFO - [User: Head Huncho the best] [Action: DELETE_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: Account Removed by Admin]
+2026-02-19 21:14:57,116 - INFO - [User: Head Huncho the best] [Action: ADD_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: New Account Approved by Admin]
+2026-02-19 21:15:03,916 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: a]

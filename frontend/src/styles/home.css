@@ -12,8 +12,8 @@ This will hold the equipment card items */
 .status-row {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	width: 17%;
+	justify-content: flex-start;
+	gap: 20px;
 }
 
 .status-actions {
@@ -42,6 +42,7 @@ Out, and Damaged badges */
 	font-weight: 500;
 	min-width: 110px;
 	text-align: center;
+	flex-shrink: 0;
 }
 
 /* Classes dependent on the equipment status for styling */
@@ -74,6 +75,10 @@ Out, and Damaged badges */
 	font-size: 14px;
 	cursor: pointer;
 	color: #ffffff;
+}
+
+.mark-text {
+	color: black;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -208,24 +213,24 @@ mark them as unavailable or available in the database */
 }
 
 .equipment-value {
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 0;
-  font: inherit;
-  color: inherit;
+	background: transparent;
+	border: none;
+	outline: none;
+	padding: 0;
+	font: inherit;
+	color: inherit;
 }
 
 /* Prevent blue highlight on focus */
 .equipment-value:focus {
-  outline: none;
-  box-shadow: none;
+	outline: none;
+	box-shadow: none;
 }
 
 /* When disabled, make it fully text-like */
 .equipment-value:disabled {
-  color: inherit;
-  opacity: 1;        /* prevents faded look */
-  cursor: default;
-  caret-color: transparent
+	color: inherit;
+	opacity: 1; /* prevents faded look */
+	cursor: default;
+	caret-color: transparent;
 }

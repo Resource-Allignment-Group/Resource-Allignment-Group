@@ -9,7 +9,6 @@ from database import DatabaseManager
 def test_farms(login_user):
     db = login_user.application.db
     farms = {eq.farm for eq in db.get_all_equipment() if eq.farm and eq.farm != "None"}
-    print(farms)
     assert farms == {"Aroostook", "Highmoor", "Rogers", "Witter"}
 
 
@@ -257,35 +256,31 @@ def test_all(login_user):
 def test_cancel_pending(login_user):
     db = login_user.application.db
     all_equip = db.get_all_equipment()
-    equip_id = all_equip[1].id  # Tractor 1
+    equip_id = all_equip[1].id # Tractor 1
     user_id = ObjectId()
-    db.users_db.insert_one(
-        {
-            "_id": user_id,
-            "email": "test@test.com",
-            "password": "test",
-            "role": "p",
-            "checked_out_equipment": [],
-            "inbox": [],
-            "position": None,
-            "name": "Test User",
-            "phone": "1234567890",
-        }
-    )
+    db.users_db.insert_one({
+        "_id": user_id,
+        "email": "test@test.com",
+        "password": "test_Pass2",
+        "role": "p",
+        "checked_out_equipment": [],
+        "inbox": [],
+        "position": None,
+        "name": "Test User",
+        "phone": "1234567890"
+    })
     notif_id = ObjectId()
-    db.notifications_db.insert_one(
-        {
-            "_id": notif_id,
-            "sender": user_id,
-            "receiver": ObjectId(),
-            "body": "Request to checkout",
-            "date": "2026-01-26",
-            "type": "r",
-            "equipment_id": equip_id,
-            "read": False,
-            "status": "p",
-        }
-    )
+    db.notifications_db.insert_one({
+        "_id": notif_id,
+        "sender": user_id,
+        "receiver": ObjectId(),
+        "body": "Request to checkout",
+        "date": "2026-01-26",
+        "type": "r",
+        "equipment_id": equip_id,
+        "read": False,
+        "status": "p"
+    })
     count = db.cancel_pending_requests_for_equipment([equip_id])
     assert count == 1
     assert db.notifications_db.find_one({"_id": notif_id})["status"] == "r"
@@ -295,35 +290,31 @@ def test_cancel_pending(login_user):
 def test_does_not_cancel_approved(login_user):
     db = login_user.application.db
     all_equip = db.get_all_equipment()
-    equip_id = all_equip[1].id  # Tractor 1
+    equip_id = all_equip[1].id # Tractor 1
     user_id = ObjectId()
-    db.users_db.insert_one(
-        {
-            "_id": user_id,
-            "email": "test@test.com",
-            "password": "test",
-            "role": "p",
-            "checked_out_equipment": [],
-            "inbox": [],
-            "position": None,
-            "name": "Test User",
-            "phone": "1234567890",
-        }
-    )
+    db.users_db.insert_one({
+        "_id": user_id,
+        "email": "test@test.com",
+        "password": "test",
+        "role": "p",
+        "checked_out_equipment": [],
+        "inbox": [],
+        "position": None,
+        "name": "Test User",
+        "phone": "1234567890"
+    })
     notif_id = ObjectId()
-    db.notifications_db.insert_one(
-        {
-            "_id": notif_id,
-            "sender": user_id,
-            "receiver": ObjectId(),
-            "body": "Request to checkout",
-            "date": "2026-01-26",
-            "type": "r",
-            "equipment_id": equip_id,
-            "read": False,
-            "status": "a",
-        }
-    )
+    db.notifications_db.insert_one({
+        "_id": notif_id,
+        "sender": user_id,
+        "receiver": ObjectId(),
+        "body": "Request to checkout",
+        "date": "2026-01-26",
+        "type": "r",
+        "equipment_id": equip_id,
+        "read": False,
+        "status": "a"
+    })
     count = db.cancel_pending_requests_for_equipment([equip_id])
     assert count == 0
     assert db.notifications_db.find_one({"_id": notif_id})["status"] == "a"
@@ -385,57 +376,6 @@ def test_request_equipment(login_user):
 
     # Return equipment
     res = login_user.post(
-        "/return_equipment", json={"equipment_id": "000000000000000000000000"}
+        "/return_equipment", json={"equipment_id": "000000000000000000000000", "damage_description": ""}
     )
     assert res.get_json()["result"]
-
-
-def test_equipment_editing(login_admin):
-    res = login_admin.post(
-        "/change_equipment_info",
-        json={
-            "equipment": {
-                "id": "000000000000000000000000",
-                "name": "Testing Changed Name Equipment",
-                "class": "None",
-                "year": 2000,
-                "farm": "None",
-                "model": "None",
-                "make": "None",
-                "use": "None",
-                "images": [],
-                "reports": [],
-                "checked_out": False,
-                "unavailable": False,
-                "description": "This is a place holder equipment",
-                "damaged": False,
-            }
-        },
-    )
-    assert res.get_json()["result"]
-
-
-def test_equipment_editing_fail(login_admin):
-    res = login_admin.post(
-        "/change_equipment_info",
-        json={
-            "equipment": {
-                "id": "000000000000000000000000",
-                "name": "Testing Changed Name Equipment",
-                "class": "None",
-                "year": 2000,
-                "farm": "None",
-                "model": "None",
-                "make": "None",
-                "use": "None",
-                "images": [],
-                "reports": [],
-                "checked_out": False,
-                "unavailable": False,
-                "description": "This is a place holder equipment",
-                "damaged": False,
-                "extra_key": "this should fail",
-            }
-        },
-    )
-    assert not res.get_json()["result"]

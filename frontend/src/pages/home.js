@@ -8,7 +8,7 @@ import HomeEquipmentCard from "../components/homeEquipmentCard";
 import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
 
-function Home({num_of_notifications, setNumNotifications}) {
+function Home({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
@@ -37,7 +37,7 @@ function Home({num_of_notifications, setNumNotifications}) {
 			const equip_list = data["equip_list"];
 			return Array.isArray(equip_list) ? equip_list : [];
 		} catch (error) {
-			console.log(error);
+			alert("Failed to Get Equipment");
 		}
 	};
 
@@ -58,7 +58,7 @@ function Home({num_of_notifications, setNumNotifications}) {
 				});
 			}
 		} catch (error) {
-			console.log("Error fetching filter options:", error);
+			alert("Error fetching filter options");
 		}
 	};
 
@@ -157,8 +157,8 @@ function Home({num_of_notifications, setNumNotifications}) {
 				try {
 					const filters = JSON.parse(savedFilters);
 					applyFilters(filters);
-				} catch (e) {
-					console.log("Error loading saved filters:", e);
+				} catch {
+					alert("Error Loading Saved Filters");
 				}
 			}
 		}
@@ -260,8 +260,7 @@ function Home({num_of_notifications, setNumNotifications}) {
 			} else {
 				alert(data.error || "Failed to update equipment");
 			}
-		} catch (error) {
-			console.log("Error marking equipment unavailable:", error);
+		} catch {
 			alert("An error occurred while updating equipment");
 		}
 	};

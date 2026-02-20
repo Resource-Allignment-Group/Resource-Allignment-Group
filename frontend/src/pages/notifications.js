@@ -26,13 +26,17 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 
 				const data = await res.json();
 				setNotifications((data.messages || []).reverse());
-			} catch (error) {
-				console.log("Error loading notifications: ", error);
+			} catch {
+				alert("Error Loading Notifications");
 			} finally {
 				setIsLoading(false);
 			}
 		};
 		fillNotification();
+		// Set up an interval to fetch updates every 10 seconds
+		const interval = setInterval(fillNotification, 10000);
+		// Stop the interval when the user leaves the page
+		return () => clearInterval(interval);
 	}, []);
 
 	const handleNotification = async (notification, result) => {
@@ -59,8 +63,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				setNumNotifications((num) => num + 1);
 				alert(data.message || "Something went wrong");
 			}
-		} catch (error) {
-			console.log("Error handling notification: ", error);
+		} catch {
 			// Revert on error
 			setNotifications((prev) => [...prev, notification]);
 			setNumNotifications((num) => num + 1);
@@ -93,8 +96,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				setNumNotifications((num) => num + 1);
 				alert(data.error || "Failed to dismiss notification");
 			}
-		} catch (error) {
-			console.log("Error dismissing notification: ", error);
+		} catch {
 			// Revert on error
 			setNotifications((prev) => [...prev, notificationToRemove]);
 			setNumNotifications((num) => num + 1);
@@ -125,7 +127,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 
 				<div className="content">
 					{isLoading ? (
-						<div className="loading-container">
+						<div className="response-text">
 							<p>Loading Notifications...</p>
 						</div>
 					) : notifications.length > 0 ? (
@@ -139,7 +141,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 							/>
 						))
 					) : (
-						<div className="empty-state">
+						<div className="response-text">
 							<p>No notifications to display</p>
 						</div>
 					)}

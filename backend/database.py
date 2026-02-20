@@ -41,24 +41,6 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
-        self.allowed_fields = [
-            "_id",
-            "name",
-            "class",
-            "year",
-            "farm",
-            "model",
-            "make",
-            "use",
-            "images",
-            "reports",
-            "checked_out",
-            "description",
-            "damaged",
-            "unavailable",
-            "category",
-            "replacementCost",
-        ]
 
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
@@ -74,9 +56,6 @@ class DatabaseManager:
 
     def set_notification_status(self, id: ObjectId, status: Literal["a", "r", "p"]):
         self.notifications_db.update_one({"_id": id}, {"$set": {"status": status}})
-
-    def set_notification_body(self, id: ObjectId, body: str):
-        self.notifications_db.update_one({"_id": id}, {"$set": {"body": body}})
 
     def set_request_active(self, id: ObjectId, active: bool):
         self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
@@ -106,6 +85,9 @@ class DatabaseManager:
     def set_user_position(self, id: ObjectId, new_position: str):
         self.users_db.update_one({"_id": id}, {"$set": {"position": new_position}})
 
+    def set_user_department(self, id: ObjectId, new_department: str):
+        self.users_db.update_one({"_id": id}, {"$set": {"department": new_department}})
+
     def set_equipment_year(self, id: ObjectId, year: int):
         self.equipment_db.update_one({"_id": id}, {"$set": {"year": year}})
 
@@ -124,7 +106,7 @@ class DatabaseManager:
         self,
         user_id: ObjectId,
         action: str,
-        details: str = None,
+        details: str = "",
         target_id: ObjectId = None,
     ):
         self.txt_logger.log_action(user_id, action, details, target_id)
@@ -136,7 +118,6 @@ class DatabaseManager:
         phone: int,
         email: str,
         password,
-        admin_id: ObjectId,
     ):
         if (
             self.users_db.count_documents({"email": email}) != 0
@@ -157,13 +138,6 @@ class DatabaseManager:
         )
 
         if result.acknowledged:
-            new_user_id = result.inserted_id
-
-            self.add_log(
-                user_id=admin_id,
-                action="ADD_USER",
-                details=f"Added new user: {email} (ID: {new_user_id})",
-            )
             return {
                 "result": True,
                 "message": f"User {email} has sucessfully been added to the system",
@@ -203,9 +177,10 @@ class DatabaseManager:
         )
 
     def add_user_equipment(
-        self, user_id: ObjectId, equipment_id: ObjectId, admin_id: ObjectId
+        self, user_id: ObjectId, equipment_id: ObjectId, admin_name: str
     ):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
+        user = self.users_db.find_one({"_id": user_id})
 
         if equipment["checked_out"] is True:
             return f"Equipment {equipment_id} is already checked out"
@@ -218,16 +193,15 @@ class DatabaseManager:
             {"_id": equipment_id}, {"$set": {"checked_out": True}}
         )
         self.add_log(
-            user_id=admin_id,
+            user_id=admin_name,
             action="CHECK_OUT",
-            target_id=equipment_id,
-            details=f"Assigned to user: {user_id}",
+            target_id=f"{equipment['name']}",
+            details=f"{user['name']} : {user['email']}",
         )
 
-    def delete_user_equipment(
-        self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False
-    ):
+    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False, damage_description: str | None = None):
         equipment = self.equipment_db.find_one({"_id": equipment_id})
+        user = self.users_db.find_one({"_id": user_id})
 
         if not equipment or not equipment.get("checked_out"):
             return f"Equipment {equipment_id} is not checked out"
@@ -241,14 +215,17 @@ class DatabaseManager:
         )
 
         if damaged:
-            status_msg = "Item returned DAMAGED"
+            status_msg = (
+                "Item returned DAMAGED"
+                + (f": {damage_description}" if damage_description else "")
+            )
         else:
             status_msg = "Item returned in good condition"
 
         self.add_log(
-            user_id=user_id,
+            user_id=f"{user['name']}",
             action="CHECK_IN",
-            target_id=equipment_id,
+            target_id=f"{equipment.get('name')}",
             details=status_msg,
         )
 
@@ -345,13 +322,41 @@ class DatabaseManager:
         notification_ids = user_doc.get("inbox", [])
         return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
 
+    # Get all notifs assigned to a given user in a single query
     def get_notifications_by_user(self, user_id):
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
-        if not user:
-            return []
+        if not user: return []
+        inbox_ids = user.get("inbox", [])
+        if not inbox_ids: return []
+        
+        object_ids = []
+        for item in inbox_ids:
+            try:
+                # This may be able to simplified if we find out that the weird issue with notifs
+                # was due to malformed old notifications. On DB clean, if this is still needed, 
+                # the error is likely elswhere in the codebase.
+                if isinstance(item, dict):
+                    obj_id = item.get("_id") or item.get("id")
+                    object_ids.append(ObjectId(obj_id))
+                elif isinstance(item, ObjectId):
+                    object_ids.append(item)
+                else:
+                    object_ids.append(ObjectId(item))
+            except Exception as e:
+                continue
+        
+        if not object_ids: return []
+        notification_docs = list(self.notifications_db.find({
+            "_id": {"$in": object_ids}
+        }))
+        
+        # Convert to Notification objects
         notes = []
-        for note_id in user.get("inbox", []):
-            notes.append(self.get_notification_by_id(note_id=note_id))
+        for note_info in notification_docs:
+            note = Notification()
+            note.populate_from_json(json_info=note_info)
+            notes.append(note)
+        
         return notes
 
     def get_notification_by_id(self, note_id):
@@ -400,15 +405,26 @@ class DatabaseManager:
             user_list.append(user)
         return user_list
 
-    def remove_notification_from_inbox(self, notification: Notification):
-        result = self.users_db.update_many(
+    # Remove a notif from a user's inbox
+    def remove_notification_from_inbox(self, notification):
+        # Remove from all users who have it in their inbox
+        self.users_db.update_many(
             {"inbox": ObjectId(notification.id)},
-            {"$pull": {"inbox": ObjectId(notification.id)}},
+            {"$pull": {"inbox": ObjectId(notification.id)}}
         )
-        self.notifications_db.update_one(
-            {"_id": notification.id}, {"$set": {"read": True}}
+        return True
+    
+    # Delete a notification from the users inbox and the DB
+    def delete_notification_completely(self, note_id):
+        note_id_obj = ObjectId(note_id)
+        # Remove from all user inboxes
+        self.users_db.update_many(
+            {"inbox": note_id_obj},
+            {"$pull": {"inbox": note_id_obj}}
         )
-        return result
+        # Delete the notification from DB
+        self.notifications_db.delete_one({"_id": note_id_obj})
+        return True
 
     def send_notification(self, notification: Notification):
         if notification.id is None:
@@ -427,7 +443,12 @@ class DatabaseManager:
         result_user = self.users_db.update_one(
             {"_id": notification.receiver}, {"$push": {"inbox": notification.id}}
         )
-        result_note = self.notifications_db.insert_one(notification_json)
+        # result_note = self.notifications_db.insert_one(notification_json)
+        result_note = self.notifications_db.update_one(
+            {"_id": notification.id},
+            {"$set": notification_json},
+            upsert=True
+        )
 
         if result_note.acknowledged and result_user.acknowledged:
             return {
@@ -450,17 +471,14 @@ class DatabaseManager:
         return equip_list
 
     # Allows you to edit a specific field on an equipment
-    def update_equipment_field(self, equip_id, field_name, value):
-        if field_name not in self.allowed_fields:
-            raise Exception(f"Field Name {field_name} is not permitted")
-        result = self.equipment_db.update_one(
-            {
-                "_id": ObjectId(equip_id),
-                field_name: {"$exists": True},
-            },  # needed to make sure that no new fields are added that don't already exist, if this is expected behavior please let me know and we can change it
-            {"$set": {field_name: value}},
-        )
-        return result.modified_count > 0
+    def update_equipment_field(self, equip_id, field_name, value):  #### I Don't think that this function if being called from anywhere?
+        try:
+            result = self.equipment_db.update_one(
+                {"_id": ObjectId(equip_id)}, {"$set": {field_name: value}}
+            )
+            return result.modified_count > 0
+        except:
+            return False
 
     def get_equipment_by_id(self, id: ObjectId):
         equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
@@ -549,17 +567,26 @@ class DatabaseManager:
             return user
         return None
 
-    # This is your version with the admin_id (Keep this)
-    def delete_user(self, user: User, admin_id: ObjectId):
+    def delete_user(self, user: User, admin_name: str, reason: str = "DELETED"):
         for equipment_id in user.checked_out_equipment:
             self.equipment_db.update_one(
                 {"_id": equipment_id}, {"$set": {"checked_out": False}}
             )
+        
+        # Check to see if regular account deleting or account registration denied
+        if reason == "DENIED":
+            log_details = "Registration Request Denied by Admin"
+        else:
+            log_details = "Account Removed by Admin"
 
+        user_info = f"{user.name} : {user.email}"
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
             self.add_log(
-                user_id=admin_id, action="DELETE_USER", details=f"{user.id} is deleted"
+                user_id=admin_name, 
+                action="DELETE_USER", 
+                target_id=user_info,
+                details=log_details
             )
             return True
         else:
@@ -584,16 +611,59 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
-    # If equipment marked as unavailable or request and there is a pending
-    # request for checkout, cancel the request
-    def cancel_pending_requests_for_equipment(self, equipment_ids: list):
+    # Cancels pending equipment requests for equipment that have been
+    # assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
+    # You can also, optionally, specify a notification ID to exclude an equip item
+    # from being denied (when only one user is approved to chekout an equip, it cancels for all others)
+    def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Only pending
+        }
+        
+        # If we want to exclude a specific notification (e.g., the one being approved)
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
         result = self.notifications_db.update_many(
-            {
-                "equipment_id": {"$in": equipment_ids},
-                "type": "r",
-                "status": {"$ne": "a"},  # Not approved
-            },
-            {"$set": {"status": "r"}},  # Set to rejected
+            query,
+            {"$set": {"status": "r"}}
+        )
+        return result.modified_count
+    
+    # Get IDs of pending requests for specific equipment before denying them
+    # Used to remove them from admin inboxes and notify affected users
+    def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Pending
+        }
+        
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
+        denied_requests = self.notifications_db.find(query, {"_id": 1, "sender": 1})
+        
+        notification_ids = []
+        # Use set to avoid duplicate user IDs
+        sender_ids = set()
+        
+        for req in denied_requests:
+            notification_ids.append(req["_id"])
+            sender_ids.add(ObjectId(req["sender"]))
+        
+        return notification_ids, list(sender_ids)
+
+    # Remove a notification from all admin inboxes 
+    # EX: An equip is approved to a usr, all notifs requesting that same equip are removed
+    def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
+        if not notification_ids:
+            return 0
+        result = self.users_db.update_many(
+            {"role": "a"},
+            {"$pullAll": {"inbox": notification_ids}}
         )
         return result.modified_count
 
@@ -623,17 +693,16 @@ class DatabaseManager:
             {"$pull": {"checked_out_equipment": equipment_id}},
         )
 
-        # Update all notifications referencing this equipment to mark as deleted
+        # Delete all notifications referencing this equipment
         notifications = self.notifications_db.find({"equipment_id": equipment_id})
         for notification in notifications:
-            current_body = notification["body"] if "body" in notification else ""
-            # Add [DELETED] prefix if not already present
-            if not current_body.startswith("[DELETED]"):
-                updated_body = f"[DELETED] {current_body}"
-                self.notifications_db.update_one(
-                    {"_id": notification["_id"]},
-                    {"$set": {"body": updated_body}}
-                )
+            # Remove notification from users' inbox arrays
+            self.users_db.update_many(
+                {"inbox": notification["_id"]},
+                {"$pull": {"inbox": notification["_id"]}},
+            )
+        # Delete the notifications
+        self.notifications_db.delete_many({"equipment_id": equipment_id})
 
         # Delete associated image files
         if "images" in equipment and equipment["images"]:

@@ -1,7 +1,7 @@
 // This component is currently used on the home page
 
 import "../styles/home.css";
-import { MdArrowForwardIos, MdCategory } from "react-icons/md";
+import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
 import { API_BASE } from "../config";
 import { useState } from "react";
@@ -26,9 +26,9 @@ function HomeEquipmentCard({
 		use: equipment.use,
 		replacementCost: equipment.replacementCost,
 		description: equipment.description,
-		damaged: equipment.damaged
+		damaged: equipment.damaged,
 	});
-	const [isEditing, setIsEditing] = useState(false);    
+	const [isEditing, setIsEditing] = useState(false);
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
 	function getEquipmentStatus({ checked_out, damaged, unavailable }) {
@@ -83,7 +83,7 @@ function HomeEquipmentCard({
 				alert("Something Went Wrong With Your Request");
 			}
 		} catch (error) {
-			console.log(error);
+			alert("Failed to Checkout Equipment");
 		}
 	};
 
@@ -120,13 +120,12 @@ function HomeEquipmentCard({
 				alert(data.message || "Failed to delete equipment");
 			}
 		} catch (error) {
-			console.log(error);
 			alert("There Were Problems Deleting The Equipment");
 		}
 	};
 
 	const handleEquipmentEdit = async () => {
-		setIsEditing(false)
+		setIsEditing(false);
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/change_equipment_info`, {
 				method: "POST",
@@ -142,11 +141,10 @@ function HomeEquipmentCard({
 			} else {
 				alert(data.message || "Failed to change equipment information");
 			}
-		} catch (error) {
-			console.log(error);
+		} catch {
 			alert("There Were Problems Changing The Equipment Information");
 		}
-	}
+	};
 	const status = getEquipmentStatus(equipment); //this gets the information for the equipment cards to reference later in the div
 	return (
 		<div className="equipment-card">
@@ -185,6 +183,7 @@ function HomeEquipmentCard({
 									onChange={() => onSelect(equipment.id)}
 								/>
 							</label>
+							Mark Unavailable
 						</div>
 					</div>
 				</div>
@@ -214,8 +213,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										name: e.target.value,
+											...editedEquipment,
+											name: e.target.value,
 										})
 									}
 								/>
@@ -229,8 +228,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										class: e.target.value,
+											...editedEquipment,
+											class: e.target.value,
 										})
 									}
 								/>
@@ -244,8 +243,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										make: e.target.value,
+											...editedEquipment,
+											make: e.target.value,
 										})
 									}
 								/>
@@ -259,8 +258,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										model: e.target.value,
+											...editedEquipment,
+											model: e.target.value,
 										})
 									}
 								/>
@@ -278,8 +277,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										farm: e.target.value,
+											...editedEquipment,
+											farm: e.target.value,
 										})
 									}
 								/>
@@ -293,8 +292,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										use: e.target.value,
+											...editedEquipment,
+											use: e.target.value,
 										})
 									}
 								/>
@@ -308,8 +307,8 @@ function HomeEquipmentCard({
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										replacementCost: e.target.value,
+											...editedEquipment,
+											replacementCost: e.target.value,
 										})
 									}
 								/>
@@ -323,8 +322,8 @@ function HomeEquipmentCard({
 									checked={editedEquipment?.damaged || false}
 									onChange={(e) =>
 										setEquipment({
-										...editedEquipment,
-										damaged: e.target.checked,
+											...editedEquipment,
+											damaged: e.target.checked,
 										})
 									}
 								/>
@@ -336,17 +335,17 @@ function HomeEquipmentCard({
 							{/* "Read only" on display, this can change when we open the 
               				form to edit the equipment details */}
 							<input
-									className="equipment-value"
-									type="text"
-									value={editedEquipment.description}
-									disabled={!isEditing}
-									onChange={(e) =>
-										setEquipment({
+								className="equipment-value"
+								type="text"
+								value={editedEquipment.description}
+								disabled={!isEditing}
+								onChange={(e) =>
+									setEquipment({
 										...editedEquipment,
 										description: e.target.value,
-										})
-									}
-								/>
+									})
+								}
+							/>
 						</div>
 					</div>
 
@@ -369,10 +368,18 @@ function HomeEquipmentCard({
 							>
 								Request Checkout
 							</button>
-							<button className="btn-primary" hidden={(equipment.checked_out || isEditing) || !isAdmin} onClick={() => setIsEditing(true)}>
+							<button
+								className="btn-primary"
+								hidden={equipment.checked_out || isEditing || !isAdmin}
+								onClick={() => setIsEditing(true)}
+							>
 								Edit Equipment
 							</button>
-							<button className="btn-primary" hidden={equipment.checked_out || !isEditing } onClick={handleEquipmentEdit}>
+							<button
+								className="btn-primary"
+								hidden={equipment.checked_out || !isEditing}
+								onClick={handleEquipmentEdit}
+							>
 								Save
 							</button>
 							{isAdmin && (
