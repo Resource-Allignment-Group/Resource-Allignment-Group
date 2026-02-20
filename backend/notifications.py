@@ -91,7 +91,7 @@ class Notification_Manager:
                             )
                             msg.attach(attachment)
                 except Exception as e:
-                    print(f"Failed to attach {file_path}: {e}")
+                    return f"Failed to attach {file_path}: {e}"
         try:
             server = smtplib.SMTP(self.server, self.port)
             server.starttls()
@@ -120,11 +120,9 @@ class Notification_Manager:
             server.login(self.email_address, self.email_password)
             server.sendmail(self.email_address, email, msg.as_string())
             server.quit()
-            print("email sent")
             return "Email sent successfully!"
 
         except Exception as e:
-            print(e)
             return f"Error sending email: {e}"
 
     def send_account_approval_message(self, new_user: User):

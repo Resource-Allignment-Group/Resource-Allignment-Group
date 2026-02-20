@@ -1,7 +1,7 @@
 // This component is currently used on the home page
 
 import "../styles/home.css";
-import { MdArrowForwardIos, MdCategory } from "react-icons/md";
+import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
 import { API_BASE } from "../config";
 import { useState } from "react";
@@ -141,8 +141,7 @@ function HomeEquipmentCard({
 			} else {
 				alert(data.message || "Failed to change equipment information");
 			}
-		} catch (error) {
-			console.log(error);
+		} catch {
 			alert("There Were Problems Changing The Equipment Information");
 		}
 	};
@@ -184,6 +183,7 @@ function HomeEquipmentCard({
 									onChange={() => onSelect(equipment.id)}
 								/>
 							</label>
+							Mark Unavailable
 						</div>
 					</div>
 				</div>

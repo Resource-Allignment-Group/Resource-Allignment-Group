@@ -607,7 +607,6 @@ def create_app(testing=False):
         equipment_info = request.json["equipment"]
         try:
             for key in equipment_info.keys():
-                print(key, equipment_info[key])
                 if key == "id":
                     continue
                 db.update_equipment_field(
@@ -619,7 +618,6 @@ def create_app(testing=False):
                 {"result": True, "message": "Equipment info has been changed"}
             )
         except Exception as e:
-            print(str(e))
             return jsonify({"result": False, "message": str(e)})
 
     @app.route("/get_profile_info", methods=["GET"])
@@ -752,7 +750,6 @@ def create_app(testing=False):
                     makes.add(format_text(equip.make.strip()))
 
             statuses = ["Available", "Checked Out", "Damaged", "Unavailable"]
-
             # Convert sets to sorted lists
             return jsonify(
                 {
@@ -763,9 +760,7 @@ def create_app(testing=False):
                     "statuses": statuses,
                 }
             )
-
         except Exception as e:
-            print(f"Error getting filter options: {e}")
             return jsonify({"result": False, "error": str(e)})
 
     # Endpoint for user entered search parameters

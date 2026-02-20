@@ -41,7 +41,7 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
-        
+
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
 
@@ -343,7 +343,6 @@ class DatabaseManager:
                 else:
                     object_ids.append(ObjectId(item))
             except Exception as e:
-                print(f"Error processing inbox item: {e}")
                 continue
         
         if not object_ids: return []

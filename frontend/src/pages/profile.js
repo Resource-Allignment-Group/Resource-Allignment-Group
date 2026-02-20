@@ -45,8 +45,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 					position: user_info.position || "",
 					department: user_info.department || "",
 				});
-			} catch (err) {
-				console.error(err);
+			} catch {
 				alert("Could not load profile information");
 			}
 		};
@@ -67,8 +66,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 			if (!res.ok) throw new Error("Failed to save profile");
 
 			alert("Profile updated successfully");
-		} catch (err) {
-			console.error(err);
+		} catch {
 			alert("Error saving profile changes");
 		}
 	};
