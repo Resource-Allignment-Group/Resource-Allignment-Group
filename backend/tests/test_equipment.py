@@ -427,4 +427,4 @@ def test_equipment_editing_fail(login_admin):
             }
         },
     )
-    assert res.get_json()["result"]
+    assert not res.get_json()["result"]
