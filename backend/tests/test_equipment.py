@@ -379,3 +379,52 @@ def test_request_equipment(login_user):
         "/return_equipment", json={"equipment_id": "000000000000000000000000", "damage_description": ""}
     )
     assert res.get_json()["result"]
+
+def test_equipment_editing(login_admin):
+    res = login_admin.post(
+        "/change_equipment_info",
+        json={
+            "equipment": {
+                "id": "000000000000000000000000",
+                "name": "Testing Changed Name Equipment",
+                "class": "None",
+                "year": 2000,
+                "farm": "None",
+                "model": "None",
+                "make": "None",
+                "use": "None",
+                "images": [],
+                "reports": [],
+                "checked_out": False,
+                "unavailable": False,
+                "description": "This is a placeholder equipment",
+                "damaged": False
+            }
+        },
+    )
+    assert res.get_json()["result"]
+
+def test_equipment_editing_fail(login_admin):
+    res = login_admin.post(
+        "/change_equipment_info",
+        json={
+            "equipment": {
+                "id": "000000000000000000000000",
+                "name": "Testing Changed Name Equipment",
+                "class": "None",
+                "year": 2000,
+                "farm": "None",
+                "model": "None",
+                "make": "None",
+                "use": "None",
+                "images": [],
+                "reports": [],
+                "checked_out": False,
+                "unavailable": False,
+                "description": "This is a placeholder equipment",
+                "damaged": False,
+                "extra_key": "this should fail",
+            }
+        },
+    )
+    assert not res.get_json()["result"]
