@@ -53,15 +53,42 @@ def create_app(testing=False):
     scheduler = init_scheduler(db, nm, report_generator)
     setup_report_routes(app, report_generator)
 
+    # This function will run before each API call
+    # Users that've been deleted from the sys will have their session
+    # cleared. /authenticate will read the 401 error and redirect that user to the login page
+    @app.before_request
+    def check_user_exists():
+        # We still want to get user input in these routes, so ignore them
+        if request.endpoint in ['authenticate', 'register'] or not request.endpoint:
+            return
+
+        # If there is a session, verify the user still exists in the DB
+        if "user" in session:
+            user = db.get_user_by_id(ObjectId(session["id"]))
+            if not user:
+                # The account was deleted
+                # Remove the session cookie
+                session.clear() 
+                return jsonify({
+                    "result": False, 
+                    "message": "Account no longer exists. Logging out."
+                }), 401
+
     @app.route("/authenticate", methods=["POST", "GET"])
     def authenticate():
         data = request.json
         email = data["email"]
         password = data["password"]
-
+        
+        if not email or not password:
+            return jsonify({"result": False, "message": "Email and password are required"})
+        
         # TODO:make sure that this try and except actually works the way it should
         try:
             user = db.get_user_by_email(email=email)
+            if not user:
+                return jsonify({"result": False, "message": "No account found with that email"})
+            
             hashed_passowrd = db.get_password_by_email(email=email)
             if check_password(
                 origional_password=password, hashed_password=hashed_passowrd
@@ -76,9 +103,8 @@ def create_app(testing=False):
                     return jsonify(
                         {"result": True, "message": "success", "role": user.role}
                     )
-
             else:
-                return jsonify({"result": False, "message": "Something went wrong"})
+                return jsonify({"result": False, "message": "Incorrect Credentials"})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
 
@@ -509,6 +535,10 @@ def create_app(testing=False):
         num_total, num_available, num_used, num_damaged, num_unavailable = (
             db.get_dashboard_info()
         )
+        # Get the admins preference for monthly report gen
+        admin_id = session["id"]
+        user = db.get_user_by_id(ObjectId(admin_id))
+
         return jsonify(
             {
                 "result": True,
@@ -517,6 +547,7 @@ def create_app(testing=False):
                 "used": num_used,
                 "damaged": num_damaged,
                 "unavailable": num_unavailable,
+                "receive_reports": user.receive_reports,
             }
         )
 
@@ -562,18 +593,30 @@ def create_app(testing=False):
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
         data = request.json
-
         admin_name = session.get("name")
         if not admin_name:
             return jsonify({"result": False, "message": "Admin session expired"}), 401
-        notifications = db.get_notifications_by_user(ObjectId(data["user"]["id"]))
+        
+        # Get the ID of the admin deleting an account
+        # And the ID of the user to delete
+        cur_session_id = session["id"]
+        target_user_id = ObjectId(data["user"]["id"])
+        # Remove that users notifications from the database
+        notifications = db.get_notifications_by_user(target_user_id)
         for note in notifications:
             db.delete_notification(note_id=note.id)
             db.remove_notification_from_inbox(notification=note)
+        
+        # Delete the user
         user = db.get_user_by_id(ObjectId(data["user"]["id"]))
         result = db.delete_user(user=user, admin_name=admin_name)
+        
         if result:
-            return jsonify({"result": True})
+            # Check if the user just deleted themselves
+            if str(target_user_id) == str(cur_session_id):
+                session.clear()
+                return jsonify({"result": True, "self_deleted": True})
+            return jsonify({"result": True, "self_deleted": False})
         else:
             return jsonify({"result": False})
 
@@ -630,7 +673,7 @@ def create_app(testing=False):
         data = request.json
         db.set_user_name(
             id=ObjectId(session["id"]),
-            new_name=f"{data['fname'].capitalize()} {data['lname'].capitalize()}",
+            new_name=f"{data['fname'].strip()} {data['lname'].strip()}",
         )
         db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
         db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
@@ -920,6 +963,20 @@ def create_app(testing=False):
                 )
         except Exception as e:
             return jsonify({"result": False, "message": str(e)}), 500
+
+    # Updates the admins preference for receiving monthly reports or not
+    @app.route('/update_report_preference', methods=['POST'])
+    def update_report_pref():
+        admin_id = ObjectId(session['id'])
+        # Get the toggle value (True/False) from the frontend
+        data = request.get_json()
+        receive_reports = data['receive_reports']
+        
+        res = db.update_admin_report_preference(admin_id=admin_id, action=receive_reports)
+        if res:
+            return jsonify({"result": True, "message": "Preference updated"})
+        else:
+            return jsonify({"result": False, "message": "Database update failed"})
 
     return app
 

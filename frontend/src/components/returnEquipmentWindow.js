@@ -87,7 +87,6 @@ function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 								<option value="">Select an option</option>
 								<option value="yes">Yes</option>
 								<option value="no">No</option>
-								<option value="partially">Partially</option>
 							</select>
 						</label>
 

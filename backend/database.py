@@ -123,6 +123,19 @@ class DatabaseManager:
             {"_id": ObjectId(id)}, {"$set": {"checked_out": checked_out}}
         )
 
+    # Update the users preference to receive automatic monthly reports
+    def update_admin_report_preference(self, admin_id: ObjectId, action: bool):
+        try:
+            # Use the internal collection (likely self.db.users or similar)
+            # Check if your class uses 'self.db' or 'self.client' internally
+            self.users_db.update_one(
+                {"_id": ObjectId(admin_id)},
+                {"$set": {"receive_reports": action}}
+            )
+            return True
+        except Exception:
+            return False
+
     def add_log(
         self,
         user_id: ObjectId,
@@ -153,7 +166,7 @@ class DatabaseManager:
                 "checked_out_equipment": [],
                 "inbox": [],
                 "position": None,
-                "name": fname.capitalize() + " " + lname.capitalize(),
+                "name": fname + " " + lname,
                 "phone": phone,
             }
         )

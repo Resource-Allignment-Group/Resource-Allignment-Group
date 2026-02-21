@@ -1,7 +1,6 @@
 import "../styles/default.css";
 import { useState, useEffect } from "react";
 import { API_BASE } from "../config";
-// Import componets that will make up the my equipment page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import MyEquipmentCard from "../components/myEquipmentCard";
@@ -11,6 +10,7 @@ function MyEquipment({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
 
 	const fillEquipment = async () => {
 		try {
@@ -26,8 +26,10 @@ function MyEquipment({ num_of_notifications, setNumNotifications }) {
 		}
 	};
 	useEffect(() => {
+		setIsLoading(true);
 		fillEquipment().then((equip_list) => {
 			setEquipment([...equip_list].reverse());
+			setIsLoading(false);
 		});
 	}, []);
 
@@ -55,16 +57,26 @@ function MyEquipment({ num_of_notifications, setNumNotifications }) {
 				{/* Scrollable content  */}
 				<div className="content">
 					{/* Scrollable equipment items are a seperate component */}
-					{equipment.map((item) => (
-						<MyEquipmentCard
-							key={item.id}
-							equipment={item}
-							isExpanded={expandedCard === item.id}
-							onToggle={() =>
-								setExpandedCard(expandedCard === item.id ? null : item.id)
-							}
-						/>
-					))}
+					{isLoading ? (
+						<div className="response-text">
+							<p>Loading Your Equipment...</p>
+						</div>
+					) : equipment.length > 0 ? (
+						equipment.map((item) => (
+							<MyEquipmentCard
+								key={item.id}
+								equipment={item}
+								isExpanded={expandedCard === item.id}
+								onToggle={() =>
+									setExpandedCard(expandedCard === item.id ? null : item.id)
+								}
+							/>
+						))
+					) : (
+						<div className="response-text">
+							<p>You have no equipment checked out.</p>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Authentication";
 import "../styles/login.css";
@@ -14,15 +14,14 @@ function Login() {
 		if (e) e.preventDefault();
 		try {
 			// Call login function in AuthProvider.js
-			const success = await login(email, password);
+			const result = await login(email, password);
 
-			if (success) {
+			if (result.success) {
 				navigate("/home");
 			} else {
-				alert("Invalid email or password");
+				alert(result.message || "Invalid email or password");
 			}
 		} catch (error) {
-			console.error("Login error:", error);
 			alert("Something went wrong");
 		}
 	};

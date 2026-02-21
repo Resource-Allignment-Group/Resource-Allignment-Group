@@ -3,7 +3,13 @@
 import "../styles/myrequests.css";
 import { MdArrowForwardIos } from "react-icons/md";
 
-function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
+function MyRequestsCard({
+	equipment,
+	notification,
+	isExpanded,
+	onToggle,
+	onDismiss,
+}) {
 	const STATUS_MAP = {
 		a: "Approved",
 		p: "Pending",
@@ -18,7 +24,7 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 	// It will display the stylized badge associated to that status
 	function getStatusClass(status) {
 		if (status === "Approved") return "status-approved";
-		if (status === "Pending") return "status-pending"; //This needs to have an added char field in the notifications db, will figure it out in a later push because I am tired
+		if (status === "Pending") return "status-pending";
 		if (status === "Denied") return "status-denied";
 		return "";
 	}
@@ -57,6 +63,16 @@ function MyRequestsCard({ equipment, notification, isExpanded, onToggle }) {
 				>
 					<MdArrowForwardIos />
 				</button>
+
+				{/* The button for users to dismiss old equip requests approved/denied */}
+				{(notification.status === "a" || notification.status === "r") && (
+					<button
+						className="dismiss-button"
+						onClick={() => onDismiss(notification)}
+					>
+						✕
+					</button>
+				)}
 			</div>
 
 			{/* Expand the card that had the arrow selected  */}
