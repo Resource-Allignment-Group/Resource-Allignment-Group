@@ -15,6 +15,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 	const [selectedEquipment, setSelectedEquipment] = useState(new Set());
 	const [selectAll, setSelectAll] = useState(false);
 	const [filteredEquipment, setFilteredEquipment] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
 	const [activeFilters, setActiveFilters] = useState(() => {
 		// Initialize the filter states from localStorage instead of defaults
 		const saved = localStorage.getItem("equipmentFilters");
@@ -64,10 +65,12 @@ function Home({ num_of_notifications, setNumNotifications }) {
 
 	// On page load, fetch the equipment and the filter options for the sidebar
 	useEffect(() => {
+		setIsLoading(true);
 		// Fetch both equipment and filter options on load
 		GetEquipment().then((equip_list) => {
 			setEquipment(equip_list);
 			setFilteredEquipment(equip_list);
+			setIsLoading(false);
 		});
 		GetFilterOptions();
 	}, []);
@@ -161,10 +164,10 @@ function Home({ num_of_notifications, setNumNotifications }) {
 					alert("Error Loading Saved Filters");
 				}
 			}
+			setIsLoading(false);
 		}
 	}, [equipment, applyFilters]);
 
-	// Filter equipment based on the selected filters
 	const handleFilter = (filters) => {
 		setActiveFilters(filters);
 
@@ -333,7 +336,11 @@ function Home({ num_of_notifications, setNumNotifications }) {
 				{/* Scrollable content  */}
 				<div className="content">
 					{/* Scrollable equipment items are a seperate component */}
-					{filteredEquipment.length === 0 ? (
+					{isLoading ? (
+						<div className="response-text">
+							<p>Loading Equipment...</p>
+						</div>
+					) : filteredEquipment.length === 0 ? (
 						<div className="no-results">
 							<p>No equipment found matching your filters.</p>
 						</div>

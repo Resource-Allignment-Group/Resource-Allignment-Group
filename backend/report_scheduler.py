@@ -21,7 +21,12 @@ class ReportScheduler:
         try:
             # Get all admins, then make a list of their emails
             admins = self.db.get_administrators()
-            admin_emails = [a.email for a in admins if hasattr(a, 'email') and a.email]
+            # We check for a 'receive_reports' attribute. If it's missing, default to True.
+            # This allows admins to receive the monthly reports only if they have it turned on
+            admin_emails = [
+                a.email for a in admins 
+                if hasattr(a, 'email') and a.email and getattr(a, 'receive_reports', True)
+            ]
             # Don't generate a report if no admins were found
             if not admin_emails:
                 return False

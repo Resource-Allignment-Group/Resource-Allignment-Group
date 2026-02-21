@@ -5,6 +5,7 @@
 	border-radius: 8px;
 	margin-bottom: 20px;
 	overflow: hidden;
+	position: relative;
 }
 
 .my-requests-card .status-row {
@@ -38,6 +39,10 @@ request notification for styling */
 .my-requests-card .status-denied {
 	background-color: #ffcdd2;
 	color: #c62828;
+}
+
+.my-requests-card .dismiss-button {
+	margin: 20px;
 }
 
 .my-requests-card .card-details {

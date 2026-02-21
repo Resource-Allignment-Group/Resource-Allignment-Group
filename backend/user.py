@@ -10,6 +10,7 @@ class User:
         self.phone = None
         self.name = None
         self.department = None
+        self.receive_reports = True
 
     def fill_inbox(self, db):
         notifications = db.get_notifications_by_user(self.id)
@@ -31,6 +32,7 @@ class User:
             self.phone = db_object.get("phone", "")
             self.name = db_object.get("name", "Unknown")
             self.email = db_object.get("email", "")
+            self.receive_reports = db_object.get("receive_reports", True)
 
     def to_dict(self):
         return {
@@ -45,4 +47,5 @@ class User:
             "checked_out_equipment": [
                 str(equip) for equip in self.checked_out_equipment
             ],
+            "receive_reports": self.receive_reports,
         }

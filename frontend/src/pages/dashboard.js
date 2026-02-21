@@ -16,6 +16,8 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 	const [num_unavailable, setNumUnavailable] = useState(0);
 	const [num_total, setTotal] = useState(0);
 	const [showModal, setShowModal] = useState(false);
+	const [receiveReports, setReceiveReports] = useState(true);
+	const [isLoading, setIsLoading] = useState(true);
 
 	// USed to allow admins to manually download monthly reports
 	const downloadReport = () => {
@@ -31,6 +33,7 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 	useEffect(() => {
 		const GetDashboardInfo = async () => {
 			try {
+				setIsLoading(true);
 				const res = await fetch(`http://${API_BASE}:5000/get_dashboard_info`, {
 					credentials: "include",
 				});
@@ -41,12 +44,35 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 				setNumAvailable(data.available);
 				setNumUnavailable(data.unavailable);
 				setTotal(data.total);
+				// Set the admins report gen preference, default true
+				setReceiveReports(data.receive_reports ?? true);
 			} catch (error) {
 				alert("Something Went Wrong Gathering The Dashboard Information");
+			} finally {
+				setIsLoading(false);
 			}
 		};
 		GetDashboardInfo();
 	}, []);
+
+	// Updates the admins preference for receiving
+	// automatic monthly reports or not
+	const handleToggleReports = async (e) => {
+		const newValue = e.target.checked;
+		setReceiveReports(newValue);
+		try {
+			await fetch(`http://${API_BASE}:5000/update_report_preference`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ receive_reports: newValue }),
+			});
+		} catch (error) {
+			alert("Failed to update report preference");
+			setReceiveReports(!newValue);
+		}
+	};
+
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -73,50 +99,72 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 
 				{/* Dashboard content */}
 				<div className="dashboard-content">
-					<div className="dashboard-card">
-						<h3 className="section-title">Equipment Metrics</h3>
-						{/* Placeholder statistic cards */}
-						{/* Connect this to backend with actual data, refresh daily? */}
-						<div className="stats-grid">
-							<div className="stat-card blue">
-								<h4>Total</h4>
-								<p className="stat-number">{num_total}</p>
-							</div>
-
-							<div className="stat-card green">
-								<h4>Available</h4>
-								<p className="stat-number">{num_available}</p>
-							</div>
-
-							<div className="stat-card yellow">
-								<h4>In Use</h4>
-								<p className="stat-number">{num_in_use}</p>
-							</div>
-
-							<div className="stat-card red">
-								<h4>Damaged</h4>
-								<p className="stat-number">{num_damaged}</p>
-							</div>
-
-							<div className="stat-card gray">
-								<h4>Unavailable</h4>
-								<p className="stat-number">{num_unavailable}</p>
-							</div>
+					{isLoading ? (
+						<div className="response-text">
+							<p>Loading Dashboard Metrics...</p>
 						</div>
+					) : (
+						<>
+							<div className="dashboard-card">
+								<h3 className="section-title">Equipment Metrics</h3>
+								{/* Placeholder statistic cards */}
+								{/* Connect this to backend with actual data, refresh daily? */}
+								<div className="stats-grid">
+									<div className="stat-card blue">
+										<h4>Total</h4>
+										<p className="stat-number">{num_total}</p>
+									</div>
 
-						{/* Action buttons */}
-						<div className="action-buttons-row">
-							<button className="action-button" onClick={downloadReport}>
-								Generate Monthly Report
-							</button>
-							<button
-								className="action-button"
-								onClick={() => setShowModal(true)}
-							>
-								Add Equipment
-							</button>
-						</div>
-					</div>
+									<div className="stat-card green">
+										<h4>Available</h4>
+										<p className="stat-number">{num_available}</p>
+									</div>
+
+									<div className="stat-card yellow">
+										<h4>In Use</h4>
+										<p className="stat-number">{num_in_use}</p>
+									</div>
+
+									<div className="stat-card red">
+										<h4>Damaged</h4>
+										<p className="stat-number">{num_damaged}</p>
+									</div>
+
+									<div className="stat-card gray">
+										<h4>Unavailable</h4>
+										<p className="stat-number">{num_unavailable}</p>
+									</div>
+								</div>
+
+								{/* Action buttons */}
+								<div className="action-buttons-container">
+									<div className="action-buttons-row">
+										<button className="action-button" onClick={downloadReport}>
+											Generate Monthly Report
+										</button>
+
+										<button
+											className="action-button"
+											onClick={() => setShowModal(true)}
+										>
+											Add Equipment
+										</button>
+									</div>
+									<div className="checkbox-row">
+										<label className="report-checkbox-label">
+											<input
+												type="checkbox"
+												checked={receiveReports}
+												onChange={handleToggleReports}
+												className="report-checkbox"
+											/>
+										</label>
+										Receive Automated Monthly Reports Via Email
+									</div>
+								</div>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 			<AddEquipmentModal
