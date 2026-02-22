@@ -128,8 +128,9 @@ class DatabaseManager:
 
     #region Report Generation
 
-    # Update the users preference to receive automatic monthly reports
+    
     def update_admin_report_preference(self, admin_id: ObjectId, action: bool) -> bool:
+        """Update the users preference to receive automatic monthly reports"""
         try:
             # Use the internal collection (likely self.db.users or similar)
             # Check if your class uses 'self.db' or 'self.client' internally
@@ -371,8 +372,8 @@ class DatabaseManager:
         except Exception as e:
             raise e
         
-    # Update multiple equipment items as unavailable at once
     def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
+        """Update multiple equipment items as unavailable at onces"""
         try:
             if not equipment_ids:
                 return 0
@@ -446,8 +447,8 @@ class DatabaseManager:
         except Exception as e:
             raise e
         
-    # Allows you to edit a specific field on an equipment
     def update_equipment_field(self, equip_id, field_name, value):
+        """Allows you to edit a specific field on an equipment"""
         try:
             if field_name not in self.allowed_fields:
                 raise Exception(f"Field Name {field_name} is not permitted")
@@ -503,8 +504,9 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-    # Get all notifs assigned to a given user in a single query
+    
     def get_notifications_by_user(self, user_id):
+        """Get all notifs assigned to a given user in a single query"""
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
 
         if not user:
@@ -545,8 +547,9 @@ class DatabaseManager:
             return user.get("email", "No Email Found")
         return "Deleted User"
 
-    # Remove a notif from a user's inbox
+    
     def remove_notification_from_inbox(self, notification):
+        """Remove a notif from a user's inbox"""
         # Remove from all users who have it in their inbox
         try:
             self.users_db.update_many(
@@ -557,8 +560,9 @@ class DatabaseManager:
         except Exception as e:
             raise e
     
-    # Delete a notification from the users inbox and the DB
+    
     def delete_notification_completely(self, note_id):
+        """Delete a notification from the users inbox and the DB"""
         try:
             note_id_obj = ObjectId(note_id)
             # Remove from all user inboxes
@@ -686,11 +690,13 @@ class DatabaseManager:
 
     #region Requests
     
-    # Cancels pending equipment requests for equipment that have been
-    # assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
-    # You can also, optionally, specify a notification ID to exclude an equip item
-    # from being denied (when only one user is approved to chekout an equip, it cancels for all others)
     def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """
+        Cancels pending equipment requests for equipment that have been
+        assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
+        You can also, optionally, specify a notification ID to exclude an equip item
+        from being denied (when only one user is approved to chekout an equip, it cancels for all others)
+        """
         try:
             query = {
                 "equipment_id": {"$in": equipment_ids},
@@ -710,9 +716,11 @@ class DatabaseManager:
         except Exception as e:
             raise e
         
-    # Get IDs of pending requests for specific equipment before denying them
-    # Used to remove them from admin inboxes and notify affected users
     def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """
+        Get IDs of pending requests for specific equipment before denying them
+        Used to remove them from admin inboxes and notify affected users
+        """
         try:
             query = {
                 "equipment_id": {"$in": equipment_ids},

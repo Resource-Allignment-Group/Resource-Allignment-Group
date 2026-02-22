@@ -53,11 +53,15 @@ def create_app(testing=False):
     scheduler = init_scheduler(db, nm, report_generator)
     setup_report_routes(app, report_generator)
 
-    # This function will run before each API call
-    # Users that've been deleted from the sys will have their session
-    # cleared. /authenticate will read the 401 error and redirect that user to the login page
+    # region LOGGING IN / REGISTERING
+
     @app.before_request
     def check_user_exists():
+        """
+        This function will run before each API call
+        Users that've been deleted from the sys will have their session
+        cleared. /authenticate will read the 401 error and redirect that user to the login page
+        """
         # We still want to get user input in these routes, so ignore them
         if request.endpoint in ['authenticate', 'register'] or not request.endpoint:
             return
