@@ -16,6 +16,7 @@ class Equipment:
         use: str = None,
         images: list[UUID] = None,
         reports: list[UUID] = None,
+        display_image: str = None,
         checked_out: bool = False,
         description: str = None,
         damaged: bool = False,
@@ -31,6 +32,7 @@ class Equipment:
         self.use = use
         self.images = images
         self.reports = reports
+        self.display_image = display_image
         self.checked_out = checked_out
         self.description = description
         self.damaged = damaged
@@ -50,7 +52,7 @@ class Equipment:
     def get_reports(self, db):
         report_bytes = []
         for report_id in self.reports:
-            result = db.get_reports(report_id)
+            result = db.get_report(report_id)
             if type(result) is str:
                 return result
             else:
@@ -72,7 +74,14 @@ class Equipment:
         self.checked_out = json_info["checked_out"]
         self.description = json_info["description"]
         self.damaged = json_info["damaged"]
-        self.unavailable = json_info.get("unavailable", False)
+        if "display_image" in json_info:
+            self.display_image = json_info["display_image"]
+        else:
+            self.display_image = None
+        if "unavailable" in json_info:
+            self.unavailable = json_info["unavailable"]
+        else:
+            self.unavailable = False
         return 1
 
     def to_dict(self):
@@ -89,9 +98,10 @@ class Equipment:
                 "use": self.use,
                 "images": self.images,
                 "reports": self.reports,
+                "display_image": self.display_image,
                 "checked_out": self.checked_out,
                 "description": self.description,
-                "attachments": 0,  # Change later
+                "attachments": (len(self.images) if self.images else 0) + (len(self.reports) if self.reports else 0),
                 "replacementCost": 100000,  # change lateer
                 "damaged": self.damaged,
                 "unavailable": self.unavailable,

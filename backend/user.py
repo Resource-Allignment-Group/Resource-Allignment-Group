@@ -11,6 +11,7 @@ class User:
         self.name = None
         self.department = None
         self.receive_reports = True
+        self.profile_image = None
 
     def fill_inbox(self, db):
         notifications = db.get_notifications_by_user(self.id)
@@ -33,6 +34,7 @@ class User:
             self.name = db_object.get("name", "Unknown")
             self.email = db_object.get("email", "")
             self.receive_reports = db_object.get("receive_reports", True)
+            self.profile_image = db_object["profile_image"] if "profile_image" in db_object else None
 
     def to_dict(self):
         return {
@@ -48,4 +50,5 @@ class User:
                 str(equip) for equip in self.checked_out_equipment
             ],
             "receive_reports": self.receive_reports,
+            "profile_image": self.profile_image,
         }

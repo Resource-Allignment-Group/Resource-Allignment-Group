@@ -13,6 +13,7 @@ function HomeEquipmentCard({
 	isSelected,
 	onSelect,
 	onDelete,
+	onRefresh,
 }) {
 	const { role } = useAuth();
 	const isAdmin = role === "a";
@@ -29,6 +30,12 @@ function HomeEquipmentCard({
 		damaged: equipment.damaged,
 	});
 	const [isEditing, setIsEditing] = useState(false);
+	const [uploadingFile, setUploadingFile] = useState(false);
+	const imageUrl = equipment.display_image && equipment.images && equipment.images.includes(equipment.display_image)
+		? `http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${equipment.display_image}`
+		: equipment.images && equipment.images.length > 0
+		? `http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${equipment.images[0]}`
+		: null;
 	// Will check the status of the specific equipment item
 	// It will display the stylized badge associated to that status
 	function getEquipmentStatus({ checked_out, damaged, unavailable }) {
@@ -113,14 +120,88 @@ function HomeEquipmentCard({
 			const data = await res.json();
 			if (data.result) {
 				alert("Equipment deleted successfully");
-				if (onDelete) {
-					onDelete();
-				}
+				if (onDelete) onDelete();
+				if (onRefresh) onRefresh();
 			} else {
 				alert(data.message || "Failed to delete equipment");
 			}
 		} catch (error) {
 			alert("There Were Problems Deleting The Equipment");
+		}
+	};
+
+	const handleFileUpload = async (e, fileType) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		const MAX_IMAGE = 5 * 1024 * 1024;
+		const MAX_REPORT = 10 * 1024 * 1024;
+		if (fileType === "image" && (file.size > MAX_IMAGE || !["image/png", "image/jpeg", "image/jpg"].includes(file.type))) {
+			alert("Image must be PNG/JPG and under 5MB");
+			return;
+		}
+		if (fileType === "report" && (file.size > MAX_REPORT || file.type !== "application/pdf")) {
+			alert("Report must be PDF and under 10MB");
+			return;
+		}
+		setUploadingFile(true);
+		try {
+			const formData = new FormData();
+			formData.append("equipment_id", equipment.id);
+			formData.append("file_type", fileType);
+			formData.append("file", file);
+			const res = await fetch(`http://${API_BASE}:5000/upload_equipment_file`, {
+				method: "POST",
+				credentials: "include",
+				body: formData,
+			});
+			const data = await res.json();
+			if (data.result) {
+				onRefresh?.();
+			} else {
+				alert(data.message || "Upload failed");
+			}
+		} catch {
+			alert("Upload failed");
+		} finally {
+			setUploadingFile(false);
+			e.target.value = "";
+		}
+	};
+
+	const handleSetDisplayImage = async (imageId) => {
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/set_equipment_display_image`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ equipment_id: equipment.id, image_id: imageId }),
+			});
+			const data = await res.json();
+			if (data.result) onRefresh?.();
+			else alert(data.message || "Failed to set display image");
+		} catch {
+			alert("Failed to set display image");
+		}
+	};
+
+	const handleRemoveFile = async (fileId, fileType) => {
+		if (!window.confirm(`Remove this ${fileType}?`)) return;
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/remove_equipment_file`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					equipment_id: equipment.id,
+					file_id: fileId,
+					file_type: fileType,
+				}),
+			});
+			const data = await res.json();
+			if (data.result) onRefresh?.();
+			else alert(data.message || "Failed to remove file");
+		} catch {
+			alert("Failed to remove file");
 		}
 	};
 
@@ -149,9 +230,12 @@ function HomeEquipmentCard({
 	return (
 		<div className="equipment-card">
 			<div className="card-header">
-				{/* Add placeholder image later  */}
 				<div className="equipment-image">
-					<div className="image-placeholder"></div>
+					{imageUrl ? (
+						<img src={imageUrl} alt={equipment.name} className="equipment-card-img" />
+					) : (
+						<div className="image-placeholder"></div>
+					)}
 				</div>
 
 				{/* Equipment details */}
@@ -353,12 +437,56 @@ function HomeEquipmentCard({
           			This is where users can view and attach files, edit details,
           			checkout equipment item, or delete that item. */}
 					<div className="card-footer">
-						<div className="attachment-buttons">
-							{/* Define how we want to do this later  */}
-							<button className="link-button">
-								View Attachments({equipment.attachments})
-							</button>
-							<button className="link-button">Upload</button>
+						<div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
+							<div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+								<span style={{ fontWeight: 500, flexShrink: 0 }}>Attachments:</span>
+								<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+									{(() => {
+										const items = [];
+										equipment.images?.forEach((imgId) => {
+											items.push(
+												<div key={`img-${imgId}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+													<span style={{ fontSize: 14 }}>Image</span>
+													<a href={`http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${imgId}`} target="_blank" rel="noopener noreferrer" className="link-button" style={{ color: "#1976d2" }}>View</a>
+													{equipment.display_image !== imgId && isAdmin && isEditing && (
+														<button className="link-button" style={{ padding: "2px 6px", color: "#1976d2" }} onClick={() => handleSetDisplayImage(imgId)}>Set as display</button>
+													)}
+													{isAdmin && isEditing && (
+														<button className="link-button" style={{ padding: "2px 6px", color: "#c00" }} onClick={() => handleRemoveFile(imgId, "image")}>Remove</button>
+													)}
+												</div>
+											);
+										});
+										equipment.reports?.forEach((reportId) => {
+											items.push(
+												<div key={`rpt-${reportId}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+													<span style={{ fontSize: 14 }}>Report (PDF)</span>
+													<a href={`http://${API_BASE}:5000/get_equipment_report/${equipment.id}/${reportId}`} target="_blank" rel="noopener noreferrer" className="link-button" style={{ color: "#1976d2" }}>Open</a>
+													{isAdmin && isEditing && (
+														<button className="link-button" style={{ padding: "2px 6px", color: "#c00" }} onClick={() => handleRemoveFile(reportId, "report")}>Remove</button>
+													)}
+												</div>
+											);
+										});
+										if (items.length === 0) {
+											items.push(<span key="none" style={{ color: "#666", fontSize: 14 }}>None</span>);
+										}
+										return items;
+									})()}
+								</div>
+							</div>
+							{isAdmin && isEditing && (
+								<div style={{ display: "flex", gap: 8, marginLeft: 0 }}>
+									<label className="link-button" style={{ cursor: "pointer", margin: 0 }}>
+										{uploadingFile ? "Uploading..." : "Upload Image"}
+										<input type="file" accept=".png,.jpg,.jpeg" hidden onChange={(e) => handleFileUpload(e, "image")} disabled={uploadingFile} />
+									</label>
+									<label className="link-button" style={{ cursor: "pointer", margin: 0 }}>
+										{uploadingFile ? "..." : "Upload Report"}
+										<input type="file" accept=".pdf" hidden onChange={(e) => handleFileUpload(e, "report")} disabled={uploadingFile} />
+									</label>
+								</div>
+							)}
 						</div>
 						<div className="action-buttons">
 							<button

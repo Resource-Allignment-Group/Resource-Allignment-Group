@@ -22,6 +22,9 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 		position: "",
 		department: "",
 	});
+	const [userId, setUserId] = useState(null);
+	const [profileImageUrl, setProfileImageUrl] = useState(null);
+	const [uploadingImage, setUploadingImage] = useState(false);
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -47,6 +50,12 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 					position: user_info.position || "",
 					department: user_info.department || "",
 				});
+				setUserId(user_info.id);
+				if (user_info.profile_image) {
+					setProfileImageUrl(`http://${API_BASE}:5000/get_profile_image/${user_info.id}?t=${Date.now()}`);
+				} else {
+					setProfileImageUrl(null);
+				}
 			} catch {
 				alert("Could not load profile information");
 			} finally {
@@ -72,6 +81,63 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 			alert("Profile updated successfully");
 		} catch {
 			alert("Error saving profile changes");
+		}
+	};
+
+	const handleDeleteProfileImage = async () => {
+		if (!window.confirm("Remove your profile picture?")) return;
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/delete_profile_image`, {
+				method: "POST",
+				credentials: "include",
+			});
+			const data = await res.json();
+			if (data.result) {
+				setProfileImageUrl(null);
+			} else {
+				alert(data.message || "Failed to remove picture");
+			}
+		} catch {
+			alert("Failed to remove picture");
+		}
+	};
+
+	const handleProfileImageUpload = async (e) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		if (file.size > 2 * 1024 * 1024) {
+			alert("Image must be under 2MB");
+			return;
+		}
+		if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+			alert("Image must be PNG or JPG");
+			return;
+		}
+		setUploadingImage(true);
+		try {
+			const formData = new FormData();
+			formData.append("file", file);
+			const res = await fetch(`http://${API_BASE}:5000/upload_profile_image`, {
+				method: "POST",
+				credentials: "include",
+				body: formData,
+			});
+			const data = await res.json();
+			if (data.result) {
+				const profRes = await fetch(`http://${API_BASE}:5000/get_profile_info`, { credentials: "include" });
+				const profData = await profRes.json();
+				if (profData.result && profData.user && profData.user.id) {
+					setUserId(profData.user.id);
+					setProfileImageUrl(`http://${API_BASE}:5000/get_profile_image/${profData.user.id}?t=${Date.now()}`);
+				}
+			} else {
+				alert(data.message || "Upload failed");
+			}
+		} catch {
+			alert("Upload failed");
+		} finally {
+			setUploadingImage(false);
+			e.target.value = "";
 		}
 	};
 
@@ -120,8 +186,33 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 							<div className="settings-card">
 								{/* Left side */}
 								<div className="profile-section">
-									<div className="profile-picture-large"></div>
-									<button className="change-picture-btn">Change Picture</button>
+									<div className="profile-picture-large">
+										{profileImageUrl ? (
+											<img src={profileImageUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+										) : null}
+									</div>
+									<div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+										<label className="change-picture-btn" style={{ cursor: "pointer" }}>
+											{uploadingImage ? "Uploading..." : "Change Picture"}
+											<input
+												type="file"
+												accept=".png,.jpg,.jpeg"
+												hidden
+												onChange={handleProfileImageUpload}
+												disabled={uploadingImage}
+											/>
+										</label>
+										{profileImageUrl && (
+											<button
+												type="button"
+												className="change-picture-btn"
+												style={{ cursor: "pointer", background: "transparent", border: "1px solid #c00", color: "#c00" }}
+												onClick={handleDeleteProfileImage}
+											>
+												Remove Picture
+											</button>
+										)}
+									</div>
 
 									<div className="profile-info">
 										<h3>

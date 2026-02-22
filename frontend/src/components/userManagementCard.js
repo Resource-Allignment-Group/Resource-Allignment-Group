@@ -42,8 +42,16 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 	return (
 		<div className="user-management-card">
 			<div className="card-header">
-				{/* User profile circle with temporary color */}
-				<div className="user-profile-circle"></div>
+				<div className="user-profile-circle">
+					{user.profile_image ? (
+						<img
+							src={`http://${API_BASE}:5000/get_profile_image/${user.id}`}
+							alt={user.name}
+							className="user-profile-img"
+							style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+						/>
+					) : null}
+				</div>
 
 				{/* User details */}
 				<div className="equipment-info">
