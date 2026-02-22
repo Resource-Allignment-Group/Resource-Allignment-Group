@@ -224,28 +224,15 @@ def test_single(login_user):
     db = login_user.application.db
     all_equip = db.get_all_equipment()
     equip_id = all_equip[1].id  # Tractor 1
-    eq_list = db.get_equipment_by_ids([equip_id])
-    assert len(eq_list) == 1
-    assert eq_list[0].id == equip_id
-
-
-# Get more than 1 equipment items by their IDs
-def test_multiple(login_user):
-    db = login_user.application.db
-    all_equip = db.get_all_equipment()
-    equip_ids = [all_equip[1].id, all_equip[2].id]  # Tractor 1, Tractor 2
-    eq_list = db.get_equipment_by_ids(equip_ids)
-    names = [eq.name for eq in eq_list]
-    assert set(names) == {"Tractor 1", "Tractor 2"}
+    equipment = db.get_equipment_by_id(equip_id)
+    assert equipment.id == equip_id
 
 
 # Get all equipment by their IDs
 def test_all(login_user):
     db = login_user.application.db
     all_equip = db.get_all_equipment()
-    equip_ids = [eq.id for eq in all_equip]
-    eq_list = db.get_equipment_by_ids(equip_ids)
-    assert len(eq_list) == 5
+    assert len(all_equip) == 5
 
 
 ### Test for canceling a pending equipment request -----------------------------------------

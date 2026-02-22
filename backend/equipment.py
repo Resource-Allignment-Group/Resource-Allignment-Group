@@ -41,17 +41,6 @@ class Equipment:
         self.unavailable = unavailable
         self.replacement_cost = replacement_cost
 
-    def get_images(self, db):
-        img_bytes = []
-        for image_id in self.images:
-            result = db.get_image(image_id)
-            if type(result) is str:
-                return result
-            else:
-                img_bytes.append(result)
-
-        return img_bytes
-
     def get_reports(self, db):
         report_bytes = []
         for report_id in self.reports:
