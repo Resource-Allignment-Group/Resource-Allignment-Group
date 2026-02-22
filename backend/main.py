@@ -357,8 +357,7 @@ def create_app(testing=False):
                         equipment_ids=[new_note.equipment_id],
                         exclude_notification_id=new_note.id
                     )
-                    # Remove denied requests from all admin inboxes
-                    db.remove_notifications_from_all_admin_inboxes(notification_ids=pending_notification_ids)
+                    [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
                     
                     # Notify users whose requests were auto-denied
                     for user_id in pending_user_ids:
@@ -609,7 +608,7 @@ def create_app(testing=False):
         
         # Delete the user
         user = db.get_user_by_id(ObjectId(data["user"]["id"]))
-        result = db.delete_user(user=user, admin_name=admin_name)
+        result = db.delete_user(user=user, admin_name=admin_name, reason="DELETED")
         
         if result:
             # Check if the user just deleted themselves
@@ -686,13 +685,11 @@ def create_app(testing=False):
     @app.route("/mark_equipment_unavailable", methods=["POST"])
     def mark_equipment_unavailable():
         data = request.get_json()
-        equipment_ids = data["equipment_ids"]
         unavailable = data["unavailable"]
 
         # Convert to ObjectIds
-        object_ids = [ObjectId(equip_id) for equip_id in equipment_ids]
         # Get all equipment in one query to check status
-        all_equipment = db.get_equipment_by_ids(object_ids)
+        all_equipment = db.get_all_equipment()
         # Will track how many items were skipped/not
         skipped_count = 0
         allowed_ids = []
@@ -929,9 +926,7 @@ def create_app(testing=False):
             )
 
             #Remove notifications from all admin inboxes
-            db.remove_notifications_from_all_admin_inboxes(
-                notification_ids=pending_notification_ids
-            )
+            [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
 
             # Send notifications to users whose requests were denied
             if "id" in session and pending_user_ids:
