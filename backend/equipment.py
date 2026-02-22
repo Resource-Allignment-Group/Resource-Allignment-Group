@@ -36,17 +36,6 @@ class Equipment:
         self.damaged = damaged
         self.unavailable = unavailable
 
-    def get_reports(self, db):
-        report_bytes = []
-        for report_id in self.reports:
-            result = db.get_reports(report_id)
-            if type(result) is str:
-                return result
-            else:
-                report_bytes.append(result)
-
-        return report_bytes
-
     def fill_from_json(self, json_info):
         self.id = ObjectId(json_info["_id"])
         self._class = json_info["class"]
@@ -62,14 +51,13 @@ class Equipment:
         self.description = json_info["description"]
         self.damaged = json_info["damaged"]
         self.unavailable = json_info.get("unavailable", False)
-        return 1
+        return True
 
     def to_dict(self):
-        return (  # should really look through this in order to see what we need and what we don't
+        return ( 
             {
                 "id": str(self.id),
                 "name": self.name,
-                "checkedOutBy": "Need to impliment who is checked out by",  # need to impliment by looking at users who have this in their equipment
                 "class": self._class,
                 "year": self.year,
                 "farm": self.farm,
@@ -80,8 +68,8 @@ class Equipment:
                 "reports": self.reports,
                 "checked_out": self.checked_out,
                 "description": self.description,
-                "attachments": 0,  # Change later
-                "replacementCost": 100000,  # change lateer
+                "attachments": 0, #TODO ADD FUNCTIONALITY TO THIS
+                "replacementCost": 100000,
                 "damaged": self.damaged,
                 "unavailable": self.unavailable,
             }
