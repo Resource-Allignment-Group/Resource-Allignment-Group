@@ -1,5 +1,4 @@
 // This component is currently used on the home page
-
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
@@ -13,6 +12,7 @@ function HomeEquipmentCard({
 	onToggle,
 	isSelected,
 	onSelect,
+	onEdit,
 	onDelete,
 	onRefresh,
 }) {
@@ -21,7 +21,7 @@ function HomeEquipmentCard({
 	const [editedEquipment, setEquipment] = useState({
 		id: equipment.id,
 		name: equipment.name,
-		category: equipment.class,
+		class: equipment.class,
 		make: equipment.make,
 		model: equipment.model,
 		farm: equipment.farm,
@@ -76,33 +76,8 @@ function HomeEquipmentCard({
 		}
 	};
 
-	const handleDelete = async () => {
-		if (!isAdmin) {
-			alert("Only administrators can delete equipment");
-			return;
-		}
-		const confirmDelete = window.confirm(
-			`Are you sure you want to delete "${equipment.name}"? `,
-		);
-		if (!confirmDelete) return;
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/delete_equipment`, {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ equipment_id: equipment.id }),
-			});
-			const data = await res.json();
-			if (data.result) {
-				alert("Equipment deleted successfully");
-				if (onDelete) onDelete();
-				if (onRefresh) onRefresh();
-			} else {
-				alert(data.message || "Failed to delete equipment");
-			}
-		} catch (error) {
-			alert("There Were Problems Deleting The Equipment");
-		}
+	const handleDelete = () => {
+		onDelete(equipment.id, equipment.name);
 	};
 
 	const handleFileUpload = async (e, fileType) => {
@@ -190,22 +165,9 @@ function HomeEquipmentCard({
 		}
 	};
 
-	// Allow the admin to edit equipment fields
-	const handleEquipmentEdit = async () => {
+	const handleEquipmentEdit = () => {
 		setIsEditing(false);
-		try {
-			const res = await fetch(`http://${API_BASE}:5000/change_equipment_info`, {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ equipment: editedEquipment }),
-			});
-			const data = await res.json();
-			if (data.result) alert("Equipment information changed successfully");
-			else alert(data.message || "Failed to change equipment information");
-		} catch {
-			alert("There Were Problems Changing The Equipment Information");
-		}
+		onEdit(editedEquipment);
 	};
 
 	const status = getEquipmentStatus(equipment);
@@ -286,11 +248,11 @@ function HomeEquipmentCard({
 								/>
 							</div>
 							<div className="detail-row">
-								<span className="label">Category</span>
+								<span className="label">Class</span>
 								<input
 									className="equipment-value"
 									type="text"
-									value={editedEquipment.category}
+									value={editedEquipment.class}
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({ ...editedEquipment, class: e.target.value })

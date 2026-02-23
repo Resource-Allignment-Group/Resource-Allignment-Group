@@ -65,12 +65,12 @@ class DatabaseManager:
             "description",
             "damaged",
             "unavailable",
-            "category",
             "replacement_cost",
             "display_image",
         }
 
     #region Setters
+
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
 
@@ -134,9 +134,7 @@ class DatabaseManager:
             {"_id": ObjectId(id)}, {"$set": {"checked_out": checked_out}}
         )
 
-
     #region Report Generation
-
     
     def update_admin_report_preference(self, admin_id: ObjectId, action: bool) -> bool:
         """Update the users preference to receive automatic monthly reports"""
@@ -151,8 +149,8 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-
     # region Logging
+
     def add_log(
         self,
         user_id: ObjectId,
@@ -163,6 +161,7 @@ class DatabaseManager:
         self.txt_logger.log_action(user_id, action, details, target_id)
     
     #region Users
+
     def get_all_users(self):
         try:
             all_users = []
@@ -173,7 +172,6 @@ class DatabaseManager:
         except Exception as e:
             raise e
         
-    
     def get_user_by_equipment(self, equipment_id: ObjectId):
         """See what equipment a user has checked out"""
         try:
@@ -293,6 +291,7 @@ class DatabaseManager:
             raise e
             
     #region Equipment
+
     def add_equipment(self, equipment: Equipment):
         try:
             if not isinstance(equipment, Equipment):
@@ -446,8 +445,7 @@ class DatabaseManager:
             return result.acknowledged and result.deleted_count > 0
         except Exception as e:
             raise e
-        
-        
+             
     def get_all_equipment(self):
         try:
             cursor = self.equipment_db.find({})
@@ -488,7 +486,6 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-
     def get_equipment_by_user(self, user_id: ObjectId):
         try:
             equip_list = []
@@ -500,7 +497,9 @@ class DatabaseManager:
             return equip_list
         except Exception as e:
             raise e
+    
     #region Large Files
+
     def add_image(self, equipment_id: ObjectId, image: Image):
         img_uuid = str(ObjectId())
         image_path = self.images_db / img_uuid
@@ -737,11 +736,16 @@ class DatabaseManager:
                 return []
 
             notification_ids = user_doc.get("inbox", [])
-            return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
+            if not notification_ids: 
+                return []
+            # Get the notifs in the user inbox in 1 DB fetch
+            notifications = list(self.notifications_db.find({"_id": {"$in": notification_ids}}))
+            # Sort them by date
+            notifications.sort(key=lambda n: n["date"])
+            return notifications
         except Exception as e:
             raise e
 
-    
     def get_notifications_by_user(self, user_id):
         """Get all notifs assigned to a given user in a single query"""
         user = self.users_db.find_one({"_id": ObjectId(user_id)})
@@ -784,7 +788,6 @@ class DatabaseManager:
             return user.get("email", "No Email Found")
         return "Deleted User"
 
-    
     def remove_notification_from_inbox(self, notification):
         """Remove a notif from a user's inbox"""
         # Remove from all users who have it in their inbox
@@ -797,7 +800,22 @@ class DatabaseManager:
         except Exception as e:
             raise e
     
-    
+    def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
+        """Remove a notification from all admin inboxes 
+        EX: An equip is approved to a usr, all notifs requesting that same equip are removed"""
+        if not notification_ids:
+            return 0
+        result = self.users_db.update_many(
+            {"role": "a"},
+            {"$pullAll": {"inbox": notification_ids}}
+        )
+        # Also mark them as read to keep the notif red bubble accurate
+        result = self.notifications_db.update_many(
+            {"_id": {"$in": notification_ids}},
+            {"$set": {"read": True}}
+        )
+        return result.modified_count
+
     def delete_notification_completely(self, note_id):
         """Delete a notification from the users inbox and the DB"""
         try:
@@ -851,9 +869,6 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-
-
-
     def get_unread_messages_by_user(self, user_id: ObjectId):
         try:
             note_infos = self.notifications_db.find({"receiver": user_id, "read": False})
@@ -883,6 +898,7 @@ class DatabaseManager:
             raise e
         
     # region Dashboard  
+
     def get_dashboard_info(self):
         try:
             num_total = self.equipment_db.count_documents({})
