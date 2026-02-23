@@ -294,6 +294,142 @@ def create_app(testing=False):
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
 
+    # @app.route("/admin_account_decision", methods=["POST"])
+    # def account_decision():
+    #     data = request.json
+    #     note_info = data["notification"]
+    #     new_note = Notification()
+    #     new_note.populate_from_json(json_info=note_info)
+
+    #     match new_note.type:
+    #         case (
+    #             "a"
+    #         ):  # if it is an account creation notification, update the users role
+    #             try:
+    #                 db.remove_notification_from_inbox(notification=new_note)
+    #                 db.set_notification_read(id=new_note.id, read=True)
+
+    #                 target_user = db.get_user_by_id(user_id=new_note.sender)
+    #                 if not target_user:
+    #                     return jsonify({"result": False, "message": "User no longer exists"})
+    #                 admin_name = session.get("name")
+
+    #                 if data["result"]:
+    #                     result_message = f"{target_user.email} has been added to the system"
+    #                     db.set_user_role(id=target_user.id, role="u")  # u for 'user'
+    #                     db.add_log(
+    #                         user_id=admin_name, 
+    #                         action="ADD_USER", 
+    #                         target_id=f"{target_user.name} : {target_user.email}",
+    #                         details="New Account Approved by Admin"
+    #                     )
+    #                 else:
+    #                     result_message = f"{target_user.email} has been rejected from the system"
+    #                     db.delete_user(user=target_user, admin_name=admin_name, reason="DENIED")
+
+    #                 for admin in db.get_administrators():
+    #                     nm.send_inform_notification(
+    #                         sender=target_user,
+    #                         receiver=admin,
+    #                         message=result_message,
+    #                     )  # might want to make the sender a "system" sender or something like that
+
+    #                 return jsonify({"result": True})
+    #             except Exception as e:
+    #                 return jsonify({"result": False, "message": str(e)})
+    #         case (
+    #             "r"
+    #         ):  
+    #             # If the notification is a equipment request, update the equipment
+    #             try:
+    #                 db.remove_notification_from_inbox(notification=new_note)
+    #                 db.set_notification_read(id=ObjectId(new_note.id), read=True)
+    #                 # Request is approved
+    #                 if data["result"]:
+    #                     admin_session_id = session.get("id")
+                        
+    #                     if not admin_session_id:
+    #                         return jsonify({"result": False, "message": "Session expired. Please log in again."}), 401
+                        
+    #                     admin_id = ObjectId(admin_session_id)
+    #                     equipment = db.get_equipment_by_id(id=new_note.equipment_id)
+                        
+    #                     # Mark the uses equipment request as approved, then checkout the equip
+    #                     db.set_notification_status(id=new_note.id, status="a")
+    #                     db.add_user_equipment(
+    #                         user_id=ObjectId(new_note.sender),
+    #                         equipment_id=ObjectId(equipment.id),
+    #                         admin_name=session.get("name")
+    #                     )
+    #                     db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
+
+    #                     # Get info about pending requests
+    #                     pending_notification_ids, pending_user_ids = db.get_pending_request_info(
+    #                         equipment_ids=[new_note.equipment_id],
+    #                         exclude_notification_id=new_note.id
+    #                     )
+    #                     # Auto-deny all other pending requests for this equipment
+    #                     db.cancel_pending_requests_for_equipment(
+    #                         equipment_ids=[new_note.equipment_id],
+    #                         exclude_notification_id=new_note.id
+    #                     )
+    #                     [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
+                        
+    #                     # Notify users whose requests were auto-denied
+    #                     for user_id in pending_user_ids:
+    #                         nm.send_inform_notification(
+    #                             sender=db.get_user_by_id(user_id=admin_id),
+    #                             receiver=db.get_user_by_id(user_id=user_id),
+    #                             message=f"Your request for {equipment.name} was denied because it was approved for another user."
+    #                         )
+
+    #                     # send notification to user that their equipment is theirs
+    #                     nm.send_inform_notification(
+    #                         sender=db.get_user_by_id(user_id=admin_id),
+    #                         receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
+    #                         equipment_id=ObjectId(equipment.id),
+    #                         message=f"Your request for {equipment.name} has been approved."
+    #                     )
+
+    #                 # send notification to user that their equipment is theirs
+    #                 nm.send_inform_notification(
+    #                     sender=db.get_user_by_id(user_id=admin_id),
+    #                     receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
+    #                     equipment_id=ObjectId(equipment.id),
+    #                     message=f"Your request for {equipment.name} has been approved."
+    #                 )
+                    
+    #                 # Fetch the real inbox count for admin after all removals
+    #                 updated_inbox = db.get_inbox_by_user(user_id=admin_id)
+    #                 remaining_count = len([n for n in updated_inbox if n is not None])
+    #                 # Return the number of notifs removed, that way the notif bubble is accurate
+    #                 return jsonify({
+    #                     "result": True,
+    #                     "message": "Equipment successfully checked out",
+    #                     "remaining_notification_count": remaining_count,
+    #                     "removed_notification_ids": [str(nid) for nid in pending_notification_ids]
+    #                 })
+    #             except Exception as e:
+    #                 return jsonify({"result": False, "message": str(e)})
+    #             # Request was denied
+    #             else:
+    #                 try:
+    #                     db.set_notification_status(id=new_note.id, status="r")
+    #                     equipment = db.get_equipment_by_id(new_note.equipment_id)
+    #                     # Check if equipment exists before asking for its name
+    #                     if equipment:
+    #                         equip_name = equipment.name
+    #                     else:
+    #                         equip_name = "Unknown Equipment (Deleted)"
+    #                     nm.send_inform_notification(
+    #                         sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
+    #                         receiver=db.get_user_by_id(user_id=new_note.sender),
+    #                         message=f"Your request has been denied for {equip_name}",
+    #                     )
+    #                     return jsonify({"result": True})
+    #                 except Exception as e:
+    #                     return jsonify({"result": False, "message": str(e)})
+
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
         data = request.json
@@ -302,9 +438,8 @@ def create_app(testing=False):
         new_note.populate_from_json(json_info=note_info)
 
         match new_note.type:
-            case (
-                "a"
-            ):  # if it is an account creation notification, update the users role
+            # Account creation request
+            case "a":
                 try:
                     db.remove_notification_from_inbox(notification=new_note)
                     db.set_notification_read(id=new_note.id, read=True)
@@ -312,49 +447,51 @@ def create_app(testing=False):
                     target_user = db.get_user_by_id(user_id=new_note.sender)
                     if not target_user:
                         return jsonify({"result": False, "message": "User no longer exists"})
+                    
                     admin_name = session.get("name")
 
                     if data["result"]:
+                        # Approve: grant the user access
                         result_message = f"{target_user.email} has been added to the system"
-                        db.set_user_role(id=target_user.id, role="u")  # u for 'user'
+                        db.set_user_role(id=target_user.id, role="u")
                         db.add_log(
-                            user_id=admin_name, 
-                            action="ADD_USER", 
+                            user_id=admin_name,
+                            action="ADD_USER",
                             target_id=f"{target_user.name} : {target_user.email}",
                             details="New Account Approved by Admin"
                         )
                     else:
+                        # Deny: remove the user from the system
                         result_message = f"{target_user.email} has been rejected from the system"
                         db.delete_user(user=target_user, admin_name=admin_name, reason="DENIED")
 
+                    # Inform all admins of the decision
                     for admin in db.get_administrators():
                         nm.send_inform_notification(
                             sender=target_user,
                             receiver=admin,
                             message=result_message,
-                        )  # might want to make the sender a "system" sender or something like that
+                        )
 
                     return jsonify({"result": True})
                 except Exception as e:
                     return jsonify({"result": False, "message": str(e)})
-            case (
-                "r"
-            ):  
-                # If the notification is a equipment request, update the equipment
+
+            # Equipment checkout request
+            case "r":
                 try:
                     db.remove_notification_from_inbox(notification=new_note)
                     db.set_notification_read(id=ObjectId(new_note.id), read=True)
-                    # Request is approved
+
                     if data["result"]:
                         admin_session_id = session.get("id")
-                        
                         if not admin_session_id:
                             return jsonify({"result": False, "message": "Session expired. Please log in again."}), 401
-                        
+
                         admin_id = ObjectId(admin_session_id)
                         equipment = db.get_equipment_by_id(id=new_note.equipment_id)
-                        
-                        # Mark the uses equipment request as approved, then checkout the equip
+
+                        # Approve the request and check out the equipment to the user
                         db.set_notification_status(id=new_note.id, status="a")
                         db.add_user_equipment(
                             user_id=ObjectId(new_note.sender),
@@ -363,18 +500,18 @@ def create_app(testing=False):
                         )
                         db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
 
-                        # Get info about pending requests
+                        # Find all other pending requests for this equipment
                         pending_notification_ids, pending_user_ids = db.get_pending_request_info(
                             equipment_ids=[new_note.equipment_id],
                             exclude_notification_id=new_note.id
                         )
-                        # Auto-deny all other pending requests for this equipment
+                        # Auto-deny and remove those pending requests from all admin inboxes
                         db.cancel_pending_requests_for_equipment(
                             equipment_ids=[new_note.equipment_id],
                             exclude_notification_id=new_note.id
                         )
-                        [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
-                        
+                        db.remove_notifications_from_all_admin_inboxes(notification_ids=pending_notification_ids)
+
                         # Notify users whose requests were auto-denied
                         for user_id in pending_user_ids:
                             nm.send_inform_notification(
@@ -383,7 +520,7 @@ def create_app(testing=False):
                                 message=f"Your request for {equipment.name} was denied because it was approved for another user."
                             )
 
-                        # send notification to user that their equipment is theirs
+                        # Notify the approved user
                         nm.send_inform_notification(
                             sender=db.get_user_by_id(user_id=admin_id),
                             receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
@@ -391,46 +528,32 @@ def create_app(testing=False):
                             message=f"Your request for {equipment.name} has been approved."
                         )
 
-                    # send notification to user that their equipment is theirs
-                    nm.send_inform_notification(
-                        sender=db.get_user_by_id(user_id=admin_id),
-                        receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
-                        equipment_id=ObjectId(equipment.id),
-                        message=f"Your request for {equipment.name} has been approved."
-                    )
-                    
-                    # Fetch the real inbox count for admin after all removals
-                    updated_inbox = db.get_inbox_by_user(user_id=admin_id)
-                    remaining_count = len([n for n in updated_inbox if n is not None])
-                    # Return the number of notifs removed, that way the notif bubble is accurate
-                    return jsonify({
-                        "result": True,
-                        "message": "Equipment successfully checked out",
-                        "remaining_notification_count": remaining_count,
-                        "removed_notification_ids": [str(nid) for nid in pending_notification_ids]
-                    })
-                except Exception as e:
-                    return jsonify({"result": False, "message": str(e)})
-                # Request was denied
-                else:
-                    try:
+                        # Return the real inbox count so the frontend bubble stays accurate
+                        updated_inbox = db.get_inbox_by_user(user_id=admin_id)
+                        remaining_count = len([n for n in updated_inbox if n is not None])
+
+                        return jsonify({
+                            "result": True,
+                            "message": "Equipment successfully checked out",
+                            "remaining_notification_count": remaining_count,
+                            "removed_notification_ids": [str(nid) for nid in pending_notification_ids]
+                        })
+
+                    else:
+                        # Deny the request and notify the user
                         db.set_notification_status(id=new_note.id, status="r")
                         equipment = db.get_equipment_by_id(new_note.equipment_id)
-                        # Check if equipment exists before asking for its name
-                        if equipment:
-                            equip_name = equipment.name
-                        else:
-                            equip_name = "Unknown Equipment (Deleted)"
+                        equip_name = equipment.name if equipment else "Unknown Equipment (Deleted)"
                         nm.send_inform_notification(
                             sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
                             receiver=db.get_user_by_id(user_id=new_note.sender),
                             message=f"Your request has been denied for {equip_name}",
                         )
                         return jsonify({"result": True})
-                    except Exception as e:
-                        return jsonify({"result": False, "message": str(e)})
 
-    
+                except Exception as e:
+                    return jsonify({"result": False, "message": str(e)})
+
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
         try:
@@ -875,7 +998,6 @@ def create_app(testing=False):
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
         
-
     @app.route("/mark_equipment_unavailable", methods=["POST"])
     def mark_equipment_unavailable():
         """A route that flags equipment as unavailable/available based
@@ -883,6 +1005,7 @@ def create_app(testing=False):
         try:
             data = request.get_json()
             unavailable = data["unavailable"]
+            selected_ids = set(ObjectId(id) for id in data["equipment_ids"])
 
             # Convert to ObjectIds
             # Get all equipment in one query to check status
@@ -892,6 +1015,9 @@ def create_app(testing=False):
             allowed_ids = []
 
             for equipment in all_equipment:
+                if equipment.id not in selected_ids:
+                    continue
+
                 if unavailable:
                     # Skip if checked out, damaged, or already unavailable
                     if equipment.checked_out or equipment.damaged or equipment.unavailable:
@@ -946,7 +1072,6 @@ def create_app(testing=False):
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
         
-
     @app.route("/get_filter_options", methods=["GET"])
     def get_filter_options():
         """Go through the database and find the possible filter options
