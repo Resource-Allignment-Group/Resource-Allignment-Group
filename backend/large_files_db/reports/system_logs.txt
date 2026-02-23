@@ -39,3 +39,4 @@
 2026-02-23 11:49:30,101 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: Potato Hiller/Cultivator, None, None, None (PLOT PREPER] [Details: Big Dawg : test@gmail.com]
 2026-02-23 11:49:33,630 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Head Huncho the best : test_admin@gmail.com] [Details: s]
 2026-02-23 11:49:36,515 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Head Huncho the best : test_admin@gmail.com] [Details: a]
+2026-02-23 11:50:26,277 - INFO - [User: Big Dawg] [Action: CHECK_IN] [Target: Potato Hiller/Cultivator, None, None, None (PLOT PREPER] [Details: Item returned in good condition]

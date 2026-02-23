@@ -416,7 +416,6 @@ def create_app(testing=False):
     
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
-        print("hit")
         try:
             equipment_cur = db.get_all_equipment()
             equip_list = [equip.to_dict() for equip in equipment_cur]
@@ -427,7 +426,7 @@ def create_app(testing=False):
             # This prevents multiple calls to the DB from the loop
             checkout_map = {}
             if checked_out_ids:
-                users = [db.get_user_by_equipment(id) for id in checked_out_ids]
+                users = [db.get_user_by_equipment(ObjectId(id)) for id in checked_out_ids]
                 for user in users:
                     for equip_id in user.checked_out_equipment:
                         checkout_map[str(equip_id)] = user.email
