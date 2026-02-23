@@ -80,7 +80,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 			});
 			const data = await res.json();
 			if (!data.result) {
-				alert("Failed to submit equipment");
+				alert(data.message);
 			}
 
 			if (onSuccess) onSuccess();

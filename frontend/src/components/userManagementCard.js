@@ -24,6 +24,9 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 			if (data.result) {
 				alert("User's Role Was Successfully Updated");
 			}
+			else{
+				alert(data.message || "Something Went Wrong")
+			}
 		} catch (error) {
 			alert("There Were Problems Changing The User's Role");
 		}

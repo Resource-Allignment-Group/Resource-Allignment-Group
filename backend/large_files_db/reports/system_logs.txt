@@ -35,3 +35,4 @@
 2026-02-21 16:44:42,766 - INFO - [User: Head Huncho the best] [Action: DELETE_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: Account Removed by Admin]
 2026-02-21 16:45:08,276 - INFO - [User: Head Huncho the best] [Action: ADD_USER] [Target: McKade Wing : mckade.wing@maine.edu] [Details: New Account Approved by Admin]
 2026-02-21 16:45:15,110 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: McKade Wing : mckade.wing@maine.edu] [Details: a]
+2026-02-22 12:26:29,814 - INFO - [User: Big Dawg] [Action: CHECK_IN] [Target: Tractor, John Deere, 2640, 1979 (TRACTORS/TRUCKS)] [Details: Item returned in good condition]

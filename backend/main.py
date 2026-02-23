@@ -87,7 +87,7 @@ def create_app(testing=False):
         if not email or not password:
             return jsonify({"result": False, "message": "Email and password are required"})
         
-        # TODO:make sure that this try and except actually works the way it should
+        # TODO: make sure that this try and except actually works the way it should
         try:
             user = db.get_user_by_email(email=email)
             if not user:
@@ -96,13 +96,13 @@ def create_app(testing=False):
             hashed_passowrd = db.get_password_by_email(email=email)
             if check_password(
                 origional_password=password, hashed_password=hashed_passowrd
-            ):  # check with the the hashing algorithm
+            ): 
                 if user.role == "p":
                     return jsonify({"result": False, "message": "Account is still pending approval from admin"})
                 else:
                     session["user"] = email
                     session["role"] = user.role
-                    session["id"] = str(user.id)  # Object ID can not be serialized
+                    session["id"] = str(user.id) 
                     session["name"] = user.name
                     return jsonify(
                         {"result": True, "message": "success", "role": user.role}
@@ -125,7 +125,7 @@ def create_app(testing=False):
             return jsonify({"result": True, "message": "Email Was Sent"})
         except Exception as e:
             if "No user with email" in str(e):  # check this
-                return jsonify({"result": True, "message": "Email doesn't exist"})
+                return jsonify({"result": False, "message": "Email doesn't exist"})
             else:
                 return jsonify({"result": False, "message": str(e)})
 
@@ -136,36 +136,28 @@ def create_app(testing=False):
 
         try:
             token_hash = hashlib.sha256(token.encode()).hexdigest()
-
             reset = db.get_password_reset(token_hash=token_hash)
-            print(reset["expires_at"], datetime.now(timezone.utc))
-            print(type(reset["expires_at"]), type(datetime.now(timezone.utc)))
-
             if not reset:
-                return jsonify({"result": True, "message": "Invalid or expired token"})
-
+                return jsonify({"result": False, "message": "Invalid or expired token"})
             expires_at = reset["expires_at"]
 
             # Convert naive datetime from Mongo into UTC-aware
             if expires_at.tzinfo is None:
                 expires_at = expires_at.replace(tzinfo=timezone.utc)
-
             if expires_at < datetime.now(timezone.utc):
-                return jsonify({"result": True, "message": "Invalid or expired token"})
+                return jsonify({"result": False, "message": "Invalid or expired token"})
 
             password_hash = hash_password(new_password)
-
             db.set_user_password(id=reset["user_id"], password=password_hash)
-
             db.set_password_reset_used(id=ObjectId(reset["_id"]), used=True)
 
             return {"result": True}
         except Exception as e:
-            return jsonify({"result": False, "message": f"error {str(e)}"})
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/check-session", methods=["GET"])
     def check_session():
-        user = session.get("user")  # Makes sure that the user is still logged in
+        user = session.get("user")  
         role = session.get("role")
 
         if user:
@@ -175,77 +167,84 @@ def create_app(testing=False):
 
     @app.route("/logout", methods=["POST"])
     def logout():
-        session.pop("user", None)
-        session.pop("role", None)
-        session.pop("id", None)
-        return jsonify({"result": True, "message": "logged out"})
+        try:
+            session.pop("user", None)
+            session.pop("role", None)
+            session.pop("id", None)
+            return jsonify({"result": True, "message": "logged out"})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/register", methods=["POST"])
     def register():
-        data = request.json
-        # Remove extra whitespaces and normalize input
-        fname = data.get("fname", "").strip()
-        lname = data.get("lname", "").strip()
-        email = data.get("email", "").strip().lower()
-        password = data.get("password", "")
-        phone = data.get("phone", "").strip()
-        # Remove any dashes, parenthesis, etc
-        phone = re.sub(r"\D", "", phone)
+        try:
+            data = request.json
+            # Remove extra whitespaces and normalize input
+            fname = data.get("fname", "").strip()
+            lname = data.get("lname", "").strip()
+            email = data.get("email", "").strip().lower()
+            password = data.get("password", "")
+            phone = data.get("phone", "").strip()
+            # Remove any dashes, parenthesis, etc
+            phone = re.sub(r"\D", "", phone)
 
-        # Validate all inputs
-        if not fname or not lname:
-            return jsonify({"result": False, "message": "First and last name are required"}), 400
-        if not EMAIL_REGEX.match(email):
-            return jsonify({"result": False, "message": "Invalid email format"}), 400
-        if not PHONE_REGEX.match(phone):
-            return jsonify({"result": False, "message": "Invalid phone number"}), 400
-        if not PASSWORD_REGEX.match(password):
-            return jsonify({
-                "result": False,
-                "message": (
-                    "Password must be at least 8 characters and include "
-                    "uppercase, lowercase, number, and special character"
-                )
-            }), 400
-        hashed_password = hash_password(password=password)
-        result = db.add_user(
-            email=email, 
-            password=hashed_password, 
-            fname=fname, 
-            lname=lname, 
-            phone=phone,
-        )
+            # Validate all inputs
+            if not fname or not lname:
+                return jsonify({"result": False, "message": "First and last name are required"}), 400
+            if not EMAIL_REGEX.match(email):
+                return jsonify({"result": False, "message": "Invalid email format"}), 400
+            if not PHONE_REGEX.match(phone):
+                return jsonify({"result": False, "message": "Invalid phone number"}), 400
+            if not PASSWORD_REGEX.match(password):
+                return jsonify({
+                    "result": False,
+                    "message": (
+                        "Password must be at least 8 characters and include "
+                        "uppercase, lowercase, number, and special character"
+                    )
+                }), 400
+            
+            hashed_password = hash_password(password=password)
+            result = db.add_user(
+                email=email, 
+                password=hashed_password, 
+                fname=fname, 
+                lname=lname, 
+                phone=phone,
+            )
 
-        if result["result"]:
-            # send a notification to admin and update user management
-            try:
-                new_user = db.get_user_by_email(email=email)
-                db.set_user_role(id=new_user.id, role="p")  #'p' stands for 'pending'
-                nm.send_account_approval_message(new_user=new_user)
-                return jsonify({"result": True, "message": "success"})
-            except Exception as e:
-                return jsonify({"result": False, "message": str(e)})
-        else:
-            return jsonify({"result": False, "message": result["message"]})
-
+            if result["result"]:
+                # send a notification to admin and update user management
+                try:
+                    new_user = db.get_user_by_email(email=email)
+                    db.set_user_role(id=new_user.id, role="p")  #'p' stands for 'pending'
+                    nm.send_account_approval_message(new_user=new_user)
+                    return jsonify({"result": True, "message": "success"})
+                except Exception as e:
+                    return jsonify({"result": False, "message": str(e)})
+            else:
+                return jsonify({"result": False, "message": result["message"]})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/get_user_info", methods=["GET"])
     def get_user_info():
-        # add profile pic retrevial and any other import stuff here
-
-        # This needs so re factoring once we get more features implimented
-        inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
-        unread_messages = db.get_unread_messages_by_user(
-            user_id=ObjectId(session["id"])
-        )
-        return jsonify(
-            {"result": True, "messages": [], "num_notifications": len(unread_messages)}
-        )
-
-    # Get notifications to display in the user's inbox
+        #TODO: add profile pic retrevial and any other import stuff here
+        try:
+            unread_messages = db.get_unread_messages_by_user(
+                user_id=ObjectId(session["id"])
+            )
+            return jsonify(
+                {"result": True, "num_notifications": len(unread_messages)}
+            )
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/get_notifications", methods=["GET"])
     def get_notifications():
+        """Get notifications to display in the user's inbox"""
         if "id" not in session:
-            return jsonify({"result": False, "messages": []})
+            return jsonify({"result": False, "message": []})
         try:
             user_id = session["id"]
             notifications = db.get_notifications_by_user(user_id=user_id)
@@ -268,11 +267,12 @@ def create_app(testing=False):
             
             return jsonify({"result": True, "messages": messages})
         except Exception as e:
-            return jsonify({"result": False, "messages": []})
+            return jsonify({"result": False, "message": str(e)})
 
-    # Used to remove notifications that the user clicked "X" on
+    
     @app.route("/dismiss_notification", methods=["POST"])
     def dismiss_notification():
+        """Used to remove notifications that the user clicked "X" on"""
         try:
             data = request.json
             note_info = data["notification"]
@@ -284,7 +284,7 @@ def create_app(testing=False):
             db.delete_notification_completely(note_id=note_id)
             return jsonify({"result": True})
         except Exception as e:
-            return jsonify({"result": False, "error": str(e)})
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
@@ -297,190 +297,184 @@ def create_app(testing=False):
             case (
                 "a"
             ):  # if it is an account creation notification, update the users role
-                db.remove_notification_from_inbox(notification=new_note)
-                db.set_notification_read(id=new_note.id, read=True)
+                try:
+                    db.remove_notification_from_inbox(notification=new_note)
+                    db.set_notification_read(id=new_note.id, read=True)
 
-                target_user = db.get_user_by_id(user_id=new_note.sender)
-                if not target_user:
-                    return jsonify({"result": False, "message": "User no longer exists"})
-                admin_name = session.get("name")
+                    target_user = db.get_user_by_id(user_id=new_note.sender)
+                    if not target_user:
+                        return jsonify({"result": False, "message": "User no longer exists"})
+                    admin_name = session.get("name")
 
-                if data["result"]:
-                    result_message = f"{target_user.email} has been added to the system"
-                    db.set_user_role(id=target_user.id, role="u")  # u for 'user'
-                    db.add_log(
-                        user_id=admin_name, 
-                        action="ADD_USER", 
-                        target_id=f"{target_user.name} : {target_user.email}",
-                        details="New Account Approved by Admin"
-                    )
-                else:
-                    result_message = f"{target_user.email} has been rejected from the system"
-                    db.delete_user(user=target_user, admin_name=admin_name, reason="DENIED")
+                    if data["result"]:
+                        result_message = f"{target_user.email} has been added to the system"
+                        db.set_user_role(id=target_user.id, role="u")  # u for 'user'
+                        db.add_log(
+                            user_id=admin_name, 
+                            action="ADD_USER", 
+                            target_id=f"{target_user.name} : {target_user.email}",
+                            details="New Account Approved by Admin"
+                        )
+                    else:
+                        result_message = f"{target_user.email} has been rejected from the system"
+                        db.delete_user(user=target_user, admin_name=admin_name, reason="DENIED")
 
-                for admin in db.get_administrators():
-                    nm.send_inform_notification(
-                        sender=target_user,
-                        receiver=admin,
-                        message=result_message,
-                    )  # might want to make the sender a "system" sender or something like that
+                    for admin in db.get_administrators():
+                        nm.send_inform_notification(
+                            sender=target_user,
+                            receiver=admin,
+                            message=result_message,
+                        )  # might want to make the sender a "system" sender or something like that
 
-                return jsonify({"result": True})
-
+                    return jsonify({"result": True})
+                except Exception as e:
+                    return jsonify({"result": False, "message": str(e)})
             case (
                 "r"
-            ):  # If the notification is a equipment request, update the equipment
-                db.remove_notification_from_inbox(notification=new_note)
-                db.set_notification_read(id=ObjectId(new_note.id), read=True)
-                # Request is approved
-                if data["result"]:
-                    admin_session_id = session.get("id")
-                    
-                    if not admin_session_id:
-                        return jsonify({"result": False, "message": "Session expired. Please log in again."}), 401
-                    
-                    admin_id = ObjectId(admin_session_id)
-                    equipment = db.get_equipment_by_id(id=new_note.equipment_id)
-                    
-                    # Mark the uses equipment request as approved, then checkout the equip
-                    db.set_notification_status(id=new_note.id, status="a")
-                    db.add_user_equipment(
-                        user_id=ObjectId(new_note.sender),
-                        equipment_id=ObjectId(equipment.id),
-                        admin_name=session.get("name")
-                    )
-                    db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
+            ):  
+                # If the notification is a equipment request, update the equipment
+                try:
+                    db.remove_notification_from_inbox(notification=new_note)
+                    db.set_notification_read(id=ObjectId(new_note.id), read=True)
+                    # Request is approved
+                    if data["result"]:
+                        admin_session_id = session.get("id")
+                        
+                        if not admin_session_id:
+                            return jsonify({"result": False, "message": "Session expired. Please log in again."}), 401
+                        
+                        admin_id = ObjectId(admin_session_id)
+                        equipment = db.get_equipment_by_id(id=new_note.equipment_id)
+                        
+                        # Mark the uses equipment request as approved, then checkout the equip
+                        db.set_notification_status(id=new_note.id, status="a")
+                        db.add_user_equipment(
+                            user_id=ObjectId(new_note.sender),
+                            equipment_id=ObjectId(equipment.id),
+                            admin_name=session.get("name")
+                        )
+                        db.set_equipment_checked_out(id=ObjectId(new_note.equipment_id), checked_out=True)
 
-                    # Get info about pending requests
-                    pending_notification_ids, pending_user_ids = db.get_pending_request_info(
-                        equipment_ids=[new_note.equipment_id],
-                        exclude_notification_id=new_note.id
-                    )
-                    # Auto-deny all other pending requests for this equipment
-                    db.cancel_pending_requests_for_equipment(
-                        equipment_ids=[new_note.equipment_id],
-                        exclude_notification_id=new_note.id
-                    )
-                    [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
-                    
-                    # Notify users whose requests were auto-denied
-                    for user_id in pending_user_ids:
+                        # Get info about pending requests
+                        pending_notification_ids, pending_user_ids = db.get_pending_request_info(
+                            equipment_ids=[new_note.equipment_id],
+                            exclude_notification_id=new_note.id
+                        )
+                        # Auto-deny all other pending requests for this equipment
+                        db.cancel_pending_requests_for_equipment(
+                            equipment_ids=[new_note.equipment_id],
+                            exclude_notification_id=new_note.id
+                        )
+                        [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
+                        
+                        # Notify users whose requests were auto-denied
+                        for user_id in pending_user_ids:
+                            nm.send_inform_notification(
+                                sender=db.get_user_by_id(user_id=admin_id),
+                                receiver=db.get_user_by_id(user_id=user_id),
+                                message=f"Your request for {equipment.name} was denied because it was approved for another user."
+                            )
+
+                        # send notification to user that their equipment is theirs
                         nm.send_inform_notification(
                             sender=db.get_user_by_id(user_id=admin_id),
-                            receiver=db.get_user_by_id(user_id=user_id),
-                            message=f"Your request for {equipment.name} was denied because it was approved for another user."
+                            receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
+                            equipment_id=ObjectId(equipment.id),
+                            message=f"Your request for {equipment.name} has been approved."
                         )
-
-                    # send notification to user that their equipment is theirs
-                    nm.send_inform_notification(
-                        sender=db.get_user_by_id(user_id=admin_id),
-                        receiver=db.get_user_by_id(user_id=ObjectId(new_note.sender)),
-                        equipment_id=ObjectId(equipment.id),
-                        message=f"Your request for {equipment.name} has been approved."
-                    )
-                    
-                    return jsonify({"result": True, "message": "Equipment successfully checked out"})
+                        
+                        return jsonify({"result": True, "message": "Equipment successfully checked out"})
+                except Exception as e:
+                    return jsonify({"result": False, "message": str(e)})
                 # Request was denied
                 else:
-                    db.set_notification_status(id=new_note.id, status="r")
-                    equipment = db.get_equipment_by_id(new_note.equipment_id)
-                    # Check if equipment exists before asking for its name
-                    if equipment:
-                        equip_name = equipment.name
-                    else:
-                        equip_name = "Unknown Equipment (Deleted)"
-                    nm.send_inform_notification(
-                        sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
-                        receiver=db.get_user_by_id(user_id=new_note.sender),
-                        message=f"Your request has been denied for {equip_name}",
-                    )
-                    return jsonify({"result": True})
+                    try:
+                        db.set_notification_status(id=new_note.id, status="r")
+                        equipment = db.get_equipment_by_id(new_note.equipment_id)
+                        # Check if equipment exists before asking for its name
+                        if equipment:
+                            equip_name = equipment.name
+                        else:
+                            equip_name = "Unknown Equipment (Deleted)"
+                        nm.send_inform_notification(
+                            sender=db.get_user_by_id(user_id=ObjectId(session["id"])),
+                            receiver=db.get_user_by_id(user_id=new_note.sender),
+                            message=f"Your request has been denied for {equip_name}",
+                        )
+                        return jsonify({"result": True})
+                    except Exception as e:
+                        return jsonify({"result": False, "message": str(e)})
 
-    # Get all equipment from the database to display
+    
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
-        equipment_cur = db.get_all_equipment()
-        equip_list = []
+        """Get all equipment from the database to display"""
+        try:
+            equipment_cur = db.get_all_equipment()
+            equip_list = [equip.to_dict() for equip in equipment_cur]
 
-        # This will show the user who has an equipment item checked out
-        # on its card display right below its status line
-        for equip in equipment_cur:
-            equip_dict = equip.to_dict()
-
-            # If equipment is checked out, find who has it
-            if equip_dict["checked_out"]:
-                # Find the user who has this equipment in their checked_out_equipment array
-                user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
-
-                if user:
-                    equip_dict["checkedOutBy"] = user.email
+            def get_priority(equip):
+                if equip["unavailable"]:
+                    return 4
+                elif equip["damaged"]:
+                    return 3
+                elif equip["checked_out"]:
+                    return 2
                 else:
-                    equip_dict["checkedOutBy"] = None
-            else:
-                equip_dict["checkedOutBy"] = None
+                    return 1
 
-            equip_list.append(equip_dict)
-
-        # Sort the output equipment by their assigned status
-        # (ie. Available, Checked Out, Damaged, Unavailable)
-        def get_priority(equip):
-            if equip["unavailable"]:
-                return 4
-            elif equip["damaged"]:
-                return 3
-            elif equip["checked_out"]:
-                return 2
-            else:
-                return 1
-
-        # This will sort the returned equipment by their status
-        equip_list.sort(key=get_priority)
-        return jsonify({"result": True, "equip_list": equip_list})
-
+            # This will sort the returned equipment by their status
+            equip_list.sort(key=get_priority)
+            return jsonify({"result": True, "equip_list": equip_list})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/request_equipment", methods=["POST"])
     def request_equipment():
         data = request.json
         equip_id = data["equip_id"]
+        try:
+            # Making extra sure that equipment can't be requested if it's
+            # unavailable or already checked out
+            equipment = db.get_equipment_by_id(id=ObjectId(equip_id))
+            if equipment:
+                if equipment.unavailable:
+                    return jsonify(
+                        {
+                            "result": False,
+                            "message": "This equipment is unavailable and cannot be checked out",
+                        }
+                    )
+                if equipment.checked_out:
+                    return jsonify(
+                        {
+                            "result": False,
+                            "message": "This equipment is already checked out",
+                        }
+                    )
 
-        # Making extra sure that equipment can't be requested if it's
-        # unavailable or already checked out
-        equipment = db.get_equipment_by_id(id=ObjectId(equip_id))
-        if equipment:
-            if equipment.unavailable:
-                return jsonify(
-                    {
-                        "result": False,
-                        "message": "This equipment is unavailable and cannot be checked out",
-                    }
-                )
-            if equipment.checked_out:
-                return jsonify(
-                    {
-                        "result": False,
-                        "message": "This equipment is already checked out",
-                    }
-                )
-
-        note_result = nm.send_equipment_request(
-            id=ObjectId(),
-            sender=db.get_user_by_email(email=session["user"]),
-            equip_name=data["equip_name"],
-            equipment_id=ObjectId(equip_id),
-        )
-        if note_result:
-            return jsonify({"result": True, "message": "this is the success message"})
-        else:
-            return jsonify({"result": False, "message": "this is the failure message"})
-
+            note_result = nm.send_equipment_request(
+                id=ObjectId(),
+                sender=db.get_user_by_email(email=session["user"]),
+                equip_name=data["equip_name"],
+                equipment_id=ObjectId(equip_id),
+            )
+            if note_result:
+                return jsonify({"result": True, "message": "this is the success message"})
+            else:
+                return jsonify({"result": False, "message": "Something went wrong, please refresh and try again"})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/get_user_equipment", methods=["GET"])
     def get_user_equipment():
-        user_equipment = db.get_equipment_by_user(user_id=ObjectId(session["id"]))
-        equip_list = []
-        for equip in user_equipment:
-            equip_list.append(equip.to_dict())
-
-        return jsonify({"result": True, "equip_list": equip_list})
-
+        try:
+            user_equipment = db.get_equipment_by_user(user_id=ObjectId(session["id"]))
+            equip_list = [equip.to_dict() for equip in user_equipment]
+            return jsonify({"result": True, "equip_list": equip_list})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+                
     @app.route("/return_equipment", methods=["POST"])
     def return_equipment():
         data = request.json
@@ -511,143 +505,159 @@ def create_app(testing=False):
 
     @app.route("/get_requests", methods=["GET"])
     def get_requests():
-        notifications, equipment = db.get_requests_by_user(
-            user_id=ObjectId(session["id"]) 
-        )
-
-        notifications_list, equipment_list = [], []
-
-        for i, note in enumerate(notifications):
-            if equipment[i] is None:
-                continue
-            
-            notifications_list.append(
-                note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
+        try:
+            notifications, equipment = db.get_requests_by_user(
+                user_id=ObjectId(session["id"]) 
             )
-            equipment_list.append(equipment[i].to_dict())
-        return jsonify(
-            {
-                "result": True,
-                "notifications": notifications_list,
-                "equipment": equipment_list,
-            }
-        )
 
+            notifications_list, equipment_list = [], []
+
+            for i, note in enumerate(notifications):
+                if equipment[i] is None:
+                    continue
+                
+                notifications_list.append(
+                    note.to_dict(db.get_email_by_id(user_id=str(note.sender)))
+                )
+                equipment_list.append(equipment[i].to_dict())
+            return jsonify(
+                {
+                    "result": True,
+                    "notifications": notifications_list,
+                    "equipment": equipment_list,
+                }
+            )
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/get_dashboard_info")
     def get_dashboard_info():
-        num_total, num_available, num_used, num_damaged, num_unavailable = (
-            db.get_dashboard_info()
-        )
-        # Get the admins preference for monthly report gen
-        admin_id = session["id"]
-        user = db.get_user_by_id(ObjectId(admin_id))
+        try:
+            num_total, num_available, num_used, num_damaged, num_unavailable = (
+                db.get_dashboard_info()
+            )
+            #TODO:  Get the admins preference for monthly report gen
+            admin_id = session["id"]
+            user = db.get_user_by_id(ObjectId(admin_id))
 
-        return jsonify(
-            {
-                "result": True,
-                "total": num_total,
-                "available": num_available,
-                "used": num_used,
-                "damaged": num_damaged,
-                "unavailable": num_unavailable,
-                "receive_reports": user.receive_reports,
-            }
-        )
-
+            return jsonify(
+                {
+                    "result": True,
+                    "total": num_total,
+                    "available": num_available,
+                    "used": num_used,
+                    "damaged": num_damaged,
+                    "unavailable": num_unavailable,
+                    "receive_reports": user.receive_reports,
+                }
+            )
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/get_users", methods=["GET"])
     def get_users():
-        users = db.get_all_users()
-        user_dicts = []
-        for user in users:
-            user_dict = user.to_dict()
-            # Populate equipment details if user has checked out equipment
-            if user_dict.get("checked_out_equipment"):
-                equipment_details = []
-                for equip_id in user_dict["checked_out_equipment"]:
-                    equipment = db.get_equipment_by_id(equip_id)
-                    if equipment:
-                        equipment_details.append({
-                            "name": equipment.name,
-                        })
-                user_dict["checked_out_equipment"] = equipment_details
-            user_dicts.append(user_dict)
-        return jsonify({"result": True, "users": user_dicts})
-
+        try:
+            users = db.get_all_users()
+            user_dicts = []
+            for user in users:
+                user_dict = user.to_dict()
+                # Populate equipment details if user has checked out equipment
+                if user_dict.get("checked_out_equipment"):
+                    equipment_details = []
+                    for equip_id in user_dict["checked_out_equipment"]:
+                        equipment = db.get_equipment_by_id(equip_id)
+                        if equipment:
+                            equipment_details.append({
+                                "name": equipment.name,
+                            })
+                    user_dict["checked_out_equipment"] = equipment_details
+                user_dicts.append(user_dict)
+            return jsonify({"result": True, "users": user_dicts})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/change_user_role", methods=["POST"])
     def change_user_role():
         # Get the admin session name for verification and logging
-        admin_name = session.get("name") 
-        if not admin_name:
-            return jsonify({"result": False, "message": "Not logged in"})
-        
-        data = request.json
-        user_id = ObjectId(data["user"]["id"])
-        db.set_user_role(id=user_id, role=data["new_role"])
-        user = db.get_user_by_id(user_id)
-        # Log the role change
-        db.add_log(
-            user_id=admin_name, 
-            action="UPDATE_ROLE", 
-            target_id=f"{user.name} : {user.email}", 
-            details=f"{data['new_role']}"
-        )
-        return jsonify({"result": True})
+        try:
+            admin_name = session.get("name") 
+            if not admin_name:
+                return jsonify({"result": False, "message": "Not logged in"})
+            
+            data = request.json
+            user_id = ObjectId(data["user"]["id"])
+            db.set_user_role(id=user_id, role=data["new_role"])
+            user = db.get_user_by_id(user_id)
+            # Log the role change
+            db.add_log(
+                user_id=admin_name, 
+                action="UPDATE_ROLE", 
+                target_id=f"{user.name} : {user.email}", 
+                details=f"{data['new_role']}"
+            )
+            return jsonify({"result": True})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
-        data = request.json
-        admin_name = session.get("name")
-        if not admin_name:
-            return jsonify({"result": False, "message": "Admin session expired"}), 401
-        
-        # Get the ID of the admin deleting an account
-        # And the ID of the user to delete
-        cur_session_id = session["id"]
-        target_user_id = ObjectId(data["user"]["id"])
-        # Remove that users notifications from the database
-        notifications = db.get_notifications_by_user(target_user_id)
-        for note in notifications:
-            db.delete_notification(note_id=note.id)
-            db.remove_notification_from_inbox(notification=note)
-        
-        # Delete the user
-        user = db.get_user_by_id(ObjectId(data["user"]["id"]))
-        result = db.delete_user(user=user, admin_name=admin_name, reason="DELETED")
-        
-        if result:
-            # Check if the user just deleted themselves
-            if str(target_user_id) == str(cur_session_id):
-                session.clear()
-                return jsonify({"result": True, "self_deleted": True})
-            return jsonify({"result": True, "self_deleted": False})
-        else:
-            return jsonify({"result": False})
+        try:
+            data = request.json
+            admin_name = session.get("name")
+            if not admin_name:
+                return jsonify({"result": False, "message": "Admin session expired"}), 401
+            
+            cur_session_id = session["id"]
+            target_user_id = ObjectId(data["user"]["id"])
+            # Remove that users notifications from the database
+            notifications = db.get_notifications_by_user(target_user_id)
+            for note in notifications:
+                db.delete_notification(note_id=note.id)
+                db.remove_notification_from_inbox(notification=note)
+            
+            # Delete the user
+            user = db.get_user_by_id(ObjectId(data["user"]["id"]))
+            result = db.delete_user(user=user, admin_name=admin_name, reason="DELETED")
+            
+            if result:
+                # Check if the user just deleted themselves
+                if str(target_user_id) == str(cur_session_id):
+                    session.clear()
+                    return jsonify({"result": True, "self_deleted": True})
+                return jsonify({"result": True, "self_deleted": False})
+            else:
+                return jsonify({"result": False, "message": "User was not able to be deleted"})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
 
     @app.route("/add_equipment", methods=["POST"])
     def add_equipment():
-        # Get admin name for validation and logging
-        admin_name = session.get("name")
-        if not admin_name:
-            return jsonify({"result": False, "message": "Not logged in"})
+        """Get admin name for validation and logging"""
+        try:
+            admin_name = session.get("name")
+            if not admin_name:
+                return jsonify({"result": False, "message": "Not logged in"})
+            
+            equip_data = request.json["data"]
+            equip_data["_id"] = ObjectId()
+            equip_data["images"] = request.json["images"]
+            equip_data["reports"] = request.json["reports"]
+            equip_data["checked_out"] = False
+            equip_data["damaged"] = False
+
+            new_equip = Equipment()
+            new_equip.fill_from_json(equip_data)
+            db.add_equipment(new_equip)
+            db.add_log(
+                user_id=admin_name, 
+                action="ADD_EQUIPMENT", 
+                target_id=f"{equip_data['name']}",
+                details="Admin Added Equipment"
+            )
+            return jsonify({"result": True})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
         
-        equip_data = request.json["data"]
-        equip_data["_id"] = ObjectId()
-        equip_data["images"] = request.json["images"]
-        equip_data["reports"] = request.json["reports"]
-        equip_data["checked_out"] = False
-        equip_data["damaged"] = False
-
-        new_equip = Equipment()
-        new_equip.fill_from_json(equip_data)
-        db.add_equipment(new_equip)
-        db.add_log(
-            user_id=admin_name, 
-            action="ADD_EQUIPMENT", 
-            target_id=f"{equip_data['name']}",
-            details="Admin Added Equipment"
-        )
-        return jsonify({"result": True})
-
     @app.route("/change_equipment_info", methods=["POST"])
     def change_equipment_info():
         equipment_info = request.json["equipment"]
@@ -668,93 +678,104 @@ def create_app(testing=False):
 
     @app.route("/get_profile_info", methods=["GET"])
     def get_profile_equipment():
-        user = db.get_user_by_id(user_id=ObjectId(session["id"]))
-        return jsonify({"result": True, "user": user.to_dict()})
-
+        try:
+            user = db.get_user_by_id(user_id=ObjectId(session["id"]))
+            return jsonify({"result": True, "user": user.to_dict()})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/save_new_profile_info", methods=["POST"])
     def save_new_profile_info():
-        data = request.json
-        db.set_user_name(
-            id=ObjectId(session["id"]),
-            new_name=f"{data['fname'].strip()} {data['lname'].strip()}",
-        )
-        db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
-        db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
-        db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
-        db.set_user_department(id=ObjectId(session["id"]), new_department=data["department"])
-        return jsonify({"result": True})
+        try:
+            data = request.json
+            db.set_user_name(
+                id=ObjectId(session["id"]),
+                new_name=f"{data['fname'].strip()} {data['lname'].strip()}",
+            )
+            db.set_user_email(id=ObjectId(session["id"]), new_email=data["email"])
+            db.set_user_phone(id=ObjectId(session["id"]), new_phone=data["phone"])
+            db.set_user_position(id=ObjectId(session["id"]), new_position=data["position"])
+            db.set_user_department(id=ObjectId(session["id"]), new_department=data["department"])
+            return jsonify({"result": True})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
 
-    # A route that flags equipment as unavailable/available based
-    # on the checkboxes selected on the hompage
     @app.route("/mark_equipment_unavailable", methods=["POST"])
     def mark_equipment_unavailable():
-        data = request.get_json()
-        unavailable = data["unavailable"]
+        """A route that flags equipment as unavailable/available based
+        on the checkboxes selected on the hompage"""
+        try:
+            data = request.get_json()
+            unavailable = data["unavailable"]
 
-        # Convert to ObjectIds
-        # Get all equipment in one query to check status
-        all_equipment = db.get_all_equipment()
-        # Will track how many items were skipped/not
-        skipped_count = 0
-        allowed_ids = []
+            # Convert to ObjectIds
+            # Get all equipment in one query to check status
+            all_equipment = db.get_all_equipment()
+            # Will track how many items were skipped/not
+            skipped_count = 0
+            allowed_ids = []
 
-        for equipment in all_equipment:
-            if unavailable:
-                # Skip if checked out, damaged, or already unavailable
-                if equipment.checked_out or equipment.damaged or equipment.unavailable:
-                    skipped_count += 1
+            for equipment in all_equipment:
+                if unavailable:
+                    # Skip if checked out, damaged, or already unavailable
+                    if equipment.checked_out or equipment.damaged or equipment.unavailable:
+                        skipped_count += 1
+                    else:
+                        allowed_ids.append(equipment.id)
                 else:
-                    allowed_ids.append(equipment.id)
+                    # Skip if NOT currently unavailable
+                    if not equipment.unavailable:
+                        skipped_count += 1
+                    else:
+                        allowed_ids.append(equipment.id)
+
+            # Update many equipment status at once
+            if allowed_ids:
+                updated_count = db.bulk_update_equipment_unavailable(
+                    allowed_ids, unavailable
+                )
+
+                # Cancel pending requests
+                if unavailable:
+                    db.cancel_pending_requests_for_equipment(allowed_ids)
             else:
-                # Skip if NOT currently unavailable
-                if not equipment.unavailable:
-                    skipped_count += 1
-                else:
-                    allowed_ids.append(equipment.id)
+                updated_count = 0
 
-        # Update many equipment status at once
-        if allowed_ids:
-            updated_count = db.bulk_update_equipment_unavailable(
-                allowed_ids, unavailable
+            # Create message to return to the user as feedback
+            if unavailable:
+                # Marking as unavailable
+                if updated_count == 0 and skipped_count > 0:
+                    message = "No equipment marked as unavailable. Selected items are already unavailable, checked out, or damaged."
+                elif skipped_count > 0:
+                    message = f"Marked {updated_count} item(s) as unavailable. {skipped_count} item(s) skipped (already unavailable, checked out, or damaged)."
+                else:
+                    message = f"Successfully marked {updated_count} item(s) as unavailable."
+            else:
+                # Marking as available
+                if updated_count == 0 and skipped_count > 0:
+                    message = "No equipment marked as available. Selected items are not currently unavailable."
+                elif skipped_count > 0:
+                    message = f"Marked {updated_count} item(s) as available. {skipped_count} item(s) skipped (not currently unavailable)."
+                else:
+                    message = f"Successfully marked {updated_count} item(s) as available."
+
+            return jsonify(
+                {
+                    "result": True,
+                    "updated_count": updated_count,
+                    "skipped_count": skipped_count,
+                    "message": message,
+                }
             )
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
 
-            # Cancel pending requests
-            if unavailable:
-                db.cancel_pending_requests_for_equipment(allowed_ids)
-        else:
-            updated_count = 0
-
-        # Create message to return to the user as feedback
-        if unavailable:
-            # Marking as unavailable
-            if updated_count == 0 and skipped_count > 0:
-                message = "No equipment marked as unavailable. Selected items are already unavailable, checked out, or damaged."
-            elif skipped_count > 0:
-                message = f"Marked {updated_count} item(s) as unavailable. {skipped_count} item(s) skipped (already unavailable, checked out, or damaged)."
-            else:
-                message = f"Successfully marked {updated_count} item(s) as unavailable."
-        else:
-            # Marking as available
-            if updated_count == 0 and skipped_count > 0:
-                message = "No equipment marked as available. Selected items are not currently unavailable."
-            elif skipped_count > 0:
-                message = f"Marked {updated_count} item(s) as available. {skipped_count} item(s) skipped (not currently unavailable)."
-            else:
-                message = f"Successfully marked {updated_count} item(s) as available."
-
-        return jsonify(
-            {
-                "result": True,
-                "updated_count": updated_count,
-                "skipped_count": skipped_count,
-                "message": message,
-            }
-        )
-
-    # Go through the database and find the possible filter options
-    # for farm locations, equipment class, makes, and years
     @app.route("/get_filter_options", methods=["GET"])
     def get_filter_options():
+        """Go through the database and find the possible filter options
+        for farm locations, equipment class, makes, and years"""
         try:
             # Get all equipment
             equipment_cursor = db.get_all_equipment()
@@ -805,103 +826,108 @@ def create_app(testing=False):
                 }
             )
         except Exception as e:
-            return jsonify({"result": False, "error": str(e)})
+            return jsonify({"result": False, "message": str(e)})
 
-    # Endpoint for user entered search parameters
-    # Allows fuzzy searching (eg. tractor, tractr, tract)
-    # Supports multi-word queries accross equipment fields
+
     @app.route("/search_equipment", methods=["POST"])
     def search_equipment():
-        # Take in the received search params and normalize them
-        data = request.get_json()
-        query = (data["query"] or "").strip().lower()
+        """
+        Endpoint for user entered search parameters
+        Allows fuzzy searching (eg. tractor, tractr, tract)
+        Supports multi-word queries accross equipment fields
+        """
+        try:
+            data = request.get_json()
+            query = (data["query"] or "").strip().lower()
 
-        # If no search query was entered, load equipment normally
-        if not query:
-            return get_equipment()
+            # If no search query was entered, load equipment normally
+            if not query:
+                return get_equipment()
 
-        # Split search into tokens
-        query_tokens = query.split()
-        all_equipment = db.get_all_equipment()
-        results = []
+            # Split search into tokens
+            query_tokens = query.split()
+            all_equipment = db.get_all_equipment()
+            results = []
 
-        # Iterate through equipment items and score them
-        for equip in all_equipment:
-            # Searchable fields
-            fields = {
-                "name": equip.name or "",
-                "make": equip.make or "",
-                "model": equip.model or "",
-                "class": equip._class or "",
-                "farm": equip.farm or "",
-                "description": equip.description or "",
-            }
+            # Iterate through equipment items and score them
+            for equip in all_equipment:
+                # Searchable fields
+                fields = {
+                    "name": equip.name or "",
+                    "make": equip.make or "",
+                    "model": equip.model or "",
+                    "class": equip._class or "",
+                    "farm": equip.farm or "",
+                    "description": equip.description or "",
+                }
 
-            # Normalize status
-            if equip.unavailable:
-                fields["status"] = "unavailable"
-            elif equip.damaged:
-                fields["status"] = "damaged"
-            elif equip.checked_out:
-                fields["status"] = "checked out"
-            else:
-                fields["status"] = "available"
-
-            # Normalize field values (lowercase)
-            fields = {k: str(v).lower() for k, v in fields.items() if v}
-            token_scores = []
-
-            # Combine all field values into one searchable text
-            combined_text = " ".join(fields.values())
-
-            for token in query_tokens:
-                # Use token_sort_ratio for queries where word order matters
-                # Use partial_ratio for substring matching for misspelling, etc
-                token_score = max(
-                    fuzz.partial_ratio(token, combined_text),
-                    fuzz.token_sort_ratio(token, combined_text),
-                )
-                token_scores.append(token_score)
-
-            # For multi word queries, use the average score
-            if token_scores:
-                score = sum(token_scores) / len(token_scores)
-            else:
-                score = 0
-
-            # Only display the equipment that closely match the search params
-            if score >= 80:
-                equip_dict = equip.to_dict()
-                # Show who has that equipment checked out if any
-                if equip_dict["checked_out"]:
-                    user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
-                    equip_dict["checkedOutBy"] = user.email if user else None
+                # Normalize status
+                if equip.unavailable:
+                    fields["status"] = "unavailable"
+                elif equip.damaged:
+                    fields["status"] = "damaged"
+                elif equip.checked_out:
+                    fields["status"] = "checked out"
                 else:
-                    equip_dict["checkedOutBy"] = None
+                    fields["status"] = "available"
 
-                results.append((score, equip_dict))
+                # Normalize field values (lowercase)
+                fields = {k: str(v).lower() for k, v in fields.items() if v}
+                token_scores = []
 
-        # Sort by relevance (highest first)
-        results.sort(key=lambda x: x[0], reverse=True)
+                # Combine all field values into one searchable text
+                combined_text = " ".join(fields.values())
 
-        return jsonify(
-            {
-                "result": True,
-                "equip_list": [r[1] for r in results],
-                "query": query,
-                "count": len(results),
-            }
-        )
+                for token in query_tokens:
+                    # Use token_sort_ratio for queries where word order matters
+                    # Use partial_ratio for substring matching for misspelling, etc
+                    token_score = max(
+                        fuzz.partial_ratio(token, combined_text),
+                        fuzz.token_sort_ratio(token, combined_text),
+                    )
+                    token_scores.append(token_score)
 
+                # For multi word queries, use the average score
+                if token_scores:
+                    score = sum(token_scores) / len(token_scores)
+                else:
+                    score = 0
+
+                # Only display the equipment that closely match the search params
+                if score >= 80:
+                    equip_dict = equip.to_dict()
+                    # Show who has that equipment checked out if any
+                    if equip_dict["checked_out"]:
+                        user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
+                        equip_dict["checkedOutBy"] = user.email if user else None
+                    else:
+                        equip_dict["checkedOutBy"] = None
+
+                    results.append((score, equip_dict))
+
+            # Sort by relevance (highest first)
+            results.sort(key=lambda x: x[0], reverse=True)
+
+            return jsonify(
+                {
+                    "result": True,
+                    "equip_list": [r[1] for r in results],
+                    "query": query,
+                    "count": len(results),
+                }
+            )
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+        
     @app.route("/delete_equipment", methods=["POST"])
     def delete_equipment():
-        # Get admin name for validation and logging
-        admin_name = session.get("name")
-        if not admin_name:
-            return jsonify({"result": False, "message": "Not logged in"})
-        
-        data = request.json
         try:
+            # Get admin name for validation and logging
+            admin_name = session.get("name")
+            if not admin_name:
+                return jsonify({"result": False, "message": "Not logged in"})
+            
+            data = request.json
             equipment_id = ObjectId(data["equipment_id"])
             equip = db.get_equipment_by_id(equipment_id)
             equip_info = f"{equip.name}"
@@ -952,7 +978,7 @@ def create_app(testing=False):
                     target_id=equip_info,
                     details="Admin Deleted Equipment"
                 )
-                return jsonify({"result": True})
+                return jsonify({"result": True, "message": "Equipment was deleted"})
             else:
                 return jsonify(
                     {
@@ -963,23 +989,26 @@ def create_app(testing=False):
         except Exception as e:
             return jsonify({"result": False, "message": str(e)}), 500
 
-    # Updates the admins preference for receiving monthly reports or not
+
     @app.route('/update_report_preference', methods=['POST'])
     def update_report_pref():
-        admin_id = ObjectId(session['id'])
-        # Get the toggle value (True/False) from the frontend
-        data = request.get_json()
-        receive_reports = data['receive_reports']
-        
-        res = db.update_admin_report_preference(admin_id=admin_id, action=receive_reports)
-        if res:
-            return jsonify({"result": True, "message": "Preference updated"})
-        else:
-            return jsonify({"result": False, "message": "Database update failed"})
+        """Updates the admins preference for receiving monthly reports or not"""
+        try:
+            admin_id = ObjectId(session['id'])
+            # Get the toggle value (True/False) from the frontend
+            data = request.get_json()
+            receive_reports = data['receive_reports']
+            
+            res = db.update_admin_report_preference(admin_id=admin_id, action=receive_reports)
+            if res:
+                return jsonify({"result": True, "message": "Preference updated"})
+            else:
+                return jsonify({"result": False, "message": "Database update failed"})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
 
     return app
 
-# make sure to sanitize images for <script> tags, assigning UUID will happen in the back end
 if __name__ == "__main__":
     app = create_app(testing=False)
     app.run(

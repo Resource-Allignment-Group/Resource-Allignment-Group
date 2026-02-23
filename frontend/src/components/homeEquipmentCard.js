@@ -80,7 +80,7 @@ function HomeEquipmentCard({
 			if (data.result) {
 				alert("Your Request Has Been Sent");
 			} else {
-				alert("Something Went Wrong With Your Request");
+				alert(data.message || "Failed to Request Equipment");
 			}
 		} catch (error) {
 			alert("Failed to Checkout Equipment");
