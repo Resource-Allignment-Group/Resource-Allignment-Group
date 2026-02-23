@@ -9,6 +9,11 @@ This will hold the equipment card items */
 	overflow: hidden;
 }
 
+.equipment-card .placeholder-icon {
+	font-size: 36px;
+	color: #777;
+}
+
 .status-row {
 	display: flex;
 	align-items: center;
@@ -232,4 +237,219 @@ mark them as unavailable or available in the database */
 	word-break: break-word;
 	font-family: inherit;
 	min-height: 200px;
+}
+
+/* Attachments always stacked vertically */
+.attachments-section {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 12px;
+}
+
+.attachments-label {
+	font-weight: 600;
+	font-size: 14px;
+	color: #333;
+}
+
+.attachments-none {
+	font-size: 14px;
+	color: #888;
+}
+
+/* Chips sit in a horizontal wrapping row below the label */
+.attachments-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+/* Chip styled with navy outline to match app */
+.attachment-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background-color: #f0f4f8;
+	border: 1px solid #082e58;
+	border-radius: 4px;
+	padding: 4px 10px;
+	font-size: 13px;
+	height: 28px;
+	box-sizing: border-box;
+}
+
+.attachment-chip-name {
+	font-weight: 500;
+	color: #082e58;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+.display-badge {
+	background-color: #082e58;
+	color: white;
+	font-size: 10px;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-weight: 500;
+}
+
+.chip-action-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	color: #1976d2;
+	text-decoration: underline;
+	padding: 0;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.chip-action-btn:hover {
+	color: #0d47a1;
+}
+
+.chip-action-btn--danger {
+	color: #c00;
+}
+
+.chip-action-btn--danger:hover {
+	color: #900;
+}
+
+/* Two independent columns: left = attachments, right = action buttons */
+.card-footer {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
+}
+
+/* Left column: attachments label, chips, then upload buttons */
+.attachments-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex: 1;
+}
+
+.attachments-label {
+	font-weight: 600;
+	font-size: 14px;
+	color: #333;
+}
+
+.attachments-none {
+	font-size: 14px;
+	color: #888;
+}
+
+.attachments-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.attachment-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background-color: #f0f4f8;
+	border: 1px solid #082e58;
+	border-radius: 4px;
+	padding: 4px 10px;
+	font-size: 13px;
+	height: 28px;
+	box-sizing: border-box;
+}
+
+.attachment-chip-name {
+	font-weight: 500;
+	color: #082e58;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+.display-badge {
+	background-color: #082e58;
+	color: white;
+	font-size: 10px;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-weight: 500;
+}
+
+.chip-action-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	color: #1976d2;
+	text-decoration: underline;
+	padding: 0;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.chip-action-btn:hover {
+	color: #0d47a1;
+}
+.chip-action-btn--danger {
+	color: #c00;
+}
+.chip-action-btn--danger:hover {
+	color: #900;
+}
+
+/* Upload buttons below attachment icons */
+.upload-buttons {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 8px;
+}
+
+.btn-upload-label {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 20px;
+	background-color: #082e58;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 1;
+	box-sizing: border-box;
+	white-space: nowrap;
+}
+
+.btn-upload-label:hover {
+	background-color: #051d36;
+}
+
+/* Right column: action buttons pinned to the top of their column,
+   completely independent from whatever is happening on the left */
+.action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: flex-start;
+	flex-shrink: 0;
+}
+
+.equipment-card .card-details {
+	padding: 25px 25px 16px 25px;
 }

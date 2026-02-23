@@ -2,6 +2,7 @@ import "../styles/notificationCard.css";
 import { useState } from "react";
 import { MdPerson } from "react-icons/md";
 import { API_BASE } from "../config";
+import { FaTractor } from "react-icons/fa";
 
 function NewRequestNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
@@ -15,18 +16,24 @@ function NewRequestNotification({ notification, onApprove, onReject }) {
 		setStatus("rejected");
 		onReject(notification);
 	};
-	const equipmentImageUrl = notification.equipment_id && notification.equipment_display_image_id
-		? `http://${API_BASE}:5000/get_equipment_image/${notification.equipment_id}/${notification.equipment_display_image_id}`
-		: null;
+	const equipmentImageUrl =
+		notification.equipment_id && notification.equipment_display_image_id
+			? `http://${API_BASE}:5000/get_equipment_image/${notification.equipment_id}/${notification.equipment_display_image_id}`
+			: null;
+
 	return (
 		<div className="notification-card">
 			<div className="notification-content">
 				{/* Notification icon */}
-				<div className="notification-icon-circle notification-icon-account">
+				<div className="notification-icon-circle notification-icon-equipment">
 					{equipmentImageUrl ? (
-						<img src={equipmentImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+						<img
+							src={equipmentImageUrl}
+							alt=""
+							className="notification-equipment-image"
+						/>
 					) : (
-						<span>🚜</span>
+						<FaTractor />
 					)}
 				</div>
 

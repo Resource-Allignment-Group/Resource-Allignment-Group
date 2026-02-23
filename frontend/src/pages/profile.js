@@ -52,7 +52,9 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 				});
 				setUserId(user_info.id);
 				if (user_info.profile_image) {
-					setProfileImageUrl(`http://${API_BASE}:5000/get_profile_image/${user_info.id}?t=${Date.now()}`);
+					setProfileImageUrl(
+						`http://${API_BASE}:5000/get_profile_image/${user_info.id}?t=${Date.now()}`,
+					);
 				} else {
 					setProfileImageUrl(null);
 				}
@@ -124,12 +126,9 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 			});
 			const data = await res.json();
 			if (data.result) {
-				const profRes = await fetch(`http://${API_BASE}:5000/get_profile_info`, { credentials: "include" });
-				const profData = await profRes.json();
-				if (profData.result && profData.user && profData.user.id) {
-					setUserId(profData.user.id);
-					setProfileImageUrl(`http://${API_BASE}:5000/get_profile_image/${profData.user.id}?t=${Date.now()}`);
-				}
+				setProfileImageUrl(
+					`http://${API_BASE}:5000/get_profile_image/${userId}?t=${Date.now()}`,
+				);
 			} else {
 				alert(data.message || "Upload failed");
 			}
@@ -188,11 +187,16 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 								<div className="profile-section">
 									<div className="profile-picture-large">
 										{profileImageUrl ? (
-											<img src={profileImageUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+											<img
+												src={profileImageUrl}
+												alt="Profile"
+												className="profile-picture-img"
+											/>
 										) : null}
 									</div>
-									<div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-										<label className="change-picture-btn" style={{ cursor: "pointer" }}>
+
+									<div className="picture-buttons">
+										<label className="change-picture-btn">
 											{uploadingImage ? "Uploading..." : "Change Picture"}
 											<input
 												type="file"
@@ -205,8 +209,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 										{profileImageUrl && (
 											<button
 												type="button"
-												className="change-picture-btn"
-												style={{ cursor: "pointer", background: "transparent", border: "1px solid #c00", color: "#c00" }}
+												className="change-picture-btn remove-picture-btn"
 												onClick={handleDeleteProfileImage}
 											>
 												Remove Picture
