@@ -28,7 +28,7 @@ function Header({
 				setNotificationsNum(data.num_notifications);
 			} catch (error) {
 				console.error("Fetch error:", error);
-				alert("Something went wrong");
+				alert(error);
 			}
 		};
 
