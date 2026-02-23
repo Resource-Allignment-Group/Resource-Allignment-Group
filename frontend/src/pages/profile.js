@@ -81,6 +81,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 			if (!res.ok) throw new Error("Failed to save profile");
 
 			alert("Profile updated successfully");
+			
 		} catch {
 			alert("Error saving profile changes");
 		}
