@@ -917,4 +917,4 @@ class DatabaseManager:
             
             return notification_ids, list(sender_ids)
         except Exception as e:
-            raise str(e)
+            raise e
