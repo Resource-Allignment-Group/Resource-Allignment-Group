@@ -37,7 +37,6 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 
 	const handleNotification = async (notification, result) => {
 		try {
-			// Remove notif from UI first, revert if needed
 			const prevNotifications = notifications;
 			setNotifications((prev) =>
 				prev.filter((n) => n._id !== notification._id),
@@ -58,16 +57,26 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 				setNotifications(prevNotifications);
 				setNumNotifications((num) => num + 1);
 				alert(data.message || "Something went wrong");
+			} else {
+				// If the backend returns a precise count (equipment approval case),
+				// use it to correct any mismatch from the optimistic update above
+				if (data.remaining_notification_count !== undefined) {
+					setNumNotifications(data.remaining_notification_count);
+				}
+				// Update the notifs displayed
+				if (data.removed_notification_ids?.length) {
+					setNotifications((prev) =>
+						prev.filter((n) => !data.removed_notification_ids.includes(n._id)),
+					);
+				}
 			}
 		} catch {
-			// Revert on error
 			setNotifications((prev) => [...prev, notification]);
 			setNumNotifications((num) => num + 1);
 			alert("Failed to process request. Please try again.");
 		}
 	};
 
-	// Allows users to dismiss notifications
 	const handleDismiss = async (notificationToRemove) => {
 		try {
 			// Update UI first for instant feedback

@@ -78,8 +78,8 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 									<span className="value">{equipment.name}</span>
 								</div>
 								<div className="detail-row">
-									<span className="label">Category</span>
-									<span className="value">{equipment.category}</span>
+									<span className="label">Class</span>
+									<span className="value">{equipment.class}</span>
 								</div>
 								<div className="detail-row">
 									<span className="label">Make</span>

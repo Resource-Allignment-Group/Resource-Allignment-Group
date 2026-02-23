@@ -2,7 +2,7 @@
 // Shows user accounts with their role and checked out equipment
 
 import "../styles/userManagementCard.css";
-import { MdArrowForwardIos } from "react-icons/md";
+import { MdArrowForwardIos, MdPerson } from "react-icons/md";
 import { useState } from "react"; // Temp needed for visibility, removed when backend connected
 import { API_BASE } from "../config";
 
@@ -48,9 +48,16 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 							src={`http://${API_BASE}:5000/get_profile_image/${user.id}`}
 							alt={user.name}
 							className="user-profile-img"
-							style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+							style={{
+								width: "100%",
+								height: "100%",
+								objectFit: "cover",
+								borderRadius: "50%",
+							}}
 						/>
-					) : null}
+					) : (
+						<MdPerson className="user-placeholder-icon" />
+					)}
 				</div>
 
 				{/* User details */}

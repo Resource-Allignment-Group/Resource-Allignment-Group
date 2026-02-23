@@ -65,7 +65,6 @@ class DatabaseManager:
             "description",
             "damaged",
             "unavailable",
-            "category",
             "replacement_cost",
             "display_image",
         }
@@ -501,11 +500,14 @@ class DatabaseManager:
 
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
-        if not user_doc:
-            return []
-
+        if not user_doc: return []
         notification_ids = user_doc.get("inbox", [])
-        return [self.notifications_db.find_one({"_id": n}) for n in notification_ids]
+        if not notification_ids: return []
+        # Get the notifs in the user inbox in 1 DB fetch
+        notifications = list(self.notifications_db.find({"_id": {"$in": notification_ids}}))
+        # Sort them by date
+        notifications.sort(key=lambda n: n["date"])
+        return notifications
 
     # Get all notifs assigned to a given user in a single query
     def get_notifications_by_user(self, user_id):
@@ -862,6 +864,11 @@ class DatabaseManager:
         result = self.users_db.update_many(
             {"role": "a"},
             {"$pullAll": {"inbox": notification_ids}}
+        )
+        # Also mark them as read to keep the notif red bubble accurate
+        result = self.notifications_db.update_many(
+            {"_id": {"$in": notification_ids}},
+            {"$set": {"read": True}}
         )
         return result.modified_count
 

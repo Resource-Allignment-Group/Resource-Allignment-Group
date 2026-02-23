@@ -75,10 +75,8 @@ function Home({ num_of_notifications, setNumNotifications }) {
 		GetFilterOptions();
 	}, []);
 
-	// Filter logic to determine what equipment should be displayed
+	// Filters the equip shown, only reloads when they update
 	// Must use useCallback so that the filters aren't infinitely rendered
-	// This method allows the filters to only be reloaded when the equipment changes
-	// allowing for the most up-to-date info
 	const applyFilters = useCallback(
 		async (filters) => {
 			let filtered = [];
@@ -268,6 +266,81 @@ function Home({ num_of_notifications, setNumNotifications }) {
 		}
 	};
 
+	// Allows the admin to edit equipment fields
+	// Will refresh automatically on save
+	const handleEdit = async (editedEquipment) => {
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/change_equipment_info`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ equipment: editedEquipment }),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("Equipment information changed successfully");
+				const updatedEquipment = await GetEquipment();
+				setEquipment(updatedEquipment);
+				if (activeFilters) {
+					applyFilters(activeFilters);
+				} else {
+					setFilteredEquipment(updatedEquipment);
+				}
+			} else {
+				alert(data.message || "Failed to change equipment information");
+			}
+		} catch {
+			alert("There Were Problems Changing The Equipment Information");
+		}
+	};
+
+	// Allows the admins to delete equipment
+	// Refreshes automatically once deleted
+	const handleDelete = async (equipmentId, equipmentName) => {
+		const confirmDelete = window.confirm(
+			`Are you sure you want to delete "${equipmentName}"?`,
+		);
+		if (!confirmDelete) return;
+		try {
+			const res = await fetch(`http://${API_BASE}:5000/delete_equipment`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ equipment_id: equipmentId }),
+			});
+			const data = await res.json();
+			if (data.result) {
+				alert("Equipment deleted successfully");
+				const updatedEquipment = await GetEquipment();
+				setEquipment(updatedEquipment);
+				if (activeFilters) {
+					applyFilters(activeFilters);
+				} else {
+					setFilteredEquipment(updatedEquipment);
+				}
+				setExpandedCard(null);
+				setSelectedEquipment(new Set());
+				setSelectAll(false);
+			} else {
+				alert(data.message || "Failed to delete equipment");
+			}
+		} catch {
+			alert("There Were Problems Deleting The Equipment");
+		}
+	};
+
+	// A helper function for refreshing the equipment cards when an
+	// attachment is added, removed, or set as the display image
+	const handleRefresh = async () => {
+		const updatedEquipment = await GetEquipment();
+		setEquipment(updatedEquipment);
+		if (activeFilters) {
+			applyFilters(activeFilters);
+		} else {
+			setFilteredEquipment(updatedEquipment);
+		}
+	};
+
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -355,29 +428,9 @@ function Home({ num_of_notifications, setNumNotifications }) {
 								}
 								isSelected={selectedEquipment.has(item.id)}
 								onSelect={handleEquipmentSelect}
-								onRefresh={() => {
-									GetEquipment().then((equip_list) => {
-										setEquipment(equip_list);
-										if (activeFilters) {
-											applyFilters(activeFilters);
-										} else {
-											setFilteredEquipment(equip_list);
-										}
-									});
-								}}
-								onDelete={() => {
-									GetEquipment().then((equip_list) => {
-										setEquipment(equip_list);
-										if (activeFilters) {
-											applyFilters(activeFilters);
-										} else {
-											setFilteredEquipment(equip_list);
-										}
-										setExpandedCard(null);
-										setSelectedEquipment(new Set());
-										setSelectAll(false);
-									});
-								}}
+								onEdit={handleEdit}
+								onDelete={handleDelete}
+								onRefresh={handleRefresh}
 							/>
 						))
 					)}

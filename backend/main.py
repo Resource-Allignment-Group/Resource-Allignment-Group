@@ -226,10 +226,7 @@ def create_app(testing=False):
 
     @app.route("/get_user_info", methods=["GET"])
     def get_user_info():
-        # add profile pic retrevial and any other import stuff here
-
-        # This needs so re factoring once we get more features implimented
-        inbox_notifications = db.get_inbox_by_user(user_id=ObjectId(session["id"]))
+        # Detemrines how many new notifs a user has
         unread_messages = db.get_unread_messages_by_user(
             user_id=ObjectId(session["id"])
         )
@@ -384,7 +381,17 @@ def create_app(testing=False):
                         message=f"Your request for {equipment.name} has been approved."
                     )
                     
-                    return jsonify({"result": True, "message": "Equipment successfully checked out"})
+                    # Fetch the real inbox count for admin after all removals
+                    updated_inbox = db.get_inbox_by_user(user_id=admin_id)
+                    remaining_count = len([n for n in updated_inbox if n is not None])
+                    # Return the number of notifs removed, that way the notif bubble is accurate
+                    return jsonify({
+                        "result": True,
+                        "message": "Equipment successfully checked out",
+                        "remaining_notification_count": remaining_count,
+                        "removed_notification_ids": [str(nid) for nid in pending_notification_ids]
+                    })
+
                 # Request was denied
                 else:
                     db.set_notification_status(id=new_note.id, status="r")
