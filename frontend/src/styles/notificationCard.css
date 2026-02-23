@@ -10,7 +10,7 @@
 
 .notification-content {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 20px;
 	position: relative;
 }
@@ -24,6 +24,22 @@
 	justify-content: center;
 	font-size: 24px;
 	flex-shrink: 0;
+}
+
+/* Larger icon circle for equipment request images */
+.notification-icon-equipment {
+	width: 80px;
+	height: 80px;
+	background-color: #d0d0d0;
+	color: #777;
+}
+
+.notification-equipment-image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 50%;
+	display: block;
 }
 
 .notification-icon-success {

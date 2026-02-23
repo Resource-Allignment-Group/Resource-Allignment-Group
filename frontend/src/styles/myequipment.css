@@ -48,3 +48,12 @@
 	white-space: pre-wrap;
 	word-break: break-word;
 }
+
+.my-equipment-card .placeholder-icon {
+	font-size: 36px;
+	color: #777;
+}
+
+.my-equipment-card .card-details {
+	padding: 25px 25px 16px 25px;
+}

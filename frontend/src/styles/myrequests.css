@@ -45,12 +45,6 @@ request notification for styling */
 	margin: 20px;
 }
 
-.my-requests-card .card-details {
-	padding: 25px;
-	background-color: #f8f8f8;
-	border-top: 1px solid #e0e0e0;
-}
-
 .my-requests-card .attachment-buttons {
 	display: flex;
 	gap: 15px;
@@ -84,4 +78,89 @@ request notification for styling */
 .my-requests-card .description-value {
 	white-space: pre-wrap;
 	word-break: break-word;
+}
+
+.my-requests-card .placeholder-icon {
+	font-size: 36px;
+	color: #777;
+}
+
+/*  */
+
+/* Match HomeEquipmentCard attachment styling */
+.my-requests-card .card-footer {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
+}
+
+.my-requests-card .attachments-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex: 1;
+}
+
+.my-requests-card .attachments-label {
+	font-weight: 600;
+	font-size: 14px;
+	color: #333;
+}
+
+.my-requests-card .attachments-none {
+	font-size: 14px;
+	color: #888;
+}
+
+.my-requests-card .attachments-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.my-requests-card .attachment-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background-color: #f0f4f8;
+	border: 1px solid #082e58;
+	border-radius: 4px;
+	padding: 4px 10px;
+	font-size: 13px;
+	height: 28px;
+	box-sizing: border-box;
+}
+
+.my-requests-card .attachment-chip-name {
+	font-weight: 500;
+	color: #082e58;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+.my-requests-card .chip-action-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	color: #1976d2;
+	text-decoration: underline;
+	padding: 0;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.my-requests-card .chip-action-btn:hover {
+	color: #0d47a1;
+}
+
+.my-requests-card .card-details {
+	padding: 25px 25px 16px 25px;
 }

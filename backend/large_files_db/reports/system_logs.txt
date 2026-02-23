@@ -39,3 +39,4 @@
 2026-02-22 19:05:06,820 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: Boxblade Snowplow, None, None, None (SNOW MANAGEMENT)] [Details: Head Huncho the best : test_admin@gmail.com]
 2026-02-22 17:34:31,695 - INFO - [User: Big Dawg] [Action: CHECK_IN] [Target: Disc Mower, New Holland, None, 2021 (MOWING)] [Details: Item returned DAMAGED: blew it up]
 2026-02-22 17:34:43,737 - INFO - [User: Big Dawg] [Action: CHECK_IN] [Target: 5 Bottom Plow, Will Rich, None, 2012 (PLOT PREPERATION)] [Details: Item returned DAMAGED: d]
+2026-02-22 21:47:01,005 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: Potato Hiller/Cultivator, None, None, None (PLOT PREPERATION)] [Details: Head Huncho the best : test_admin@gmail.com]
