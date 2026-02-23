@@ -448,6 +448,127 @@ class DatabaseManager:
         except Exception as e:
             raise e
         
+        
+    def get_all_equipment(self):
+        try:
+            cursor = self.equipment_db.find({})
+            equip_list = []
+            for equip_info in cursor:
+                equip = Equipment()
+                equip.fill_from_json(equip_info)
+                equip_list.append(equip)
+            return equip_list
+        except Exception as e:
+            raise e
+        
+    def update_equipment_field(self, equip_id, field_name, value):
+        """Allows you to edit a specific field on an equipment"""
+        try:
+            if field_name not in self.allowed_fields:
+                raise Exception(f"Field Name {field_name} is not permitted")
+            result = self.equipment_db.update_one(
+                {
+                    "_id": ObjectId(equip_id),
+                    field_name: {"$exists": True},
+                }, # needed to make sure no new fields were added that don't already exist
+                {"$set": {field_name: value}},
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            raise e
+        
+    def get_equipment_by_id(self, id: ObjectId) -> list:
+        try:
+            equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
+            if not equip_info:  # Added for handling when equipment doesnt exist
+                return None
+
+            equip = Equipment()
+            equip.fill_from_json(json_info=equip_info)
+            return equip
+        except Exception as e:
+            raise e
+
+
+    def get_equipment_by_user(self, user_id: ObjectId):
+        try:
+            equip_list = []
+            user = self.users_db.find_one({"_id": user_id})
+            if not user:
+                return []
+            for equip_id in user["checked_out_equipment"]:
+                equip_list.append(self.get_equipment_by_id(id=equip_id))
+            return equip_list
+        except Exception as e:
+            raise e
+    #region Large Files
+    def add_image(self, equipment_id: ObjectId, image: Image):
+        img_uuid = str(ObjectId())
+        image_path = self.images_db / img_uuid
+        image.save(image_path)
+        while True:
+            if (self.images_db / img_uuid).exists():
+                img_uuid = str(ObjectId())
+            else:
+                break
+        image.save(self.images_db / img_uuid)
+
+        change_result = self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$push": {"images": img_uuid}}
+        )
+        if change_result.acknowledged:
+            return f"Image {img_uuid} has been added for {equipment_id}"
+        else:
+            return f"Image {img_uuid} could not be added"
+
+    def add_report(self, equipment_id: ObjectId, report_content):
+        report_uuid = str(ObjectId())
+        while True:
+            if (self.reports_db / report_uuid).exists():
+                report_uuid = str(ObjectId())
+            else:
+                break
+
+        with open(self.reports_db / report_uuid, "w") as f:
+            f.write(report_content)
+
+        change_result = self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
+        )
+        if change_result.acknowledged:
+            return f"Report {report_uuid} has been added for {equipment_id}"
+        else:
+            return f"Report {report_uuid} could not be added"
+
+    def get_image(self, uuid: str):
+        if not (self.images_db / uuid).exists():
+            return f"{uuid} image does not exist"
+
+        img = Image.open(self.images_db / uuid)
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+
+        return buffer.getvalue()
+
+    def delete_image(self, uuid: str):
+        path = self.images_db / uuid
+        if path.exists():
+            path.unlink()
+
+    def get_report(self, uuid: str):
+        if not (self.reports_db / uuid).exists():
+            return f"{uuid} report does not exist"
+
+        with open(self.reports_db / uuid, "rb") as f:
+            report_data = io.BytesIO(f.read())
+
+        return report_data
+
+    def delete_report(self, uuid: str):
+        path = self.reports_db / uuid
+        if path.exists():
+            path.unlink()
+                    
     def add_equipment_image(self, equipment_id: ObjectId, file) -> tuple:
         if not file or not file.filename:
             return None,
@@ -607,63 +728,6 @@ class DatabaseManager:
         path.unlink(missing_ok=True)
         self.users_db.update_one({"_id": user_id}, {"$unset": {"profile_image": ""}})
         return True
-
-        
-    def get_all_equipment(self):
-        try:
-            cursor = self.equipment_db.find({})
-            equip_list = []
-            for equip_info in cursor:
-                equip = Equipment()
-                equip.fill_from_json(equip_info)
-                equip_list.append(equip)
-            return equip_list
-        except Exception as e:
-            raise e
-        
-    def update_equipment_field(self, equip_id, field_name, value):
-        """Allows you to edit a specific field on an equipment"""
-        try:
-            if field_name not in self.allowed_fields:
-                raise Exception(f"Field Name {field_name} is not permitted")
-            result = self.equipment_db.update_one(
-                {
-                    "_id": ObjectId(equip_id),
-                    field_name: {"$exists": True},
-                }, # needed to make sure no new fields were added that don't already exist
-                {"$set": {field_name: value}},
-            )
-            return result.modified_count > 0
-        except Exception as e:
-            raise e
-        
-    def get_equipment_by_id(self, id: ObjectId) -> list:
-        try:
-            equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
-            if not equip_info:  # Added for handling when equipment doesnt exist
-                return None
-
-            equip = Equipment()
-            equip.fill_from_json(json_info=equip_info)
-            return equip
-        except Exception as e:
-            raise e
-
-
-    def get_equipment_by_user(self, user_id: ObjectId):
-        try:
-            equip_list = []
-            user = self.users_db.find_one({"_id": user_id})
-            if not user:
-                return []
-            for equip_id in user["checked_out_equipment"]:
-                equip_list.append(self.get_equipment_by_id(id=equip_id))
-            return equip_list
-        except Exception as e:
-            raise e
-    #region Large Files
-        
-    #THIS SHOULD BE WHERE ALL OF THE LARGE FILES LOGIC GOES
 
     #region Notifications
 

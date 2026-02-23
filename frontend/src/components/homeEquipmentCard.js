@@ -243,16 +243,18 @@ function HomeEquipmentCard({
 						<span className={`status-badge ${status.className}`}>
 							{status.label}
 						</span>
+						{isAdmin && (
 						<div className="status-actions">
 							<label className="checkbox-label">
-								<input
-									type="checkbox"
-									checked={isSelected}
-									onChange={() => onSelect(equipment.id)}
-								/>
+							<input
+								type="checkbox"
+								checked={isSelected}
+								onChange={() => onSelect(equipment.id)}
+							/>
 							</label>
 							Mark Unavailable
 						</div>
+						)}
 					</div>
 				</div>
 

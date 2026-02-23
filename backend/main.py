@@ -416,17 +416,18 @@ def create_app(testing=False):
     
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
+        print("hit")
         try:
             equipment_cur = db.get_all_equipment()
             equip_list = [equip.to_dict() for equip in equipment_cur]
             # Get the IDs of all checked out equipment
             checked_out_ids = [ObjectId(equip["id"]) for equip in equip_list if equip["checked_out"]]
-
+            equip_list
             # One DB call to get all users who have these equip checked out to them
             # This prevents multiple calls to the DB from the loop
             checkout_map = {}
             if checked_out_ids:
-                users = db.get_users_by_equipment_ids(checked_out_ids)
+                users = [db.get_user_by_equipment(id) for id in checked_out_ids]
                 for user in users:
                     for equip_id in user.checked_out_equipment:
                         checkout_map[str(equip_id)] = user.email
@@ -434,7 +435,6 @@ def create_app(testing=False):
             # Assign the chekedOutBy value based on the map
             for equip in equip_list:
                 equip["checkedOutBy"] = checkout_map.get(equip["id"])
-
             # Sort the output equipment by their assigned status
             # (ie. Available, Checked Out, Damaged, Unavailable)
             def get_priority(equip):
