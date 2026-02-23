@@ -1,4 +1,3 @@
-import pymongo
 import os
 from pymongo import MongoClient
 from pathlib import Path
@@ -926,6 +925,119 @@ class DatabaseManager:
         result = self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
         return result.modified_count > 0 
 
+
+    def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """Cancels pending equipment requests for equipment that have been
+        assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
+        You can also, optionally, specify a notification ID to exclude an equip item
+        from being denied (when only one user is approved to chekout an equip, it cancels for all others)"""
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Only pending
+        }
+        
+        # If we want to exclude a specific notification (e.g., the one being approved)
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
+        result = self.notifications_db.update_many(
+            query,
+            {"$set": {"status": "r"}}
+        )
+        return result.modified_count
+    
+    def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """Get IDs of pending requests for specific equipment before denying them
+        Used to remove them from admin inboxes and notify affected users"""
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Pending
+        }
+        
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
+        denied_requests = self.notifications_db.find(query, {"_id": 1, "sender": 1})
+        
+        notification_ids = []
+        # Use set to avoid duplicate user IDs
+        sender_ids = set()
+        
+        for req in denied_requests:
+            notification_ids.append(req["_id"])
+            sender_ids.add(ObjectId(req["sender"]))
+        
+        return notification_ids, list(sender_ids)
+
+    # Remove a notification from all admin inboxes 
+    # EX: An equip is approved to a usr, all notifs requesting that same equip are removed
+    def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
+        if not notification_ids:
+            return 0
+        result = self.users_db.update_many(
+            {"role": "a"},
+            {"$pullAll": {"inbox": notification_ids}}
+        )
+        return result.modified_count
+
+    # Update multiple equipment items as unavailable at once
+    def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
+        if not equipment_ids:
+            return 0
+
+        result = self.equipment_db.update_many(
+            {
+                "_id": {"$in": equipment_ids},
+                "checked_out": False,
+                "damaged": False,
+            },
+            {"$set": {"unavailable": unavailable}},
+        )
+        return result.modified_count
+
+    def delete_equipment(self, equipment_id: ObjectId):
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+
+        # Remove equipment from all users' checked_out_equipment arrays
+        self.users_db.update_many(
+            {"checked_out_equipment": equipment_id},
+            {"$pull": {"checked_out_equipment": equipment_id}},
+        )
+
+        # Delete all notifications referencing this equipment
+        notifications = self.notifications_db.find({"equipment_id": equipment_id})
+        for notification in notifications:
+            # Remove notification from users' inbox arrays
+            self.users_db.update_many(
+                {"inbox": notification["_id"]},
+                {"$pull": {"inbox": notification["_id"]}},
+            )
+        # Delete the notifications
+        self.notifications_db.delete_many({"equipment_id": equipment_id})
+
+        # Delete associated image files
+        if "images" in equipment and equipment["images"]:
+            for image_id in equipment["images"]:
+                if image_id:
+                    path = self.images_db / str(image_id)
+                    if path.exists():
+                        path.unlink()
+
+        # Delete associated report files
+        if "reports" in equipment and equipment["reports"]:
+            for report_id in equipment["reports"]:
+                if report_id:
+                    path = self.reports_db / str(report_id)
+                    if path.exists():
+                        path.unlink()
+
+        # Finally, delete the equipment document itself
+        result = self.equipment_db.delete_one({"_id": equipment_id})
+        return result.acknowledged and result.deleted_count > 0
     #region Requests
     
     def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):

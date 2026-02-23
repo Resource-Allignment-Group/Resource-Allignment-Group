@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from collections import defaultdict
 import re
-from bson.objectid import ObjectId
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
