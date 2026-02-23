@@ -808,11 +808,12 @@ class DatabaseManager:
     def set_password_reset_used(self, id: ObjectId, used: bool):
         self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
 
-    # Cancels pending equipment requests for equipment that have been
-    # assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
-    # You can also, optionally, specify a notification ID to exclude an equip item
-    # from being denied (when only one user is approved to chekout an equip, it cancels for all others)
+
     def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """Cancels pending equipment requests for equipment that have been
+        assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
+        You can also, optionally, specify a notification ID to exclude an equip item
+        from being denied (when only one user is approved to chekout an equip, it cancels for all others)"""
         query = {
             "equipment_id": {"$in": equipment_ids},
             "type": "r",
@@ -829,9 +830,9 @@ class DatabaseManager:
         )
         return result.modified_count
     
-    # Get IDs of pending requests for specific equipment before denying them
-    # Used to remove them from admin inboxes and notify affected users
     def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """Get IDs of pending requests for specific equipment before denying them
+        Used to remove them from admin inboxes and notify affected users"""
         query = {
             "equipment_id": {"$in": equipment_ids},
             "type": "r",
