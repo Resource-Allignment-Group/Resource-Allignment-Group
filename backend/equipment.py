@@ -1,5 +1,4 @@
 from uuid import UUID
-from PIL import Image
 from bson import ObjectId
 
 
