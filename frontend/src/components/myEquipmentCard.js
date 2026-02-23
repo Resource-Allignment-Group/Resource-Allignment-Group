@@ -4,6 +4,7 @@ import "../styles/myequipment.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react";
 import ReturnEquipmentModal from "./returnEquipmentWindow";
+import { API_BASE } from "../config";
 
 function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 	// Display return form
@@ -24,9 +25,14 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 		<>
 			<div className="my-equipment-card">
 				<div className="card-header">
-					{/* Add placeholder image later  */}
 					<div className="equipment-image">
-						<div className="image-placeholder"></div>
+						{equipment.display_image && equipment.images?.includes(equipment.display_image) ? (
+							<img src={`http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${equipment.display_image}`} alt={equipment.name} className="equipment-card-img" />
+						) : equipment.images?.length > 0 ? (
+							<img src={`http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${equipment.images[0]}`} alt={equipment.name} className="equipment-card-img" />
+						) : (
+							<div className="image-placeholder"></div>
+						)}
 					</div>
 
 					{/* Equipment details */}
@@ -102,11 +108,27 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 						</div>
 
 						<div className="card-footer">
-							<div className="attachment-buttons">
-								<button className="link-button">
-									View Attachments({equipment.attachments})
-								</button>
-								<button className="link-button">Upload</button>
+							<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+								<div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+									<span style={{ fontWeight: 500, flexShrink: 0 }}>Attachments:</span>
+									<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+										{equipment.images?.map((imgId) => (
+											<div key={imgId} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+												<span style={{ fontSize: 14 }}>Image</span>
+												<a href={`http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${imgId}`} target="_blank" rel="noopener noreferrer" className="link-button" style={{ color: "#1976d2" }}>View</a>
+											</div>
+										))}
+										{equipment.reports?.map((reportId) => (
+											<div key={reportId} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+												<span style={{ fontSize: 14 }}>Report (PDF)</span>
+												<a href={`http://${API_BASE}:5000/get_equipment_report/${equipment.id}/${reportId}`} target="_blank" rel="noopener noreferrer" className="link-button" style={{ color: "#1976d2" }}>Open</a>
+											</div>
+										))}
+										{((!equipment.images || equipment.images.length === 0) && (!equipment.reports || equipment.reports.length === 0)) && (
+											<span style={{ color: "#666", fontSize: 14 }}>None</span>
+										)}
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

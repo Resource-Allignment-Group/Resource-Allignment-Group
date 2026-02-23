@@ -27,6 +27,10 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 	const [images, setImages] = useState([]);
 	const [reports, setReports] = useState([]);
 	const [submitting, setSubmitting] = useState(false);
+	const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+	const MAX_REPORT_SIZE = 10 * 1024 * 1024;
+	const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
+	const ALLOWED_REPORT_TYPES = ["application/pdf"];
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -54,35 +58,67 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
+	const validateFiles = () => {
+		for (const file of images) {
+			if (file.size > MAX_IMAGE_SIZE) {
+				alert(`Image "${file.name}" exceeds 5MB limit`);
+				return false;
+			}
+			if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+				alert(`Image "${file.name}" must be PNG or JPG`);
+				return false;
+			}
+		}
+		for (const file of reports) {
+			if (file.size > MAX_REPORT_SIZE) {
+				alert(`Report "${file.name}" exceeds 10MB limit`);
+				return false;
+			}
+			if (!ALLOWED_REPORT_TYPES.includes(file.type)) {
+				alert(`Report "${file.name}" must be PDF`);
+				return false;
+			}
+		}
+		return true;
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		if (!validateFiles()) return;
 		setSubmitting(true);
 
-		const payload = new FormData();
-
-		Object.entries(formData).forEach(([key, value]) => {
-			payload.append(key, value);
-		});
-
-		images.forEach((file) => payload.append("images", file));
-		reports.forEach((file) => payload.append("reports", file));
-
 		try {
-			const res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
-				method: "POST",
-				credentials: "include",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					data: formData,
-					images: images,
-					reports: reports,
-				}),
-			});
+			let res;
+			if (images.length > 0 || reports.length > 0) {
+				const payload = new FormData();
+				Object.entries(formData).forEach(([key, value]) => {
+					payload.append(key, value || "");
+				});
+				images.forEach((file) => payload.append("images", file));
+				reports.forEach((file) => payload.append("reports", file));
+				res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
+					method: "POST",
+					credentials: "include",
+					body: payload,
+				});
+			} else {
+				res = await fetch(`http://${API_BASE}:5000/add_equipment`, {
+					method: "POST",
+					credentials: "include",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						data: formData,
+						images: [],
+						reports: [],
+					}),
+				});
+			}
 			const data = await res.json();
 			if (!data.result) {
-				alert("Failed to submit equipment");
+				alert(data.message || "Failed to submit equipment");
+				setSubmitting(false);
+				return;
 			}
-
 			if (onSuccess) onSuccess();
 			setFormData({
 				name: "",
@@ -219,21 +255,22 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 						</label>
 
 						<label>
-							Images (Optional)
+							Images (Optional - PNG, JPG, max 5MB each)
 							<input
 								type="file"
 								multiple
-								accept="image/*"
-								onChange={(e) => setImages([...e.target.files])}
+								accept=".png,.jpg,.jpeg"
+								onChange={(e) => setImages(e.target.files ? [...e.target.files] : [])}
 							/>
 						</label>
 
 						<label>
-							Reports (Optional)
+							Reports (Optional - PDF only, max 10MB each)
 							<input
 								type="file"
 								multiple
-								onChange={(e) => setReports([...e.target.files])}
+								accept=".pdf"
+								onChange={(e) => setReports(e.target.files ? [...e.target.files] : [])}
 							/>
 						</label>
 

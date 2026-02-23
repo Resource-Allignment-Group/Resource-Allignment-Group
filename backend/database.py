@@ -41,6 +41,15 @@ class DatabaseManager:
         self.password_resets = self.db["password_resets"]
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
+        self.profile_images_db = Path("backend/large_files_db/profile_images")
+        self.images_db.mkdir(parents=True, exist_ok=True)
+        self.reports_db.mkdir(parents=True, exist_ok=True)
+        self.profile_images_db.mkdir(parents=True, exist_ok=True)
+        self.ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
+        self.MAX_IMAGE_SIZE = 5 * 1024 * 1024
+        self.ALLOWED_REPORT_EXTENSIONS = {".pdf"}
+        self.MAX_REPORT_SIZE = 10 * 1024 * 1024
+        self.MAX_PROFILE_IMAGE_SIZE = 2 * 1024 * 1024
         self.allowed_fields = {
             "_id",
             "name",
@@ -58,6 +67,7 @@ class DatabaseManager:
             "unavailable",
             "category",
             "replacement_cost",
+            "display_image",
         }
 
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
@@ -204,9 +214,11 @@ class DatabaseManager:
                 "use": equipment.model,
                 "images": [],
                 "reports": [],
+                "display_image": None,
                 "checked_out": False,
                 "description": equipment.description,
                 "damaged": equipment.damaged,
+                "unavailable": getattr(equipment, "unavailable", False),
             }
         )
 
@@ -347,6 +359,145 @@ class DatabaseManager:
         path = self.reports_db / uuid
         if path.exists():
             path.unlink()
+
+    def add_equipment_image(self, equipment_id: ObjectId, file) -> tuple:
+        if not file or not file.filename:
+            return None,
+        ext = Path(file.filename).suffix.lower()
+        if ext not in self.ALLOWED_IMAGE_EXTENSIONS:
+            return None, f"Invalid file type"
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > self.MAX_IMAGE_SIZE:
+            return None, f"File too large. Max size: {self.MAX_IMAGE_SIZE // (1024*1024)}MB"
+        try:
+            img = Image.open(file)
+            img.verify()
+        except Exception:
+            return None, "Invalid image file"
+        file.seek(0)
+        img_uuid = str(ObjectId())
+        image_path = self.images_db / img_uuid
+        with open(image_path, "wb") as f:
+            f.write(file.read())
+        change_result = self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$push": {"images": img_uuid}}
+        )
+        if change_result.acknowledged:
+            return img_uuid, None
+        image_path.unlink(missing_ok=True)
+        return None, "Failed to add image to equipment"
+
+    def add_equipment_report(self, equipment_id: ObjectId, file) -> tuple:
+        if not file or not file.filename:
+            return None, "No file provided"
+        ext = Path(file.filename).suffix.lower()
+        if ext not in self.ALLOWED_REPORT_EXTENSIONS:
+            return None, f"Invalid file type. Allowed: PDF only"
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > self.MAX_REPORT_SIZE:
+            return None, f"File too large. Max size: {self.MAX_REPORT_SIZE // (1024*1024)}MB"
+        report_uuid = str(ObjectId())
+        report_path = self.reports_db / report_uuid
+        with open(report_path, "wb") as f:
+            f.write(file.read())
+        change_result = self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
+        )
+        if change_result.acknowledged:
+            return report_uuid, None
+        report_path.unlink(missing_ok=True)
+        return None, "Failed to add report to equipment"
+
+    def set_equipment_display_image(self, equipment_id: ObjectId, image_id: str) -> bool:
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+        images = equipment["images"] if equipment["images"] else []
+        if image_id not in images:
+            return False
+        self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$set": {"display_image": image_id}}
+        )
+        return True
+
+    def remove_equipment_image(self, equipment_id: ObjectId, image_id: str) -> bool:
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+        images = equipment["images"] if equipment["images"] else []
+        if image_id not in images:
+            return False
+        update_op = {"$pull": {"images": image_id}}
+        if "display_image" in equipment and equipment["display_image"] == image_id:
+            update_op["$unset"] = {"display_image": ""}
+        self.equipment_db.update_one({"_id": equipment_id}, update_op)
+        path = self.images_db / image_id
+        path.unlink(missing_ok=True)
+        return True
+
+    def remove_equipment_report(self, equipment_id: ObjectId, report_id: str) -> bool:
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+        reports = equipment["reports"] if equipment["reports"] else []
+        if report_id not in reports:
+            return False
+        self.equipment_db.update_one(
+            {"_id": equipment_id}, {"$pull": {"reports": report_id}}
+        )
+        path = self.reports_db / report_id
+        path.unlink(missing_ok=True)
+        return True
+
+    def add_profile_picture(self, user_id: ObjectId, file) -> tuple:
+        if not file or not file.filename:
+            return None, "No file provided"
+        ext = Path(file.filename).suffix.lower()
+        if ext not in self.ALLOWED_IMAGE_EXTENSIONS:
+            return None, f"Invalid file type. Allowed: {', '.join(self.ALLOWED_IMAGE_EXTENSIONS)}"
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > self.MAX_PROFILE_IMAGE_SIZE:
+            return None, f"File too large. Max size: {self.MAX_PROFILE_IMAGE_SIZE // (1024*1024)}MB"
+        try:
+            img = Image.open(file)
+            img.verify()
+        except Exception:
+            return None, "Invalid image file"
+        file.seek(0)
+        img_uuid = str(ObjectId())
+        image_path = self.profile_images_db / img_uuid
+        with open(image_path, "wb") as f:
+            f.write(file.read())
+        user = self.users_db.find_one({"_id": user_id})
+        if user and "profile_image" in user and user["profile_image"]:
+            old_path = self.profile_images_db / user["profile_image"]
+            old_path.unlink(missing_ok=True)
+        self.users_db.update_one(
+            {"_id": user_id}, {"$set": {"profile_image": img_uuid}}
+        )
+        return img_uuid, None
+
+    def get_profile_image_id(self, user_id: ObjectId):
+        user = self.users_db.find_one({"_id": user_id})
+        if not user or "profile_image" not in user or not user["profile_image"]:
+            return None
+        return user["profile_image"]
+
+    def delete_profile_picture(self, user_id: ObjectId) -> bool:
+        user = self.users_db.find_one({"_id": user_id})
+        if not user or "profile_image" not in user or not user["profile_image"]:
+            return False
+        img_id = user["profile_image"]
+        path = self.profile_images_db / img_id
+        path.unlink(missing_ok=True)
+        self.users_db.update_one({"_id": user_id}, {"$unset": {"profile_image": ""}})
+        return True
 
     def get_inbox_by_user(self, user_id: ObjectId):
         user_doc = self.users_db.find_one({"_id": user_id})
@@ -624,6 +775,9 @@ class DatabaseManager:
             log_details = "Account Removed by Admin"
 
         user_info = f"{user.name} : {user.email}"
+        if user.profile_image:
+            profile_path = self.profile_images_db / user.profile_image
+            profile_path.unlink(missing_ok=True)
         result = self.users_db.delete_one({"_id": user.id})
         if result.acknowledged:
             self.add_log(

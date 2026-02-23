@@ -229,7 +229,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 		// Mark the item as unavailable/available
 		try {
 			const res = await fetch(
-				"http://localhost:5000/mark_equipment_unavailable",
+				`http://${API_BASE}:5000/mark_equipment_unavailable`,
 				{
 					method: "POST",
 					credentials: "include",
@@ -355,8 +355,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 								}
 								isSelected={selectedEquipment.has(item.id)}
 								onSelect={handleEquipmentSelect}
-								onDelete={() => {
-									// Refresh equipment list after deletion
+								onRefresh={() => {
 									GetEquipment().then((equip_list) => {
 										setEquipment(equip_list);
 										if (activeFilters) {
@@ -364,7 +363,16 @@ function Home({ num_of_notifications, setNumNotifications }) {
 										} else {
 											setFilteredEquipment(equip_list);
 										}
-
+									});
+								}}
+								onDelete={() => {
+									GetEquipment().then((equip_list) => {
+										setEquipment(equip_list);
+										if (activeFilters) {
+											applyFilters(activeFilters);
+										} else {
+											setFilteredEquipment(equip_list);
+										}
 										setExpandedCard(null);
 										setSelectedEquipment(new Set());
 										setSelectAll(false);
