@@ -7,8 +7,10 @@ import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
 import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
-
+import { useAuth } from "../Authentication";
 function Home({ num_of_notifications, setNumNotifications }) {
+	const { role } = useAuth();
+	const isAdmin = role === "a";
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
@@ -392,6 +394,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 								className="btn-secondary"
 								onClick={() => handleMarkUnavailable(true)}
 								disabled={selectedEquipment.size === 0}
+								hidden={!isAdmin}
 							>
 								Mark as Unavailable
 							</button>
@@ -399,6 +402,7 @@ function Home({ num_of_notifications, setNumNotifications }) {
 								className="btn-secondary"
 								onClick={() => handleMarkUnavailable(false)}
 								disabled={selectedEquipment.size === 0}
+								hidden={!isAdmin}
 							>
 								Mark as Available
 							</button>

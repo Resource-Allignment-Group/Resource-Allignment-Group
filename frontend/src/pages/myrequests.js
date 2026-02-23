@@ -60,7 +60,7 @@ function MyRequests({ num_of_notifications, setNumNotifications }) {
 
 			if (!res.ok || !data.result) {
 				setRequests(prevRequests);
-				alert("Failed to dismiss request");
+				alert(data.message);
 			}
 		} catch {
 			alert("Failed to dismiss request");

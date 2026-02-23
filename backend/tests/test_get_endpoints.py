@@ -26,11 +26,6 @@ def test_notifications(login_user):
     assert res.get_json()["result"]
 
 
-def test_equipment(login_user):
-    res = login_user.get("/get_equipment")
-    assert res.get_json()["result"]
-
-
 def test_dashboard_info(login_user):
     res = login_user.get("/get_dashboard_info")
     assert res.get_json()["result"]

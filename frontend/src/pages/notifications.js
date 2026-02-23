@@ -99,7 +99,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 			if (!res.ok || !data.result) {
 				setNotifications(prevNotifications);
 				setNumNotifications((num) => num + 1);
-				alert(data.error || "Failed to dismiss notification");
+				alert(data.message || "Failed to dismiss notification");
 			}
 		} catch {
 			// Revert on error
