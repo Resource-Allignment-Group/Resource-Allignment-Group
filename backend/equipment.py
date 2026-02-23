@@ -20,6 +20,8 @@ class Equipment:
         description: str = None,
         damaged: bool = False,
         unavailable: bool = False,
+        replacement_cost: float = 0.0,
+
     ):
         self.id = uuid
         self._class = _class
@@ -35,6 +37,7 @@ class Equipment:
         self.description = description
         self.damaged = damaged
         self.unavailable = unavailable
+        self.replacement_cost = replacement_cost
 
     def get_images(self, db):
         img_bytes = []
@@ -73,14 +76,15 @@ class Equipment:
         self.description = json_info["description"]
         self.damaged = json_info["damaged"]
         self.unavailable = json_info.get("unavailable", False)
+        self.replacement_cost = json_info.get("replacement_cost", 0)
         return 1
 
     def to_dict(self):
-        return (  # should really look through this in order to see what we need and what we don't
+        return (
             {
                 "id": str(self.id),
                 "name": self.name,
-                "checkedOutBy": "Need to impliment who is checked out by",  # need to impliment by looking at users who have this in their equipment
+                "checkedOutBy": None,
                 "class": self._class,
                 "year": self.year,
                 "farm": self.farm,
@@ -92,7 +96,7 @@ class Equipment:
                 "checked_out": self.checked_out,
                 "description": self.description,
                 "attachments": 0,  # Change later
-                "replacementCost": 100000,  # change lateer
+                "replacement_cost": self.replacement_cost,
                 "damaged": self.damaged,
                 "unavailable": self.unavailable,
             }

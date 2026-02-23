@@ -57,7 +57,7 @@ class DatabaseManager:
             "damaged",
             "unavailable",
             "category",
-            "replacementCost",
+            "replacement_cost",
         }
 
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
@@ -509,10 +509,7 @@ class DatabaseManager:
         if field_name not in self.allowed_fields:
             raise Exception(f"Field Name {field_name} is not permitted")
         result = self.equipment_db.update_one(
-            {
-                "_id": ObjectId(equip_id),
-                field_name: {"$exists": True},
-            }, # needed to make sure no new fields were added that don't already exist
+            {"_id": ObjectId(equip_id)},
             {"$set": {field_name: value}},
         )
         return result.modified_count > 0
@@ -594,7 +591,7 @@ class DatabaseManager:
             all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
         return all_users
 
-    # See what equipment a user has checked out
+    # See what equipment a user has checked out to them based on an ID
     def get_user_by_equipment(self, equipment_id: ObjectId):
         user_info = self.users_db.find_one({"checked_out_equipment": equipment_id})
 
@@ -603,6 +600,16 @@ class DatabaseManager:
             user.fill_user_information(user_info)
             return user
         return None
+    
+    # See what equipment a user has checked out to them based on a list of equipment IDs
+    def get_users_by_equipment_ids(self, equipment_ids: list[ObjectId]):
+        users_info = self.users_db.find({"checked_out_equipment": {"$in": equipment_ids}})
+        users = []
+        for user_info in users_info:
+            user = User()
+            user.fill_user_information(user_info)
+            users.append(user)
+        return users
 
     def delete_user(self, user: User, admin_name: str, reason: str = "DELETED"):
         for equipment_id in user.checked_out_equipment:

@@ -397,26 +397,22 @@ def create_app(testing=False):
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
         equipment_cur = db.get_all_equipment()
-        equip_list = []
+        equip_list = [equip.to_dict() for equip in equipment_cur]
+        # Get the IDs of all checked out equipment
+        checked_out_ids = [ObjectId(equip["id"]) for equip in equip_list if equip["checked_out"]]
 
-        # This will show the user who has an equipment item checked out
-        # on its card display right below its status line
-        for equip in equipment_cur:
-            equip_dict = equip.to_dict()
+        # One DB call to get all users who have these equip checked out to them
+        # This prevents multiple calls to the DB from the loop
+        checkout_map = {}
+        if checked_out_ids:
+            users = db.get_users_by_equipment_ids(checked_out_ids)
+            for user in users:
+                for equip_id in user.checked_out_equipment:
+                    checkout_map[str(equip_id)] = user.email
 
-            # If equipment is checked out, find who has it
-            if equip_dict["checked_out"]:
-                # Find the user who has this equipment in their checked_out_equipment array
-                user = db.get_user_by_equipment(ObjectId(equip_dict["id"]))
-
-                if user:
-                    equip_dict["checkedOutBy"] = user.email
-                else:
-                    equip_dict["checkedOutBy"] = None
-            else:
-                equip_dict["checkedOutBy"] = None
-
-            equip_list.append(equip_dict)
+        # Assign the chekedOutBy value based on the map
+        for equip in equip_list:
+            equip["checkedOutBy"] = checkout_map.get(equip["id"])
 
         # Sort the output equipment by their assigned status
         # (ie. Available, Checked Out, Damaged, Unavailable)

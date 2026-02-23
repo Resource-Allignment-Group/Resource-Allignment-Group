@@ -221,20 +221,15 @@ mark them as unavailable or available in the database */
 	border: none;
 	outline: none;
 	padding: 0;
-	font: inherit;
 	color: inherit;
+	width: 100%;
 }
 
-/* Prevent blue highlight on focus */
-.equipment-value:focus {
-	outline: none;
-	box-shadow: none;
-}
-
-/* When disabled, make it fully text-like */
-.equipment-value:disabled {
-	color: inherit;
-	opacity: 1; /* prevents faded look */
-	cursor: default;
-	caret-color: transparent;
+.equipment-value.description-field {
+	width: 100%;
+	resize: none;
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-family: inherit;
+	min-height: 200px;
 }
