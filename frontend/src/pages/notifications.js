@@ -33,10 +33,6 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 			}
 		};
 		fillNotification();
-		// Set up an interval to fetch updates every 10 seconds
-		const interval = setInterval(fillNotification, 10000);
-		// Stop the interval when the user leaves the page
-		return () => clearInterval(interval);
 	}, []);
 
 	const handleNotification = async (notification, result) => {

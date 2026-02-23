@@ -35,5 +35,7 @@
 2026-02-21 16:44:42,766 - INFO - [User: Head Huncho the best] [Action: DELETE_USER] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: Account Removed by Admin]
 2026-02-21 16:45:08,276 - INFO - [User: Head Huncho the best] [Action: ADD_USER] [Target: McKade Wing : mckade.wing@maine.edu] [Details: New Account Approved by Admin]
 2026-02-21 16:45:15,110 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: McKade Wing : mckade.wing@maine.edu] [Details: a]
+2026-02-22 16:24:55,159 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: Pneumatic Forklift, Yale, None, 2006 (PROCESSING)] [Details: Head Huncho the best : test_admin@gmail.com]
+2026-02-22 19:05:06,820 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: Boxblade Snowplow, None, None, None (SNOW MANAGEMENT)] [Details: Head Huncho the best : test_admin@gmail.com]
 2026-02-22 17:34:31,695 - INFO - [User: Big Dawg] [Action: CHECK_IN] [Target: Disc Mower, New Holland, None, 2021 (MOWING)] [Details: Item returned DAMAGED: blew it up]
 2026-02-22 17:34:43,737 - INFO - [User: Big Dawg] [Action: CHECK_IN] [Target: 5 Bottom Plow, Will Rich, None, 2012 (PLOT PREPERATION)] [Details: Item returned DAMAGED: d]

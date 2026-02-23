@@ -118,19 +118,19 @@ function MyRequestsCard({
 							</div>
 							<div className="detail-row">
 								<span className="label">Replacement Cost</span>
-								<span className="value">{equipment.replacementCost}</span>
+								<span className="value">{equipment.replacement_cost}</span>
 							</div>
 						</div>
 
 						<div className="details-column">
 							<h4>Description</h4>
-							{/* "Read only" on display, this can change when we open the 
-              				form to edit the equipment details */}
-							<textarea
-								className="description-textarea"
-								value={equipment.description}
-								readOnly
-							/>
+
+							<div className="detail-row description-row">
+								<span className="label">Details</span>
+								<span className="value description-value">
+									{equipment.description}
+								</span>
+							</div>
 						</div>
 					</div>
 

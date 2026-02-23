@@ -25,7 +25,7 @@ function HomeEquipmentCard({
 		model: equipment.model,
 		farm: equipment.farm,
 		use: equipment.use,
-		replacementCost: equipment.replacementCost,
+		replacement_cost: equipment.replacement_cost,
 		description: equipment.description,
 		damaged: equipment.damaged,
 	});
@@ -386,31 +386,33 @@ function HomeEquipmentCard({
 								<span className="label">Replacement Cost</span>
 								<input
 									className="equipment-value"
-									type="text"
-									value={editedEquipment.replacementCost}
+									type="number"
+									value={editedEquipment.replacement_cost}
 									disabled={!isEditing}
 									onChange={(e) =>
 										setEquipment({
 											...editedEquipment,
-											replacementCost: e.target.value,
+											replacement_cost: Number(e.target.value),
 										})
 									}
 								/>
 							</div>
-							<div className="detail-row" hidden={!isEditing}>
-								<span className="label">Damaged</span>
-								<input
-									className="equipment-value"
-									type="checkbox"
-									value={editedEquipment.damaged}
-									checked={editedEquipment?.damaged || false}
-									onChange={(e) =>
-										setEquipment({
-											...editedEquipment,
-											damaged: e.target.checked,
-										})
-									}
-								/>
+							<div className="detail-row">
+								{isEditing && (
+									<>
+										<span className="label">Damaged</span>
+										<input
+											type="checkbox"
+											checked={editedEquipment?.damaged || false}
+											onChange={(e) =>
+												setEquipment({
+													...editedEquipment,
+													damaged: e.target.checked,
+												})
+											}
+										/>
+									</>
+								)}
 							</div>
 						</div>
 
@@ -418,8 +420,8 @@ function HomeEquipmentCard({
 							<h4>Description</h4>
 							{/* "Read only" on display, this can change when we open the 
               				form to edit the equipment details */}
-							<input
-								className="equipment-value"
+							<textarea
+								className="equipment-value description-field"
 								type="text"
 								value={editedEquipment.description}
 								disabled={!isEditing}

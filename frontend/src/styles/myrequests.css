@@ -80,3 +80,8 @@ request notification for styling */
 .my-requests-card .btn-primary:hover {
 	background-color: #051d36;
 }
+
+.my-requests-card .description-value {
+	white-space: pre-wrap;
+	word-break: break-word;
+}

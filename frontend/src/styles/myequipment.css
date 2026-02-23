@@ -43,3 +43,8 @@
 	flex-direction: column;
 	gap: 38px;
 }
+
+.my-equipment-card .description-value {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
