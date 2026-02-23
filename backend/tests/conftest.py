@@ -39,7 +39,7 @@ def seed_db(client):
         "phone": "3333333333",
         "role": "u",
         "position": None,
-        "checked_out_equipment": [],
+        "checked_out_equipment": [ObjectId("000000000000000000000002")],
         "inbox": [],
     }
 
@@ -77,7 +77,7 @@ def seed_db(client):
             "damaged": False,
         },
         {
-            "_id": ObjectId(),
+            "_id": ObjectId("000000000000000000000001"),
             "name": "Tractor 1",
             "class": "Tractor",
             "farm": "Aroostook",
@@ -93,7 +93,7 @@ def seed_db(client):
             "reports": [],
         },
         {
-            "_id": ObjectId(),
+            "_id": ObjectId("000000000000000000000002"),
             "name": "Tractor 2",
             "class": "Tractor",
             "farm": "Highmoor",
@@ -109,7 +109,7 @@ def seed_db(client):
             "reports": [],
         },
         {
-            "_id": ObjectId(),
+            "_id": ObjectId("000000000000000000000003"),
             "name": "Forklift 1",
             "class": "Forklift",
             "farm": "Rogers",
@@ -125,7 +125,7 @@ def seed_db(client):
             "reports": [],
         },
         {
-            "_id": ObjectId(),
+            "_id": ObjectId("000000000000000000000004"),
             "name": "Truck 1",
             "class": "Truck",
             "farm": "Witter",

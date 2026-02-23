@@ -44,7 +44,7 @@ function Login() {
 				if (data.result) {
 					alert("Password recovery email sent to " + email);
 				} else {
-					alert("Something Went Wrong");
+					alert(data.message);
 				}
 			}
 		} catch (error) {

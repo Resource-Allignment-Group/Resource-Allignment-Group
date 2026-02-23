@@ -66,8 +66,11 @@ function HomeEquipmentCard({
 				}),
 			});
 			const data = await res.json();
-			if (data.result) alert("Your Request Has Been Sent");
-			else alert("Something Went Wrong With Your Request");
+			if (data.result) {
+				alert("Your Request Has Been Sent");
+			} else {
+				alert(data.message || "Failed to Request Equipment");
+			}
 		} catch (error) {
 			alert("Failed to Checkout Equipment");
 		}
@@ -240,16 +243,18 @@ function HomeEquipmentCard({
 						<span className={`status-badge ${status.className}`}>
 							{status.label}
 						</span>
+						{isAdmin && (
 						<div className="status-actions">
 							<label className="checkbox-label">
-								<input
-									type="checkbox"
-									checked={isSelected}
-									onChange={() => onSelect(equipment.id)}
-								/>
+							<input
+								type="checkbox"
+								checked={isSelected}
+								onChange={() => onSelect(equipment.id)}
+							/>
 							</label>
 							Mark Unavailable
 						</div>
+						)}
 					</div>
 				</div>
 

@@ -15,9 +15,10 @@ class ReportScheduler:
         self.running = False
         self.thread = None
 
-    # Calculates dates, builds the pdf using the report generator, emails the admins
-    # and then cleans up temporary files the were created
+
     def generate_and_send(self):
+        """Calculates dates, builds the pdf using the report generator, emails the admins
+        and then cleans up temporary files the were created"""
         try:
             # Get all admins, then make a list of their emails
             admins = self.db.get_administrators()

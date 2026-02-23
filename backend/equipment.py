@@ -40,28 +40,6 @@ class Equipment:
         self.unavailable = unavailable
         self.replacement_cost = replacement_cost
 
-    def get_images(self, db):
-        img_bytes = []
-        for image_id in self.images:
-            result = db.get_image(image_id)
-            if type(result) is str:
-                return result
-            else:
-                img_bytes.append(result)
-
-        return img_bytes
-
-    def get_reports(self, db):
-        report_bytes = []
-        for report_id in self.reports:
-            result = db.get_report(report_id)
-            if type(result) is str:
-                return result
-            else:
-                report_bytes.append(result)
-
-        return report_bytes
-
     def fill_from_json(self, json_info):
         self.id = ObjectId(json_info["_id"])
         self._class = json_info["class"]
