@@ -64,7 +64,7 @@ class Notification_Manager:
         self.db = db
         self.server = "smtp.gmail.com"
         self.port = 587  # port can not change
-        self.email_address = "bradancraig2004@gmail.com"  # We should make a email account so that email notifications can go through this
+        self.email_address = "bradancraig2004@gmail.com"  #TODO We should make a email account so that email notifications can go through this
         self.email_password = os.environ.get("EMAIL_PASSWORD")
 
     def send_email(self, message: str, receiver: str, subject: str, attachments=None):
@@ -91,7 +91,7 @@ class Notification_Manager:
                             )
                             msg.attach(attachment)
                 except Exception as e:
-                    return f"Failed to attach {file_path}: {e}"
+                    raise Exception(e)
         try:
             server = smtplib.SMTP(self.server, self.port)
             server.starttls()
@@ -101,7 +101,7 @@ class Notification_Manager:
             return "Email sent successfully!"
 
         except Exception as e:
-            return f"Error sending email: {e}"
+            raise Exception(e)
 
     def send_forgot_password_email(self, email: str, link: str):
         msg = MIMEMultipart()
@@ -123,7 +123,7 @@ class Notification_Manager:
             return "Email sent successfully!"
 
         except Exception as e:
-            return f"Error sending email: {e}"
+            raise Exception(e)
 
     def send_account_approval_message(self, new_user: User):
         message = f"{new_user.name} is attempting to make a new account"
@@ -161,7 +161,7 @@ class Notification_Manager:
                 self.db.send_notification(notification=new_note)
             return True
         except Exception as e:
-            return False
+            raise Exception(e)
 
     def send_inform_notification(self, sender, receiver, message="", equipment_id=None, id=None):
         if id is None:

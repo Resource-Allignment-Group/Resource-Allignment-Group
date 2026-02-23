@@ -66,8 +66,11 @@ function HomeEquipmentCard({
 				}),
 			});
 			const data = await res.json();
-			if (data.result) alert("Your Request Has Been Sent");
-			else alert("Something Went Wrong With Your Request");
+			if (data.result) {
+				alert("Your Request Has Been Sent");
+			} else {
+				alert(data.message || "Failed to Request Equipment");
+			}
 		} catch (error) {
 			alert("Failed to Checkout Equipment");
 		}

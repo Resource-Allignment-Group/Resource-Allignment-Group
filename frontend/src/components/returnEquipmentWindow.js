@@ -48,7 +48,7 @@ function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 				if (onSuccess) onSuccess();
 				onClose();
 			} else {
-				alert("Something Has Gone Wrong.");
+				alert(data.message || "Something Went Wrong");
 			}
 		} catch (error) {
 			alert("Error returning equipment");

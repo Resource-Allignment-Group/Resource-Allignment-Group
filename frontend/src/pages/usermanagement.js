@@ -55,6 +55,9 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 					);
 				}
 			}
+			else{
+				alert(data.message)
+			}
 		} catch (error) {
 			alert("There Were Problems Deleting The User");
 		}
