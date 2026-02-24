@@ -98,7 +98,7 @@ function MyEquipmentCard({ equipment, isExpanded, onToggle }) {
 									<span className="value">{equipment.assignedFarm}</span>
 								</div>
 								<div className="detail-row">
-									<span className="label">Use Frequency</span>
+									<span className="label">Use</span>
 									<span className="value">{equipment.use}</span>
 								</div>
 								<div className="detail-row">

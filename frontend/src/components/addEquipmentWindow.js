@@ -22,6 +22,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		farms: [],
 		classes: [],
 		makes: [],
+		uses: [],
 	});
 
 	const [images, setImages] = useState([]);
@@ -45,6 +46,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 						farms: data.farms,
 						classes: data.classes,
 						makes: data.makes,
+						uses: data.uses,
 					});
 				}
 			})
@@ -236,22 +238,21 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 							</datalist>
 						</label>
 
-						{/* We need to determine what "use" is */}
 						<label>
 							Use
-							<select
+							<input
 								type="text"
+								list="use-options"
 								name="use"
 								value={formData.use}
 								onChange={handleChange}
 								required
-							>
-								<option value="">Select Use</option>
-								<option value="field">Field</option>
-								<option value="lab">Lab</option>
-								<option value="training">Training</option>
-								<option value="None">idk what to put here, ask tyler</option>
-							</select>
+							/>
+							<datalist id="use-options">
+								{options.uses.map((u) => (
+									<option key={u} value={u} />
+								))}
+							</datalist>
 						</label>
 
 						<label>
@@ -260,7 +261,9 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 								type="file"
 								multiple
 								accept=".png,.jpg,.jpeg"
-								onChange={(e) => setImages(e.target.files ? [...e.target.files] : [])}
+								onChange={(e) =>
+									setImages(e.target.files ? [...e.target.files] : [])
+								}
 							/>
 						</label>
 
@@ -270,7 +273,9 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 								type="file"
 								multiple
 								accept=".pdf"
-								onChange={(e) => setReports(e.target.files ? [...e.target.files] : [])}
+								onChange={(e) =>
+									setReports(e.target.files ? [...e.target.files] : [])
+								}
 							/>
 						</label>
 

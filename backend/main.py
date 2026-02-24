@@ -1084,6 +1084,7 @@ def create_app(testing=False):
             farms = set()
             classes = set()
             makes = set()
+            uses = set()
 
             # Helper function to format text properly
             def format_text(text):
@@ -1113,6 +1114,10 @@ def create_app(testing=False):
                 # Add make if it exists
                 if equip.make and equip.make.strip():
                     makes.add(format_text(equip.make.strip()))
+                
+                # Add use if it exists
+                if equip.use and equip.use.strip():
+                    uses.add(format_text(equip.use.strip()))
 
             statuses = ["Available", "Checked Out", "Damaged", "Unavailable"]
             # Convert sets to sorted lists
@@ -1122,6 +1127,7 @@ def create_app(testing=False):
                     "farms": sorted(list(farms)),
                     "classes": sorted(list(classes)),
                     "makes": sorted(list(makes)),
+                    "uses": sorted(list(uses)),
                     "statuses": statuses,
                 }
             )
