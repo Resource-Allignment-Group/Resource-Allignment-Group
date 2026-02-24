@@ -377,36 +377,38 @@ function Home({ num_of_notifications, setNumNotifications }) {
 						<p className="filter-indicator">
 							Showing {filteredEquipment.length} of {equipment.length} items
 						</p>
-						<div className="select-all">
-							<label className="checkbox-label">
-								<input
-									type="checkbox"
-									checked={selectAll}
-									onChange={handleSelectAll}
-								/>
-								Select All ({selectedEquipment.size} selected)
-							</label>
-						</div>
+						{isAdmin && (
+							<>
+								<div className="select-all">
+									<label className="checkbox-label">
+										<input
+											type="checkbox"
+											checked={selectAll}
+											onChange={handleSelectAll}
+										/>
+										Select All ({selectedEquipment.size} selected)
+									</label>
+								</div>
 
-						{/* Buttons to make equipment as unavailable/available */}
-						<div className="mark-buttons">
-							<button
-								className="btn-secondary"
-								onClick={() => handleMarkUnavailable(true)}
-								disabled={selectedEquipment.size === 0}
-								hidden={!isAdmin}
-							>
-								Mark as Unavailable
-							</button>
-							<button
-								className="btn-secondary"
-								onClick={() => handleMarkUnavailable(false)}
-								disabled={selectedEquipment.size === 0}
-								hidden={!isAdmin}
-							>
-								Mark as Available
-							</button>
-						</div>
+								{/* Buttons to make equipment as unavailable/available */}
+								<div className="mark-buttons">
+									<button
+										className="btn-secondary"
+										onClick={() => handleMarkUnavailable(true)}
+										disabled={selectedEquipment.size === 0}
+									>
+										Mark as Unavailable
+									</button>
+									<button
+										className="btn-secondary"
+										onClick={() => handleMarkUnavailable(false)}
+										disabled={selectedEquipment.size === 0}
+									>
+										Mark as Available
+									</button>
+								</div>
+							</>
+						)}
 					</div>
 				)}
 

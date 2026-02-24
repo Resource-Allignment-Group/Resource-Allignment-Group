@@ -206,16 +206,16 @@ function HomeEquipmentCard({
 							{status.label}
 						</span>
 						{isAdmin && (
-						<div className="status-actions">
-							<label className="checkbox-label">
-							<input
-								type="checkbox"
-								checked={isSelected}
-								onChange={() => onSelect(equipment.id)}
-							/>
-							</label>
-							Mark Unavailable
-						</div>
+							<div className="status-actions">
+								<label className="checkbox-label">
+									<input
+										type="checkbox"
+										checked={isSelected}
+										onChange={() => onSelect(equipment.id)}
+									/>
+								</label>
+								Mark Unavailable
+							</div>
 						)}
 					</div>
 				</div>
@@ -300,7 +300,7 @@ function HomeEquipmentCard({
 								/>
 							</div>
 							<div className="detail-row">
-								<span className="label">Use Frequency</span>
+								<span className="label">Use</span>
 								<input
 									className="equipment-value"
 									type="text"
