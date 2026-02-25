@@ -312,7 +312,7 @@ class DatabaseManager:
                 "farm": equipment.farm,
                 "model": equipment.model,
                 "make": equipment.make,
-                "use": equipment.model,
+                "use": equipment.use,
                 "images": [],
                 "reports": [],
                 "display_image": None,
@@ -320,7 +320,8 @@ class DatabaseManager:
                 "description": equipment.description,
                 "damaged": equipment.damaged,
                 "unavailable": getattr(equipment, "unavailable", False),
-            }
+                "replacement_cost": equipment.replacement_cost,
+            }   
         )
         except Exception as e:
             raise e
