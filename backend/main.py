@@ -13,6 +13,7 @@ import re
 from report_gen import ReportGenerator
 from report_scheduler import init_scheduler
 from reports import setup_report_routes
+import pandas as pd
 
 # Regex patterns to match valid registration parameters
 # This logic is in the frontend and backend, as it is good practice
@@ -1176,6 +1177,51 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Database update failed"})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
+
+    @app.route("/add_bulk_equipment", methods=["POST"])
+    def add_bulk_equipment():
+        try:
+            if "file" not in request.files:
+                return jsonify({"result": False, "message": "Please select a file"})
+            file = request.files["file"]
+            if ".xlsx" not in file.filename or ".xls" not in file.filename:
+                print(file)
+                return jsonify({"result": False, "message": "Please select an excel file that ends with '.xlsx' or '.xls'"})
+            
+            df = pd.read_excel(file)
+            df = df.iloc[:, 0:11]
+            print(df)
+            for i, row in df.iterrows():
+                print(row) 
+                if i == 0: #skip the head
+                    continue
+                equip= Equipment()
+                equip_json =                 {
+                "_id": ObjectId(),
+                "name": row["Name"],
+                "class": row["Category"],
+                "year": row["Year"],
+                "farm": row["Farm"],
+                "model": row["Model"],
+                "make": row["Make"],
+                "use": row["Use"],
+                "replacement_cost": row["Replacement Cost"],
+                "images": [],
+                "reports": [],
+                "display_image": None,
+                "checked_out": False,
+                "description": row["Description"],
+                "damaged": False,
+                "unavailable": False,
+            }
+                equip.fill_from_json(equip_json)
+                db.add_equipment(equip)
+            
+            return jsonify({"result": True, "message": f"{i} pieces of equipment were added to the database"})
+        except Exception as e:
+            return jsonify({"result": False, "message": str(e)})
+
+    app.route("/generate_bulk_add_template")
 
     return app
 

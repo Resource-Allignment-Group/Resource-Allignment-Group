@@ -1,5 +1,6 @@
 import "../styles/default.css";
 import "../styles/dashboard.css";
+import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import { API_BASE } from "../config";
 // Import componets that will make up the dashboard page
@@ -29,6 +30,24 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 		link.click();
 		link.remove();
 	};
+
+	const generateTemplate = () => {
+		const headers = [
+			"Name",
+			"Farm",
+			"Category",
+			"Make",
+			"Model",
+			"Year",
+			"Use",
+			"Replacement Cost",
+			"Description"
+		];
+		const sheet = XLSX.utils.aoa_to_sheet([headers]);
+		const book = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(book, sheet, "Template");
+		XLSX.writeFile(book, "Bulk Equipment Upload Template.xlsx");
+	}
 
 	useEffect(() => {
 		const GetDashboardInfo = async () => {
@@ -72,7 +91,50 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 			setReceiveReports(!newValue);
 		}
 	};
+	const openFilePicker = async () => {
+		const input = document.createElement("input");
+		input.type = "file";
+		// input.style.display = "none";
+		document.body.appendChild(input);
 
+		//create a promise that will stall program until the file is selecteds
+		const file = await new Promise((resolve, reject) => {
+			input.onchange = () => {
+			if (input.files.length === 0) {
+				reject("No file selected");
+			} else {
+				resolve(input.files[0]);
+			}
+			document.body.removeChild(input);
+			};
+
+			input.click();
+		});
+
+		const formData = new FormData();
+		formData.append("file", file);
+		console.log(formData)
+		try{
+			const res = await fetch(`http://${API_BASE}:5000/add_bulk_equipment`, {
+				method: "POST",
+				credentials: "include",
+				body: formData,
+			});
+			
+			const data = await res.json()
+			if (data.result){
+				//if we decide we want more front end logic
+				alert(data.message)
+			}
+			else{
+				alert(data.message)
+			}
+		}
+		catch (error) {
+			console.error("Error uploading file:", error);
+			throw error;
+		}
+	}
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -148,6 +210,18 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 											onClick={() => setShowModal(true)}
 										>
 											Add Equipment
+										</button>
+										<button
+											className="action-button"
+											onClick={() => openFilePicker()}
+										>
+											Add Multiple Equipment
+										</button>
+										<button
+											className="action-button"
+											onClick={() => generateTemplate()}
+										>
+											Generate Bulk Equipment Template
 										</button>
 									</div>
 									<div className="checkbox-row">
