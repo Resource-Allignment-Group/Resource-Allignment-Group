@@ -1201,10 +1201,9 @@ def create_app(testing=False):
             data = request.json
             equipment_id = ObjectId(data["equipment_id"])
             equip = db.get_equipment_by_id(equipment_id)
-            equip_info = f"{equip.name}"
-
             if equip is None:
                 return jsonify({"result": False, "message": "Equipment not found"}), 404
+            equip_info = f"{equip.name}"
 
             # Don't allow deletion if equipment is checked out
             if equip.checked_out:
