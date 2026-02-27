@@ -24,8 +24,14 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 					credentials: "include",
 				});
 				const data = await res.json();
-				setUsers(data.users);
+				if (res.ok && data.result) {
+					setUsers(data.users ?? []);
+				} else {
+					setUsers([]);
+					if (!res.ok) alert(data.message || "Unable to load users");
+				}
 			} catch (error) {
+				setUsers([]);
 				alert("Something Went Wrong Gathering The User's Information");
 			} finally {
 				setIsLoading(false);
