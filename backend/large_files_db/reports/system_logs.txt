@@ -75,3 +75,6 @@
 2026-02-25 18:57:11,204 - INFO - [User: Head Huncho the best] [Action: CHECK_OUT] [Target: Cultivator, Lely, None, None (PLOT PREPERATION)] [Details: Head Huncho the best : test_admin@gmail.com]
 2026-02-25 18:57:50,812 - INFO - [User: Head Huncho the best] [Action: CHECK_IN] [Target: Cultivator, Lely, None, None (PLOT PREPERATION)] [Details: Item returned in good condition]
 2026-02-25 18:58:02,434 - INFO - [User: Head Huncho the best] [Action: DELETE_EQUIPMENT] [Target: Cultivator, Lely, None, None (PLOT PREPERATION)] [Details: Admin Deleted Equipment]
+2026-02-26 20:06:47,524 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: TestUser : testuser@gmail.com] [Details: s]
+2026-02-26 20:06:54,882 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: TestUser : testuser@gmail.com] [Details: u]
+2026-02-26 20:07:01,404 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: s]

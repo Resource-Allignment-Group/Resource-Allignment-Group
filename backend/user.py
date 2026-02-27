@@ -22,18 +22,18 @@ class User:
     def fill_user_information(self, db_object):
             # If the user wasn't found in DB, stop here to avoid crashes
             if db_object is None:
-                return 
+                return
 
-            self.id = db_object.get("_id")
-            self.role = db_object.get("role", "u")
-            self.inbox = db_object.get("inbox", [])
-            self.checked_out_equipment = db_object.get("checked_out_equipment", [])
-            self.position = db_object.get("position", "")
-            self.department = db_object.get("department", "")
-            self.phone = db_object.get("phone", "")
-            self.name = db_object.get("name", "Unknown")
-            self.email = db_object.get("email", "")
-            self.receive_reports = db_object.get("receive_reports", True)
+            self.id = db_object["_id"]
+            self.role = db_object["role"]
+            self.inbox = db_object["inbox"] if "inbox" in db_object else []
+            self.checked_out_equipment = db_object["checked_out_equipment"] if "checked_out_equipment" in db_object else []
+            self.position = db_object["position"] if "position" in db_object else None
+            self.department = db_object["department"] if "department" in db_object else None
+            self.phone = db_object["phone"] if "phone" in db_object else None
+            self.name = db_object["name"] if "name" in db_object else "Unknown"
+            self.email = db_object["email"]
+            self.receive_reports = db_object["receive_reports"] if "receive_reports" in db_object else True
             self.profile_image = db_object["profile_image"] if "profile_image" in db_object else None
 
     def to_dict(self):

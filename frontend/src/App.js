@@ -18,6 +18,7 @@ import UserManagement from "./pages/usermanagement";
 import Notifications from "./pages/notifications";
 import ResetPassword from "./pages/resetPassword";
 import AdminRoute from "./AdminRoute";
+import AdminOrSuperintendentRoute from "./AdminOrSuperintendentRoute";
 import { useState } from "react";
 
 function App() {
@@ -91,12 +92,12 @@ function App() {
 						<Route
 							path="/usermanagement"
 							element={
-								<AdminRoute>
+								<AdminOrSuperintendentRoute>
 									<UserManagement
 										num_of_notifications={num_of_notifications}
 										setNumNotifications={setNumNotifications}
 									/>
-								</AdminRoute>
+								</AdminOrSuperintendentRoute>
 							}
 						/>
 						<Route

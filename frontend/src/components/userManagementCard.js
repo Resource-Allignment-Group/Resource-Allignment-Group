@@ -3,12 +3,13 @@
 
 import "../styles/userManagementCard.css";
 import { MdArrowForwardIos, MdPerson } from "react-icons/md";
-import { useState } from "react"; // Temp needed for visibility, removed when backend connected
+import { useState } from "react";
 import { API_BASE } from "../config";
+import { useAuth } from "../Authentication";
 
 function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
-	// Placeholder for changing the user's role in the dropdown
-	// Connect to the backend later
+	const { role: currentUserRole } = useAuth();
+	const isAdmin = currentUserRole === "a";
 	const [role, setRole] = useState(user.role);
 
 	const ChangeRole = async (new_role) => {
@@ -72,19 +73,27 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 					</p>
 				</div>
 
-				{/* User role dropdown - displays user's assigned role */}
-				{/* Placeholder until conencted to the backend */}
-				<div className="user-role-section">
-					<select
-						className="role-dropdown"
-						value={role}
-						onChange={(e) => ChangeRole(e.target.value)}
-					>
-						<option value="a">Admin</option>
-						<option value="s">Superintendent</option>
-						<option value="u">User</option>
-					</select>
-				</div>
+				{/* Role dropdown - Admin only */}
+				{isAdmin && (
+					<div className="user-role-section">
+						<select
+							className="role-dropdown"
+							value={role}
+							onChange={(e) => ChangeRole(e.target.value)}
+						>
+							<option value="a">Admin</option>
+							<option value="s">Superintendent</option>
+							<option value="u">User</option>
+						</select>
+					</div>
+				)}
+				{!isAdmin && (
+					<div className="user-role-section">
+						<span className="role-display">
+							{role === "a" ? "Admin" : role === "s" ? "Superintendent" : "User"}
+						</span>
+					</div>
+				)}
 
 				{/* Button state for opening and closing the user card  */}
 				<button
@@ -132,13 +141,15 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 						</div>
 					</div>
 
-					<div className="card-footer">
-						<div className="action-buttons">
-							<button className="btn-danger" onClick={DeleteUser}>
-								Delete
-							</button>
+					{isAdmin && (
+						<div className="card-footer">
+							<div className="action-buttons">
+								<button className="btn-danger" onClick={DeleteUser}>
+									Delete
+								</button>
+							</div>
 						</div>
-					</div>
+					)}
 				</div>
 			)}
 		</div>

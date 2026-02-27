@@ -35,8 +35,18 @@
 	align-items: center;
 }
 
-/* The main dropdown component responsible for 
-updating the user's permission/role status*/
+/* Read-only role display for superintendents (admins see dropdown) */
+.user-management-card .role-display {
+	font-size: 14px;
+	color: #082e58;
+	font-weight: 500;
+	padding: 10px 20px;
+	min-width: 150px;
+	display: inline-block;
+}
+
+/* The main dropdown component responsible for
+updating the user's permission/role status */
 .user-management-card .role-dropdown {
 	padding: 10px 20px;
 	background-color: #082e58;
