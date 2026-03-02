@@ -1,18 +1,25 @@
 import time
 import os
 from dotenv import load_dotenv
-from app import create_app
+from main import create_app
 from datetime import datetime, timedelta, timezone
 
 load_dotenv()
 
-CHECK_INTERVAL = 60  # This is 60 seconds
+CHECK_INTERVAL = 10  # This is 60 seconds
 MAX_STORAGE_BYTES = (
     512 * 1024 * 1024
 )  # this is equal to 512MB which is the limit of our mongo storage
 PERCENTAGE_OF_DB = 0.9
 ONE_WEEK_AGO = datetime.now(timezone.utc) - timedelta(weeks=1)
 
+def get_size_and_count(db):
+    count = db.db.command("collStats", "notifications")["count"]
+    note_size = db.db.command("collStats", "notifications")["size"]
+    equip_size = db.db.command("collStats", "equipment")["size"]
+    user_size = db.db.command("collStats", "users")["size"]
+    pass_size = db.db.command("collStats", "password_resets")["size"]
+    return (note_size + equip_size + user_size +pass_size), count
 
 def monitor():
     print("Starting monitor...")
@@ -24,24 +31,32 @@ def monitor():
 
         while True:
             try:
-                size = db.db.command("dbStats")["storageSize"]
+                size, count = get_size_and_count(db)
+                print("Size:", size, "Count:", count)
+
                 if (
                     size > MAX_STORAGE_BYTES * PERCENTAGE_OF_DB
                 ):  # if it is above 80% full
+                    
                     collection = db.notifications_db
-                    res = collection.find({"read": True, "date": ONE_WEEK_AGO})
+                    res = collection.delete_many({"read": True, "date": {"$lt": ONE_WEEK_AGO}})
+                    print(res.deleted_count)
                     time.sleep(CHECK_INTERVAL)
-
+                    
+                    size = db.db.command("dbStats")["storageSize"]
                     if size > MAX_STORAGE_BYTES * PERCENTAGE_OF_DB:
+                        print("DATABASE IS OVER SET LIMIT")
+                    
                         for admin in db.get_administrators():
                             nm.send_email(
-                                receiver=admin,
+                                receiver=admin.email,
                                 subject="Database Getting Too Full",
                                 message=(
                                     "Your Database is getting too full. Please either delete some of the older users or equipment that is no longer used."
                                     "If this is not an option, please contact the capstone group in order to upgrade your database"
                                 ),
                             )
+                   
                     else:
                         print(
                             f"Deleted {res.deleted_count} notifications from the database"
