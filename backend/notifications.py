@@ -7,6 +7,8 @@ from user import User
 from datetime import datetime
 from bson.objectid import ObjectId
 from typing import Literal
+from email.mime.application import MIMEApplication
+from pathlib import Path
 
 
 class Notification:
@@ -35,7 +37,7 @@ class Notification:
     def populate_from_json(self, json_info):
         self.id = ObjectId(json_info.get("_id"))
         self.sender = ObjectId(json_info.get("sender"))
-        self.receiver = ObjectId(json_info.get("receiver")) 
+        self.receiver = ObjectId(json_info.get("receiver"))
         self.date = json_info.get("date", "")
         self.body = json_info.get("body", "")
         self.type = json_info.get("type", "i")
@@ -64,7 +66,7 @@ class Notification_Manager:
         self.db = db
         self.server = "smtp.gmail.com"
         self.port = 587  # port can not change
-        self.email_address = "bradancraig2004@gmail.com"  #TODO We should make a email account so that email notifications can go through this
+        self.email_address = "bradancraig2004@gmail.com"  # TODO We should make a email account so that email notifications can go through this
         self.email_password = os.environ.get("EMAIL_PASSWORD")
 
     def send_email(self, message: str, receiver: str, subject: str, attachments=None):
@@ -76,8 +78,6 @@ class Notification_Manager:
 
         # Attach files if provided
         if attachments:
-            from email.mime.application import MIMEApplication
-            from pathlib import Path
             for file_path in attachments:
                 try:
                     file_path = Path(file_path)
@@ -87,7 +87,7 @@ class Notification_Manager:
                             attachment.add_header(
                                 "Content-Disposition",
                                 "attachment",
-                                filename=file_path.name
+                                filename=file_path.name,
                             )
                             msg.attach(attachment)
                 except Exception as e:
@@ -163,7 +163,9 @@ class Notification_Manager:
         except Exception as e:
             raise Exception(e)
 
-    def send_inform_notification(self, sender, receiver, message="", equipment_id=None, id=None):
+    def send_inform_notification(
+        self, sender, receiver, message="", equipment_id=None, id=None
+    ):
         if id is None:
             id = ObjectId()
 

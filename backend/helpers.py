@@ -3,10 +3,12 @@ from database import DatabaseManager
 import pandas as pd
 from equipment import Equipment
 from bson.objectid import ObjectId
-
+from dotenv import load_dotenv
 import secrets
 import hashlib
-
+from pymongo import MongoClient
+import os
+from datetime import datetime, timedelta, timezone
 
 def generate_reset_token():
     token = secrets.token_urlsafe(32)
@@ -73,3 +75,23 @@ def insert_via_spreadsheet():
         db.add_equipment(
             equipment=equip,
         )
+
+
+def fill_database_with_notifications():
+    load_dotenv()
+    _client = MongoClient(os.environ.get("DATABASE_URI"))
+    db = _client["RAM_DB"]
+    for i in range(3000):
+        db["notifications"].insert_one({
+            "_id": ObjectId(),
+            "sender": ObjectId(),
+            "receiver": ObjectId(),
+            "body": "This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly",
+            "date": datetime.now(timezone.utc) - timedelta(weeks=2),
+            "type": "i",
+            "equipment_id": None,
+            "read": True,
+            "status": None
+        })
+
+fill_database_with_notifications()

@@ -18,7 +18,6 @@ load_dotenv()
 
 
 class DatabaseManager:
-
     def get_client(self):
         global _client
         if _client is None:
@@ -39,6 +38,9 @@ class DatabaseManager:
         self.requests_db = self.db["requests"]
         self.notifications_db = self.db["notifications"]
         self.password_resets = self.db["password_resets"]
+        self.password_resets.create_index(
+            "expires_at", expireAfterSeconds=0
+        )  # will delete password reset after 5 minutes
         self.images_db = Path("backend/large_files_db/images")
         self.reports_db = Path("backend/large_files_db/reports")
         self.profile_images_db = Path("backend/large_files_db/profile_images")
@@ -69,7 +71,7 @@ class DatabaseManager:
             "display_image",
         }
 
-    #region Setters
+    # region Setters
 
     def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
         self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
@@ -87,7 +89,7 @@ class DatabaseManager:
         self.notifications_db.update_one({"_id": id}, {"$set": {"status": status}})
 
     def set_notification_body(self, id: ObjectId, body: str):
-        self.notifications_db.update_one({"_id":id}, {"$set": {"body": body}})
+        self.notifications_db.update_one({"_id": id}, {"$set": {"body": body}})
 
     def set_request_active(self, id: ObjectId, active: bool):
         self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
@@ -134,16 +136,15 @@ class DatabaseManager:
             {"_id": ObjectId(id)}, {"$set": {"checked_out": checked_out}}
         )
 
-    #region Report Generation
-    
+    # region Report Generation
+
     def update_admin_report_preference(self, admin_id: ObjectId, action: bool) -> bool:
         """Update the users preference to receive automatic monthly reports"""
         try:
             # Use the internal collection (likely self.db.users or similar)
             # Check if your class uses 'self.db' or 'self.client' internally
             self.users_db.update_one(
-                {"_id": ObjectId(admin_id)},
-                {"$set": {"receive_reports": action}}
+                {"_id": ObjectId(admin_id)}, {"$set": {"receive_reports": action}}
             )
             return True
         except Exception as e:
@@ -159,19 +160,21 @@ class DatabaseManager:
         target_id: ObjectId = None,
     ):
         self.txt_logger.log_action(user_id, action, details, target_id)
-    
-    #region Users
+
+    # region Users
 
     def get_all_users(self):
         try:
             all_users = []
             users = self.users_db.find({})
             for user_info in users:
-                all_users.append(self.get_user_by_id(user_id=ObjectId(user_info["_id"])))
+                all_users.append(
+                    self.get_user_by_id(user_id=ObjectId(user_info["_id"]))
+                )
             return all_users
         except Exception as e:
             raise e
-        
+
     def get_user_by_equipment(self, equipment_id: ObjectId):
         """See what equipment a user has checked out"""
         try:
@@ -203,17 +206,17 @@ class DatabaseManager:
             result = self.users_db.delete_one({"_id": user.id})
             if result.acknowledged:
                 self.add_log(
-                    user_id=admin_name, 
-                    action="DELETE_USER", 
+                    user_id=admin_name,
+                    action="DELETE_USER",
                     target_id=user_info,
-                    details=log_details
+                    details=log_details,
                 )
                 return True
             else:
                 return False
         except Exception as e:
             raise e
-        
+
     def get_administrators(self):
         try:
             cursor = self.users_db.find({"role": "a"})
@@ -226,7 +229,7 @@ class DatabaseManager:
             return user_list
         except Exception as e:
             raise e
-        
+
     def get_password_by_email(self, email: str) -> str:
         return self.users_db.find_one({"email": email})["password"]
 
@@ -250,7 +253,7 @@ class DatabaseManager:
             return new_user
         except Exception as e:
             raise e
-    
+
     def add_user(
         self,
         fname: str,
@@ -290,8 +293,8 @@ class DatabaseManager:
                 }
         except Exception as e:
             raise e
-            
-    #region Equipment
+
+    # region Equipment
 
     def add_equipment(self, equipment: Equipment):
         try:
@@ -306,27 +309,27 @@ class DatabaseManager:
 
             self.equipment_db.insert_one(
                 {
-                "_id": equipment.id,
-                "name": equipment.name,
-                "class": equipment._class,
-                "year": equipment.year,
-                "farm": equipment.farm,
-                "model": equipment.model,
-                "make": equipment.make,
-                "use": equipment.use,
-                "images": [],
-                "reports": [],
-                "display_image": None,
-                "checked_out": False,
-                "description": equipment.description,
-                "damaged": equipment.damaged,
-                "unavailable": getattr(equipment, "unavailable", False),
-                "replacement_cost": equipment.replacement_cost,
-            }   
-        )
+                    "_id": equipment.id,
+                    "name": equipment.name,
+                    "class": equipment._class,
+                    "year": equipment.year,
+                    "farm": equipment.farm,
+                    "model": equipment.model,
+                    "make": equipment.make,
+                    "use": equipment.use,
+                    "images": [],
+                    "reports": [],
+                    "display_image": None,
+                    "checked_out": False,
+                    "description": equipment.description,
+                    "damaged": equipment.damaged,
+                    "unavailable": getattr(equipment, "unavailable", False),
+                    "replacement_cost": equipment.replacement_cost,
+                }
+            )
         except Exception as e:
             raise e
-        
+
     def add_user_equipment(
         self, user_id: ObjectId, equipment_id: ObjectId, admin_name: str
     ):
@@ -353,7 +356,13 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-    def delete_user_equipment(self, user_id: ObjectId, equipment_id: ObjectId, damaged: bool = False, damage_description: str | None = None):
+    def delete_user_equipment(
+        self,
+        user_id: ObjectId,
+        equipment_id: ObjectId,
+        damaged: bool = False,
+        damage_description: str | None = None,
+    ):
         try:
             equipment = self.equipment_db.find_one({"_id": equipment_id})
             user = self.users_db.find_one({"_id": user_id})
@@ -366,13 +375,13 @@ class DatabaseManager:
             )
 
             self.equipment_db.update_one(
-                {"_id": equipment_id}, {"$set": {"checked_out": False, "damaged": damaged}}
+                {"_id": equipment_id},
+                {"$set": {"checked_out": False, "damaged": damaged}},
             )
 
             if damaged:
-                status_msg = (
-                    "Item returned DAMAGED"
-                    + (f": {damage_description}" if damage_description else "")
+                status_msg = "Item returned DAMAGED" + (
+                    f": {damage_description}" if damage_description else ""
                 )
             else:
                 status_msg = "Item returned in good condition"
@@ -385,7 +394,7 @@ class DatabaseManager:
             )
         except Exception as e:
             raise e
-        
+
     def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
         """Update multiple equipment items as unavailable at onces"""
         try:
@@ -449,7 +458,7 @@ class DatabaseManager:
             return result.acknowledged and result.deleted_count > 0
         except Exception as e:
             raise e
-             
+
     def get_all_equipment(self):
         try:
             cursor = self.equipment_db.find({})
@@ -461,7 +470,7 @@ class DatabaseManager:
             return equip_list
         except Exception as e:
             raise e
-        
+
     def update_equipment_field(self, equip_id, field_name, value):
         """Allows you to edit a specific field on an equipment"""
         try:
@@ -471,13 +480,13 @@ class DatabaseManager:
                 {
                     "_id": ObjectId(equip_id),
                     field_name: {"$exists": True},
-                }, # needed to make sure no new fields were added that don't already exist
+                },  # needed to make sure no new fields were added that don't already exist
                 {"$set": {field_name: value}},
             )
             return result.modified_count > 0
         except Exception as e:
             raise e
-        
+
     def get_equipment_by_id(self, id: ObjectId) -> list:
         try:
             equip_info = self.equipment_db.find_one({"_id": ObjectId(id)})
@@ -501,8 +510,8 @@ class DatabaseManager:
             return equip_list
         except Exception as e:
             raise e
-    
-    #region Large Files
+
+    # region Large Files
 
     def add_image(self, equipment_id: ObjectId, image: Image):
         img_uuid = str(ObjectId())
@@ -570,81 +579,89 @@ class DatabaseManager:
         path = self.reports_db / uuid
         if path.exists():
             path.unlink()
-                    
+
     def add_equipment_image(self, equipment_id: ObjectId, file) -> tuple:
         if not file or not file.filename:
-            return None,
+            return (None,)
         ext = Path(file.filename).suffix.lower()
-        
+
         if ext not in self.ALLOWED_IMAGE_EXTENSIONS:
             return None, f"Invalid file type"
-        
+
         file.seek(0, 2)
         size = file.tell()
         file.seek(0)
-        
+
         if size > self.MAX_IMAGE_SIZE:
-            return None, f"File too large. Max size: {self.MAX_IMAGE_SIZE // (1024*1024)}MB"
+            return (
+                None,
+                f"File too large. Max size: {self.MAX_IMAGE_SIZE // (1024 * 1024)}MB",
+            )
         try:
             img = Image.open(file)
             img.verify()
         except Exception:
             return None, "Invalid image file"
-        
+
         file.seek(0)
         img_uuid = str(ObjectId())
         image_path = self.images_db / img_uuid
-        
+
         with open(image_path, "wb") as f:
             f.write(file.read())
-        
+
         change_result = self.equipment_db.update_one(
             {"_id": equipment_id}, {"$push": {"images": img_uuid}}
         )
-        
+
         if change_result.acknowledged:
             return img_uuid, None
-        
+
         image_path.unlink(missing_ok=True)
         return False, "Failed to add image to equipment"
 
     def add_equipment_report(self, equipment_id: ObjectId, file) -> tuple:
         if not file or not file.filename:
             return None, "No file provided"
-        
+
         ext = Path(file.filename).suffix.lower()
-        
+
         if ext not in self.ALLOWED_REPORT_EXTENSIONS:
             return None, f"Invalid file type. Allowed: PDF only"
-        
+
         file.seek(0, 2)
         size = file.tell()
         file.seek(0)
-        
+
         if size > self.MAX_REPORT_SIZE:
-            return None, f"File too large. Max size: {self.MAX_REPORT_SIZE // (1024*1024)}MB"
-        
+            return (
+                None,
+                f"File too large. Max size: {self.MAX_REPORT_SIZE // (1024 * 1024)}MB",
+            )
+
         report_uuid = str(ObjectId())
         report_path = self.reports_db / report_uuid
-        
+
         with open(report_path, "wb") as f:
             f.write(file.read())
         change_result = self.equipment_db.update_one(
             {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
         )
-        
+
         if change_result.acknowledged:
             return report_uuid, None
         report_path.unlink(missing_ok=True)
         return None, "Failed to add report to equipment"
 
-    def set_equipment_display_image(self, equipment_id: ObjectId, image_id: str) -> bool:
+    def set_equipment_display_image(
+        self, equipment_id: ObjectId, image_id: str
+    ) -> bool:
         equipment = self.equipment_db.find_one({"_id": equipment_id})
-        
+
         if not equipment:
             return False
         images = equipment["images"] if equipment["images"] else []
-        
+
         if image_id not in images:
             return False
         self.equipment_db.update_one(
@@ -654,18 +671,18 @@ class DatabaseManager:
 
     def remove_equipment_image(self, equipment_id: ObjectId, image_id: str) -> bool:
         equipment = self.equipment_db.find_one({"_id": equipment_id})
-        
+
         if not equipment:
             return False
-        
+
         images = equipment["images"] if equipment["images"] else []
         if image_id not in images:
             return False
         update_op = {"$pull": {"images": image_id}}
-       
+
         if "display_image" in equipment and equipment["display_image"] == image_id:
             update_op["$unset"] = {"display_image": ""}
-        
+
         self.equipment_db.update_one({"_id": equipment_id}, update_op)
         path = self.images_db / image_id
         path.unlink(missing_ok=True)
@@ -690,12 +707,18 @@ class DatabaseManager:
             return None, "No file provided"
         ext = Path(file.filename).suffix.lower()
         if ext not in self.ALLOWED_IMAGE_EXTENSIONS:
-            return None, f"Invalid file type. Allowed: {', '.join(self.ALLOWED_IMAGE_EXTENSIONS)}"
+            return (
+                None,
+                f"Invalid file type. Allowed: {', '.join(self.ALLOWED_IMAGE_EXTENSIONS)}",
+            )
         file.seek(0, 2)
         size = file.tell()
         file.seek(0)
         if size > self.MAX_PROFILE_IMAGE_SIZE:
-            return None, f"File too large. Max size: {self.MAX_PROFILE_IMAGE_SIZE // (1024*1024)}MB"
+            return (
+                None,
+                f"File too large. Max size: {self.MAX_PROFILE_IMAGE_SIZE // (1024 * 1024)}MB",
+            )
         try:
             img = Image.open(file)
             img.verify()
@@ -731,7 +754,7 @@ class DatabaseManager:
         self.users_db.update_one({"_id": user_id}, {"$unset": {"profile_image": ""}})
         return True
 
-    #region Notifications
+    # region Notifications
 
     def get_inbox_by_user(self, user_id: ObjectId):
         try:
@@ -740,10 +763,12 @@ class DatabaseManager:
                 return []
 
             notification_ids = user_doc.get("inbox", [])
-            if not notification_ids: 
+            if not notification_ids:
                 return []
             # Get the notifs in the user inbox in 1 DB fetch
-            notifications = list(self.notifications_db.find({"_id": {"$in": notification_ids}}))
+            notifications = list(
+                self.notifications_db.find({"_id": {"$in": notification_ids}})
+            )
             # Sort them by date
             notifications.sort(key=lambda n: n["date"])
             return notifications
@@ -758,24 +783,26 @@ class DatabaseManager:
             raise Exception("User is not in the database")
         try:
             inbox_ids = [ObjectId(notif_id) for notif_id in user["inbox"]]
-            notification_docs = list(self.notifications_db.find({
-                "_id": {"$in": inbox_ids}
-            }))
-        
+            notification_docs = list(
+                self.notifications_db.find({"_id": {"$in": inbox_ids}})
+            )
+
             # Convert to Notification objects
             notes = []
             for note_info in notification_docs:
                 note = Notification()
                 note.populate_from_json(json_info=note_info)
                 notes.append(note)
-        
+
             return notes
         except Exception as e:
             raise e
 
     def get_notifications_by_equipment(self, equip_id):
         try:
-            note_info = self.notifications_db.find_one({"equipment_id": ObjectId(equip_id)})
+            note_info = self.notifications_db.find_one(
+                {"equipment_id": ObjectId(equip_id)}
+            )
             note = Notification()
             note.populate_from_json(json_info=note_info)
             return note
@@ -798,25 +825,23 @@ class DatabaseManager:
         try:
             self.users_db.update_many(
                 {"inbox": ObjectId(notification.id)},
-                {"$pull": {"inbox": ObjectId(notification.id)}}
+                {"$pull": {"inbox": ObjectId(notification.id)}},
             )
             return True
         except Exception as e:
             raise e
-    
+
     def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
-        """Remove a notification from all admin inboxes 
+        """Remove a notification from all admin inboxes
         EX: An equip is approved to a usr, all notifs requesting that same equip are removed"""
         if not notification_ids:
             return 0
         result = self.users_db.update_many(
-            {"role": "a"},
-            {"$pullAll": {"inbox": notification_ids}}
+            {"role": "a"}, {"$pullAll": {"inbox": notification_ids}}
         )
         # Also mark them as read to keep the notif red bubble accurate
         result = self.notifications_db.update_many(
-            {"_id": {"$in": notification_ids}},
-            {"$set": {"read": True}}
+            {"_id": {"$in": notification_ids}}, {"$set": {"read": True}}
         )
         return result.modified_count
 
@@ -826,8 +851,7 @@ class DatabaseManager:
             note_id_obj = ObjectId(note_id)
             # Remove from all user inboxes
             self.users_db.update_many(
-                {"inbox": note_id_obj},
-                {"$pull": {"inbox": note_id_obj}}
+                {"inbox": note_id_obj}, {"$pull": {"inbox": note_id_obj}}
             )
             # Delete the notification from DB
             self.notifications_db.delete_one({"_id": note_id_obj})
@@ -855,9 +879,7 @@ class DatabaseManager:
                 {"_id": notification.receiver}, {"$push": {"inbox": notification.id}}
             )
             result_note = self.notifications_db.update_one(
-                {"_id": notification.id},
-                {"$set": notification_json},
-                upsert=True
+                {"_id": notification.id}, {"$set": notification_json}, upsert=True
             )
 
             if result_note.acknowledged and result_user.acknowledged:
@@ -875,7 +897,9 @@ class DatabaseManager:
 
     def get_unread_messages_by_user(self, user_id: ObjectId):
         try:
-            note_infos = self.notifications_db.find({"receiver": user_id, "read": False})
+            note_infos = self.notifications_db.find(
+                {"receiver": user_id, "read": False}
+            )
             note_list = []
             for note_info in note_infos:
                 note = Notification()
@@ -884,7 +908,7 @@ class DatabaseManager:
             return note_list
         except Exception as e:
             raise e
-        
+
     def get_requests_by_user(self, user_id: ObjectId):
         try:
             user = self.get_user_by_id(user_id=user_id)
@@ -895,13 +919,15 @@ class DatabaseManager:
                 new_request = Notification()
                 new_request.populate_from_json(json_info=request)
                 request_list.append(new_request)
-                equipment_list.append(self.get_equipment_by_id(id=new_request.equipment_id))
+                equipment_list.append(
+                    self.get_equipment_by_id(id=new_request.equipment_id)
+                )
 
             return request_list, equipment_list
         except Exception as e:
             raise e
-        
-    # region Dashboard  
+
+    # region Dashboard
 
     def get_dashboard_info(self):
         try:
@@ -920,7 +946,7 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-    #region Password Reset
+    # region Password Reset
 
     def create_password_reset(self, user_id: ObjectId, token, token_hash):
         try:
@@ -933,18 +959,131 @@ class DatabaseManager:
                     "used": False,
                 }
             )
-            link = f"http://${os.environ.get('REACT_APP_API_BASE')}:3000/reset-password?token={token}" 
+            link = f"http://${os.environ.get('REACT_APP_API_BASE')}:3000/reset-password?token={token}"
             return link
         except Exception as e:
             raise e
-        
+
     def get_password_reset(self, token_hash):
         return self.password_resets.find_one({"token_hash": token_hash, "used": False})
 
     def set_password_reset_used(self, id: ObjectId, used: bool):
         result = self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
-        return result.modified_count > 0 
+        return result.modified_count > 0
 
+
+    def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """Cancels pending equipment requests for equipment that have been
+        assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs
+        You can also, optionally, specify a notification ID to exclude an equip item
+        from being denied (when only one user is approved to chekout an equip, it cancels for all others)"""
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Only pending
+        }
+        
+        # If we want to exclude a specific notification (e.g., the one being approved)
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
+        result = self.notifications_db.update_many(
+            query,
+            {"$set": {"status": "r"}}
+        )
+        return result.modified_count
+    
+    def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+        """Get IDs of pending requests for specific equipment before denying them
+        Used to remove them from admin inboxes and notify affected users"""
+        query = {
+            "equipment_id": {"$in": equipment_ids},
+            "type": "r",
+            "status": "p"  # Pending
+        }
+        
+        if exclude_notification_id is not None:
+            query["_id"] = {"$ne": exclude_notification_id}
+        
+        denied_requests = self.notifications_db.find(query, {"_id": 1, "sender": 1})
+        
+        notification_ids = []
+        # Use set to avoid duplicate user IDs
+        sender_ids = set()
+        
+        for req in denied_requests:
+            notification_ids.append(req["_id"])
+            sender_ids.add(ObjectId(req["sender"]))
+        
+        return notification_ids, list(sender_ids)
+
+    # Remove a notification from all admin inboxes 
+    # EX: An equip is approved to a usr, all notifs requesting that same equip are removed
+    def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
+        if not notification_ids:
+            return 0
+        result = self.users_db.update_many(
+            {"role": "a"},
+            {"$pullAll": {"inbox": notification_ids}}
+        )
+        return result.modified_count
+
+    # Update multiple equipment items as unavailable at once
+    def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
+        if not equipment_ids:
+            return 0
+
+        result = self.equipment_db.update_many(
+            {
+                "_id": {"$in": equipment_ids},
+                "checked_out": False,
+                "damaged": False,
+            },
+            {"$set": {"unavailable": unavailable}},
+        )
+        return result.modified_count
+
+    def delete_equipment(self, equipment_id: ObjectId):
+        equipment = self.equipment_db.find_one({"_id": equipment_id})
+        if not equipment:
+            return False
+
+        # Remove equipment from all users' checked_out_equipment arrays
+        self.users_db.update_many(
+            {"checked_out_equipment": equipment_id},
+            {"$pull": {"checked_out_equipment": equipment_id}},
+        )
+
+        # Delete all notifications referencing this equipment
+        notifications = self.notifications_db.find({"equipment_id": equipment_id})
+        for notification in notifications:
+            # Remove notification from users' inbox arrays
+            self.users_db.update_many(
+                {"inbox": notification["_id"]},
+                {"$pull": {"inbox": notification["_id"]}},
+            )
+        # Delete the notifications
+        self.notifications_db.delete_many({"equipment_id": equipment_id})
+
+        # Delete associated image files
+        if "images" in equipment and equipment["images"]:
+            for image_id in equipment["images"]:
+                if image_id:
+                    path = self.images_db / str(image_id)
+                    if path.exists():
+                        path.unlink()
+
+        # Delete associated report files
+        if "reports" in equipment and equipment["reports"]:
+            for report_id in equipment["reports"]:
+                if report_id:
+                    path = self.reports_db / str(report_id)
+                    if path.exists():
+                        path.unlink()
+
+        # Finally, delete the equipment document itself
+        result = self.equipment_db.delete_one({"_id": equipment_id})
+        return result.acknowledged and result.deleted_count > 0
     #region Requests
     
     def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
@@ -958,22 +1097,21 @@ class DatabaseManager:
             query = {
                 "equipment_id": {"$in": equipment_ids},
                 "type": "r",
-                "status": "p"  # Only pending
+                "status": "p",  # Only pending
             }
-            
+
             # If we want to exclude a specific notification (e.g., the one being approved)
             if exclude_notification_id is not None:
                 query["_id"] = {"$ne": exclude_notification_id}
-            
-            result = self.notifications_db.update_many(
-                query,
-                {"$set": {"status": "r"}}
-            )
+
+            result = self.notifications_db.update_many(query, {"$set": {"status": "r"}})
             return result.modified_count
         except Exception as e:
             raise e
-        
-    def get_pending_request_info(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+
+    def get_pending_request_info(
+        self, equipment_ids: list, exclude_notification_id: ObjectId = None
+    ):
         """
         Get IDs of pending requests for specific equipment before denying them
         Used to remove them from admin inboxes and notify affected users
@@ -982,22 +1120,22 @@ class DatabaseManager:
             query = {
                 "equipment_id": {"$in": equipment_ids},
                 "type": "r",
-                "status": "p"  # Pending
+                "status": "p",  # Pending
             }
-            
+
             if exclude_notification_id is not None:
                 query["_id"] = {"$ne": exclude_notification_id}
-            
+
             denied_requests = self.notifications_db.find(query, {"_id": 1, "sender": 1})
-            
+
             notification_ids = []
             # Use set to avoid duplicate user IDs
             sender_ids = set()
-            
+
             for req in denied_requests:
                 notification_ids.append(req["_id"])
                 sender_ids.add(ObjectId(req["sender"]))
-            
+
             return notification_ids, list(sender_ids)
         except Exception as e:
             raise e
