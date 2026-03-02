@@ -168,12 +168,19 @@ def create_app(testing=False):
 
     @app.route("/check-session", methods=["GET"])
     def check_session():
-        user = session.get("user")
-        role = session.get("role")
+        if "user" not in session or "id" not in session:
+            return jsonify({"result": False, "user": None, "role": None})
 
-        if user:
-            return jsonify({"result": True, "user": user, "role": role})
-        else:
+        # Always refresh role from DB so role changes (e.g. admin promotion) take effect on refresh
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj:
+                session.clear()
+                return jsonify({"result": False, "user": None, "role": None})
+            role = user_obj.role
+            session["role"] = role  # Keep session in sync
+            return jsonify({"result": True, "user": session["user"], "role": role})
+        except Exception:
             return jsonify({"result": False, "user": None, "role": None})
 
     @app.route("/logout", methods=["POST"])
@@ -182,6 +189,7 @@ def create_app(testing=False):
             session.pop("user", None)
             session.pop("role", None)
             session.pop("id", None)
+            session.pop("name", None)
             return jsonify({"result": True, "message": "logged out"})
         except Exception as e:
             return jsonify({"result": False, "message": str(e)})
@@ -659,13 +667,21 @@ def create_app(testing=False):
 
     @app.route("/get_users", methods=["GET"])
     def get_users():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"}), 401
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role not in ("a", "s"):
+                return jsonify({"result": False, "message": "Admin or Superintendent access required"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             users = db.get_all_users()
             user_dicts = []
             for user in users:
                 user_dict = user.to_dict()
                 # Populate equipment details if user has checked out equipment
-                if user_dict.get("checked_out_equipment"):
+                if user_dict["checked_out_equipment"]:
                     equipment_details = []
                     for equip_id in user_dict["checked_out_equipment"]:
                         equipment = db.get_equipment_by_id(equip_id)
@@ -683,12 +699,13 @@ def create_app(testing=False):
 
     @app.route("/change_user_role", methods=["POST"])
     def change_user_role():
-        # Get the admin session name for verification and logging
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
         try:
-            admin_name = session.get("name")
-            if not admin_name:
-                return jsonify({"result": False, "message": "Not logged in"})
-
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+            admin_name = session["name"]
             data = request.json
             user_id = ObjectId(data["user"]["id"])
             db.set_user_role(id=user_id, role=data["new_role"])
@@ -706,14 +723,17 @@ def create_app(testing=False):
 
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"}), 401
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             data = request.json
-            admin_name = session.get("name")
-            if not admin_name:
-                return jsonify(
-                    {"result": False, "message": "Admin session expired"}
-                ), 401
-
+            admin_name = session["name"]
             cur_session_id = session["id"]
             target_user_id = ObjectId(data["user"]["id"])
             # Remove that users notifications from the database
@@ -1201,10 +1221,9 @@ def create_app(testing=False):
             data = request.json
             equipment_id = ObjectId(data["equipment_id"])
             equip = db.get_equipment_by_id(equipment_id)
-            equip_info = f"{equip.name}"
-
             if equip is None:
                 return jsonify({"result": False, "message": "Equipment not found"}), 404
+            equip_info = f"{equip.name}"
 
             # Don't allow deletion if equipment is checked out
             if equip.checked_out:
