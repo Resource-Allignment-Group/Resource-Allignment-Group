@@ -12,8 +12,11 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 # The monthly reports are not stored in the backend or Oracle volume
 # They are either immediately emailed to the admin(s) or downloaded
 class ReportGenerator:
-    def __init__(self, db, log_file_path="large_files_db/reports/system_logs.txt"):
+    def __init__(self, db, log_file_path=None):
         self.db = db
+        if log_file_path is None:
+            _backend_dir = Path(__file__).resolve().parent
+            log_file_path = _backend_dir / "large_files_db" / "reports" / "system_logs.txt"
         self.log_file_path = Path(log_file_path)
         self.styles = getSampleStyleSheet()
 

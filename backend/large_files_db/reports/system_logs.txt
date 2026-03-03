@@ -78,3 +78,7 @@
 2026-02-26 20:06:47,524 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: TestUser : testuser@gmail.com] [Details: s]
 2026-02-26 20:06:54,882 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: TestUser : testuser@gmail.com] [Details: u]
 2026-02-26 20:07:01,404 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: s]
+2026-03-03 09:20:33,043 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: u]
+2026-03-03 09:20:37,303 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: a]
+2026-03-03 09:20:40,557 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: u]
+2026-03-03 09:21:16,079 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: s]

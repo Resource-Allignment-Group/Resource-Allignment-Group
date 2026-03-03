@@ -59,19 +59,6 @@ def seed_db(client):
 
     db.users_db.insert_one(admin)
 
-    superintendent = {
-        "_id": ObjectId("112233445566778899001122"),
-        "email": "superintendent@gmail.com",
-        "password": hash_password("test_pass"),
-        "name": "Test Superintendent",
-        "phone": "2222222222",
-        "position": None,
-        "role": "s",
-        "checked_out_equipment": [],
-        "inbox": [],
-    }
-    db.users_db.insert_one(superintendent)
-
     equipment = [
         {
             "_id": ObjectId("000000000000000000000000"),
@@ -173,16 +160,6 @@ def login_user(client, seed_db):
 def login_admin(client, seed_db):
     res = client.post(
         "/authenticate", json={"email": "admin@gmail.com", "password": "test_pass"}
-    )
-    assert res.get_json()["result"]
-    return client
-
-# Authenticates a logged in superintendent
-@pytest.fixture
-def login_superintendent(client, seed_db):
-    res = client.post(
-        "/authenticate",
-        json={"email": "superintendent@gmail.com", "password": "test_pass"},
     )
     assert res.get_json()["result"]
     return client

@@ -1,8 +1,9 @@
-from flask import jsonify
+from flask import jsonify, session
 from datetime import datetime
 from pathlib import Path
 import tempfile
 import os
+from bson.objectid import ObjectId
 
 def setup_report_routes(app, report_generator):
     
@@ -10,6 +11,15 @@ def setup_report_routes(app, report_generator):
     # from the admin dashboard page
     @app.route('/download_monthly_report', methods=['GET'])
     def download_report():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"}), 401
+        try:
+            db = app.db
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             today = datetime.now()
             # Default to current month's activity
