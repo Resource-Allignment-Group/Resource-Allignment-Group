@@ -343,8 +343,8 @@ def test_no_user_for_available_equipment(login_user):
 
 
 # Test the flow of a user requesting & returning an equipment item
-def test_request_equipment(login_user):
-    # Request equipment
+def test_request_equipment(login_user, login_admin):
+    # Request equipment (as user)
     res = login_user.post(
         "/request_equipment",
         json={"equip_id": "000000000000000000000000", "equip_name": "test_equip"},
@@ -355,7 +355,7 @@ def test_request_equipment(login_user):
     db = login_user.application.db
     notifications = db.get_notifications_by_equipment("000000000000000000000000")
     notification_dict = notifications.to_dict(sender_name="test_sender_name")
-    res = login_user.post(
+    res = login_admin.post(
         "/admin_account_decision",
         json={"result": True, "notification": notification_dict},
     )
