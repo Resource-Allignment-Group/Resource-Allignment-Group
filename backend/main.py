@@ -171,14 +171,14 @@ def create_app(testing=False):
         if "user" not in session or "id" not in session:
             return jsonify({"result": False, "user": None, "role": None})
 
-        # Always refresh role from DB so role changes (e.g. admin promotion) take effect on refresh
+        #Refresh role from DB so role changes take effect on refresh
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
             if not user_obj:
                 session.clear()
                 return jsonify({"result": False, "user": None, "role": None})
             role = user_obj.role
-            session["role"] = role  # Keep session in sync
+            session["role"] = role
             return jsonify({"result": True, "user": session["user"], "role": role})
         except Exception:
             return jsonify({"result": False, "user": None, "role": None})
@@ -334,6 +334,14 @@ def create_app(testing=False):
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"}), 401
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         data = request.json
         note_info = data["notification"]
         new_note = Notification()
@@ -643,6 +651,14 @@ def create_app(testing=False):
 
     @app.route("/get_dashboard_info")
     def get_dashboard_info():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"}), 401
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             num_total, num_available, num_used, num_damaged, num_unavailable = (
                 db.get_dashboard_info()
@@ -761,12 +777,15 @@ def create_app(testing=False):
 
     @app.route("/add_equipment", methods=["POST"])
     def add_equipment():
-        # Get admin name for validation and logging
-        admin_name = session.get("name")
-        if not admin_name:
+        if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
-        if session.get("role") != "a":
-            return jsonify({"result": False, "message": "Admin only"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
+        admin_name = session["name"]
 
         if request.content_type and "multipart/form-data" in request.content_type:
             form_data = request.form
@@ -830,8 +849,14 @@ def create_app(testing=False):
 
     @app.route("/upload_equipment_file", methods=["POST"])
     def upload_equipment_file():
-        if session.get("role") != "a":
-            return jsonify({"result": False, "message": "Admin only"})
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         equipment_id = ObjectId(request.form["equipment_id"])
         file_type = request.form["file_type"]
         file = request.files["file"] if "file" in request.files else None
@@ -869,8 +894,14 @@ def create_app(testing=False):
 
     @app.route("/set_equipment_display_image", methods=["POST"])
     def set_equipment_display_image():
-        if session.get("role") != "a":
-            return jsonify({"result": False, "message": "Admin only"})
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         data = request.json
         equipment_id = ObjectId(data["equipment_id"])
         image_id = data["image_id"]
@@ -880,8 +911,14 @@ def create_app(testing=False):
 
     @app.route("/remove_equipment_file", methods=["POST"])
     def remove_equipment_file():
-        if session.get("role") != "a":
-            return jsonify({"result": False, "message": "Admin only"})
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         data = request.json
         equipment_id = ObjectId(data["equipment_id"])
         file_id = data["file_id"]
@@ -932,6 +969,14 @@ def create_app(testing=False):
 
     @app.route("/change_equipment_info", methods=["POST"])
     def change_equipment_info():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         equipment_info = request.json["equipment"]
         try:
             for key in equipment_info.keys():
@@ -980,6 +1025,14 @@ def create_app(testing=False):
     def mark_equipment_unavailable():
         """A route that flags equipment as unavailable/available based
         on the checkboxes selected on the hompage"""
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             data = request.get_json()
             unavailable = data["unavailable"]
@@ -1212,11 +1265,16 @@ def create_app(testing=False):
 
     @app.route("/delete_equipment", methods=["POST"])
     def delete_equipment():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
         try:
-            # Get admin name for validation and logging
-            admin_name = session.get("name")
-            if not admin_name:
-                return jsonify({"result": False, "message": "Not logged in"})
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
+        try:
+            admin_name = session["name"]
 
             data = request.json
             equipment_id = ObjectId(data["equipment_id"])
@@ -1243,7 +1301,9 @@ def create_app(testing=False):
             db.cancel_pending_requests_for_equipment(equipment_ids=[equipment_id])
 
             # Remove notifications from all admin inboxes
-            [db.remove_notification_from_inbox(id) for id in pending_notification_ids]
+            db.remove_notifications_from_all_admin_inboxes(
+                notification_ids=pending_notification_ids
+            )
 
             # Send notifications to users whose requests were denied
             if "id" in session and pending_user_ids:
@@ -1279,6 +1339,14 @@ def create_app(testing=False):
     @app.route("/update_report_preference", methods=["POST"])
     def update_report_pref():
         """Updates the admins preference for receiving monthly reports or not"""
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             admin_id = ObjectId(session["id"])
             # Get the toggle value (True/False) from the frontend
@@ -1297,6 +1365,14 @@ def create_app(testing=False):
 
     @app.route("/add_bulk_equipment", methods=["POST"])
     def add_bulk_equipment():
+        if "id" not in session:
+            return jsonify({"result": False, "message": "Not logged in"})
+        try:
+            user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            if not user_obj or user_obj.role != "a":
+                return jsonify({"result": False, "message": "Admin only"}), 403
+        except Exception:
+            return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
             if "file" not in request.files:
                 return jsonify({"result": False, "message": "Please select a file"})

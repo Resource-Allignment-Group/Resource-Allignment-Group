@@ -41,12 +41,12 @@ class DatabaseManager:
         self.password_resets.create_index(
             "expires_at", expireAfterSeconds=0
         )  # will delete password reset after 5 minutes
-        self.images_db = Path("backend/large_files_db/images")
-        self.reports_db = Path("backend/large_files_db/reports")
-        self.profile_images_db = Path("backend/large_files_db/profile_images")
+        _backend_dir = Path(__file__).resolve().parent
+        self.images_db = _backend_dir / "large_files_db" / "images"
+        self.reports_db = _backend_dir / "large_files_db" / "reports"
+        self.profile_images_db = self.images_db  # profile images stored in same images folder
         self.images_db.mkdir(parents=True, exist_ok=True)
         self.reports_db.mkdir(parents=True, exist_ok=True)
-        self.profile_images_db.mkdir(parents=True, exist_ok=True)
         self.ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
         self.MAX_IMAGE_SIZE = 5 * 1024 * 1024
         self.ALLOWED_REPORT_EXTENSIONS = {".pdf"}
@@ -1016,17 +1016,6 @@ class DatabaseManager:
             sender_ids.add(ObjectId(req["sender"]))
         
         return notification_ids, list(sender_ids)
-
-    # Remove a notification from all admin inboxes 
-    # EX: An equip is approved to a usr, all notifs requesting that same equip are removed
-    def remove_notifications_from_all_admin_inboxes(self, notification_ids: list):
-        if not notification_ids:
-            return 0
-        result = self.users_db.update_many(
-            {"role": "a"},
-            {"$pullAll": {"inbox": notification_ids}}
-        )
-        return result.modified_count
 
     # Update multiple equipment items as unavailable at once
     def bulk_update_equipment_unavailable(self, equipment_ids: list, unavailable: bool):
