@@ -135,11 +135,11 @@ REACT_APP_BACKEND_API_BASE=url_for_api_access
 
 ## Project Team
 
-| Name           | Role      |
-| -------------- | --------- |
-| Bradan Craig   | Developer |
-| Drew Marecek   | Developer |
-| McKade Wing    | Developer |
-| Theodore Morin | Developer |
-
-**MAFES Customer Representatives:** Tyler Messerschmidt, Lee Hecker
+| Name                | Role      |
+| ------------------- | --------- |
+| Bradan Craig        | Developer |
+| Drew Marecek        | Developer |
+| McKade Wing         | Developer |
+| Theodore Morin      | Developer |
+| Tyler Messerschmidt | Client    |
+| Lee Hecker          | Client    |
