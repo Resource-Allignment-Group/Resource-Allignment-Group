@@ -530,52 +530,7 @@ class DatabaseManager:
             return equip_list
         except Exception as e:
             raise e
-
-    # region Large Files
-
-    def add_image(self, equipment_id: ObjectId, image: Image):
-        """Add a new image ID to its assigned equip"""
-        img_uuid = str(ObjectId())
-        image_path = self.images_db / img_uuid
-        image.save(image_path)
-        # Give the image an ID
-        while True:
-            if (self.images_db / img_uuid).exists():
-                img_uuid = str(ObjectId())
-            else:
-                break
-        image.save(self.images_db / img_uuid)
-        # Add the image ID to the list of images for a given equip
-        change_result = self.equipment_db.update_one(
-            {"_id": equipment_id}, {"$push": {"images": img_uuid}}
-        )
-        if change_result.acknowledged:
-            return f"Image {img_uuid} has been added for {equipment_id}"
-        else:
-            return f"Image {img_uuid} could not be added"
-
-    def add_report(self, equipment_id: ObjectId, report_content):
-        """Add a new report ID to its assigned equip"""
-        report_uuid = str(ObjectId())
-        # Give the report an ID
-        while True:
-            if (self.reports_db / report_uuid).exists():
-                report_uuid = str(ObjectId())
-            else:
-                break
-
-        with open(self.reports_db / report_uuid, "w") as f:
-            f.write(report_content)
-
-        # Add the report ID to the list of reports for a given equip
-        change_result = self.equipment_db.update_one(
-            {"_id": equipment_id}, {"$push": {"reports": report_uuid}}
-        )
-        if change_result.acknowledged:
-            return f"Report {report_uuid} has been added for {equipment_id}"
-        else:
-            return f"Report {report_uuid} could not be added"
-
+            
     def get_image(self, uuid: str):
         if not (self.images_db / uuid).exists():
             return f"{uuid} image does not exist"
@@ -586,11 +541,6 @@ class DatabaseManager:
 
         return buffer.getvalue()
 
-    def delete_image(self, uuid: str):
-        path = self.images_db / uuid
-        if path.exists():
-            path.unlink()
-
     def get_report(self, uuid: str):
         if not (self.reports_db / uuid).exists():
             return f"{uuid} report does not exist"
@@ -599,11 +549,6 @@ class DatabaseManager:
             report_data = io.BytesIO(f.read())
 
         return report_data
-
-    def delete_report(self, uuid: str):
-        path = self.reports_db / uuid
-        if path.exists():
-            path.unlink()
 
     def add_equipment_image(self, equipment_id: ObjectId, file) -> tuple:
         if not file or not file.filename:
