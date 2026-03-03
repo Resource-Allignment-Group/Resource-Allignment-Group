@@ -93,7 +93,3 @@ def fill_database_with_notifications():
             "read": True,
             "status": None
         })
-
-
-# Do NOT call fill_database_with_notifications() at import - it was a one-time
-# seed script that blocks startup and inserts 3000 test notifications.
