@@ -1,8 +1,10 @@
 import time
-import os
 from dotenv import load_dotenv
 from main import create_app
 from datetime import datetime, timedelta, timezone
+
+# A module that will check what remains of the databases storage
+# Notifies admins when getting full and deletes notifications from db as a preventative measure
 
 load_dotenv()
 
@@ -13,6 +15,7 @@ MAX_STORAGE_BYTES = (
 PERCENTAGE_OF_DB = 0.9
 ONE_WEEK_AGO = datetime.now(timezone.utc) - timedelta(weeks=1)
 
+# Different app fields to keep track of for db size
 def get_size_and_count(db):
     count = db.db.command("collStats", "notifications")["count"]
     note_size = db.db.command("collStats", "notifications")["size"]
@@ -46,7 +49,7 @@ def monitor():
                     size = db.db.command("dbStats")["storageSize"]
                     if size > MAX_STORAGE_BYTES * PERCENTAGE_OF_DB:
                         print("DATABASE IS OVER SET LIMIT")
-                    
+                        # Notify admins of database reaching size limits
                         for admin in db.get_administrators():
                             nm.send_email(
                                 receiver=admin.email,
@@ -61,6 +64,7 @@ def monitor():
                         print(
                             f"Deleted {res.deleted_count} notifications from the database"
                         )
+                        # Notify users of notification removal to preserve database
                         for user in db.get_all_users():
                             nm.send_inform_notification(
                                 sender="System",

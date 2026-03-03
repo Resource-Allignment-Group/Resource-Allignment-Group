@@ -21,7 +21,6 @@ EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 PHONE_REGEX = re.compile(r"^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$")
 PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$")
 
-
 def create_app(testing=False):
     load_dotenv()
 
@@ -82,6 +81,7 @@ def create_app(testing=False):
 
     @app.route("/authenticate", methods=["POST", "GET"])
     def authenticate():
+        """Validates user email and password, and current account status"""
         data = request.json
         email = data["email"]
         password = data["password"]
@@ -125,6 +125,7 @@ def create_app(testing=False):
 
     @app.route("/forgot_password", methods=["POST"])
     def forgot_password():
+        """Route for when the user needs their password reset"""
         email = request.json["email"]
         try:
             user = db.get_user_by_email(email=email)
@@ -142,6 +143,7 @@ def create_app(testing=False):
 
     @app.route("/reset_password", methods=["POST"])
     def reset_password():
+        """Modifies the user password to be their new one"""
         token = request.json["token"]
         new_password = request.json["password"]
 
@@ -168,6 +170,7 @@ def create_app(testing=False):
 
     @app.route("/check-session", methods=["GET"])
     def check_session():
+        """Ensures the user still has an active session"""
         if "user" not in session or "id" not in session:
             return jsonify({"result": False, "user": None, "role": None})
 
@@ -185,6 +188,7 @@ def create_app(testing=False):
 
     @app.route("/logout", methods=["POST"])
     def logout():
+        """Logout the user and clean up their session"""
         try:
             session.pop("user", None)
             session.pop("role", None)
@@ -196,6 +200,7 @@ def create_app(testing=False):
 
     @app.route("/register", methods=["POST"])
     def register():
+        """Register a new user account and notify admins"""
         try:
             data = request.json
             # Remove extra whitespaces and normalize input
@@ -258,7 +263,7 @@ def create_app(testing=False):
 
     @app.route("/get_user_info", methods=["GET"])
     def get_user_info():
-        # TODO: add profile pic retrevial and any other import stuff here
+        """Retrieves unread user notification info"""
         try:
             unread_messages = db.get_unread_messages_by_user(
                 user_id=ObjectId(session["id"])
@@ -334,6 +339,10 @@ def create_app(testing=False):
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
+        """Admin decisions for specific notification types. 
+        This involves the approve/deny cases for when a new account is registered ('a')
+        or a user is requesting to checkout an equipment item ('r')."""
+
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
@@ -351,6 +360,7 @@ def create_app(testing=False):
             # Account creation request
             case "a":
                 try:
+                    # Adjust the unread notification number
                     db.remove_notification_from_inbox(notification=new_note)
                     db.set_notification_read(id=new_note.id, read=True)
 
@@ -363,7 +373,7 @@ def create_app(testing=False):
                     admin_name = session.get("name")
 
                     if data["result"]:
-                        # Approve: grant the user access
+                        # Approve: grant the user access, add to DB
                         result_message = (
                             f"{target_user.email} has been added to the system"
                         )
@@ -375,7 +385,7 @@ def create_app(testing=False):
                             details="New Account Approved by Admin",
                         )
                     else:
-                        # Deny: remove the user from the system
+                        # Deny: remove the user from the system, delete registration info
                         result_message = (
                             f"{target_user.email} has been rejected from the system"
                         )
@@ -398,6 +408,7 @@ def create_app(testing=False):
             # Equipment checkout request
             case "r":
                 try:
+                    # Adjust the unread notification number
                     db.remove_notification_from_inbox(notification=new_note)
                     db.set_notification_read(id=ObjectId(new_note.id), read=True)
 
@@ -497,6 +508,7 @@ def create_app(testing=False):
 
     @app.route("/get_equipment", methods=["GET"])
     def get_equipment():
+        """Fetch all equipment from the DB"""
         try:
             equipment_cur = db.get_all_equipment()
             equip_list = [equip.to_dict() for equip in equipment_cur]
@@ -540,6 +552,7 @@ def create_app(testing=False):
 
     @app.route("/request_equipment", methods=["POST"])
     def request_equipment():
+        """Trigger user's request for equipment checkout and notify the admins"""
         data = request.json
         equip_id = data["equip_id"]
         try:
@@ -584,6 +597,7 @@ def create_app(testing=False):
 
     @app.route("/get_user_equipment", methods=["GET"])
     def get_user_equipment():
+        """Get all equipment checked out to a given user"""
         try:
             user_equipment = db.get_equipment_by_user(user_id=ObjectId(session["id"]))
             equip_list = [equip.to_dict() for equip in user_equipment]
@@ -593,20 +607,22 @@ def create_app(testing=False):
 
     @app.route("/return_equipment", methods=["POST"])
     def return_equipment():
+        """Trigger user equipment return"""
         data = request.json
         try:
             equipment_id = ObjectId(data["equipment_id"])
             user_id = ObjectId(session["id"])
             is_damaged = data.get("damaged", False)
             damage_description = data["damage_description"]
-
+            # Remove the returned equip from the user's
+            # list of equip checked out to them
             db.delete_user_equipment(
                 user_id=user_id,
                 equipment_id=equipment_id,
                 damaged=is_damaged,
                 damage_description=damage_description,
             )
-
+            # Notify admins of the equipment return and its condition
             equipment = db.get_equipment_by_id(id=equipment_id)
             for admin in db.get_administrators():
                 nm.send_inform_notification(
@@ -624,13 +640,15 @@ def create_app(testing=False):
 
     @app.route("/get_requests", methods=["GET"])
     def get_requests():
+        """Get all of the user's requests for equipment checkout"""
         try:
             notifications, equipment = db.get_requests_by_user(
                 user_id=ObjectId(session["id"])
             )
 
             notifications_list, equipment_list = [], []
-
+            # Finds the equipment notifs that resulted from
+            # the user requesting checkout of an equip item
             for i, note in enumerate(notifications):
                 if equipment[i] is None:
                     continue
@@ -651,6 +669,7 @@ def create_app(testing=False):
 
     @app.route("/get_dashboard_info")
     def get_dashboard_info():
+        """Fetches equipment stats based on the DB status"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
@@ -663,7 +682,6 @@ def create_app(testing=False):
             num_total, num_available, num_used, num_damaged, num_unavailable = (
                 db.get_dashboard_info()
             )
-            # TODO:  Get the admins preference for monthly report gen
             admin_id = session["id"]
             user = db.get_user_by_id(ObjectId(admin_id))
 
@@ -683,6 +701,7 @@ def create_app(testing=False):
 
     @app.route("/get_users", methods=["GET"])
     def get_users():
+        """Fetch all users from the DB"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
@@ -692,6 +711,8 @@ def create_app(testing=False):
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
+            # Gathers display information for what equipment is
+            # checked out to each user (User Management page)
             users = db.get_all_users()
             user_dicts = []
             for user in users:
@@ -715,15 +736,18 @@ def create_app(testing=False):
 
     @app.route("/change_user_role", methods=["POST"])
     def change_user_role():
+        """Updates the user's role (User, Superintendent, Admin)"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
+            # Find the specified user
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
             admin_name = session["name"]
             data = request.json
             user_id = ObjectId(data["user"]["id"])
+            # Set role to the one selected by the admin
             db.set_user_role(id=user_id, role=data["new_role"])
             user = db.get_user_by_id(user_id)
             # Log the role change
@@ -739,6 +763,7 @@ def create_app(testing=False):
 
     @app.route("/delete_user_account", methods=["POST"])
     def delete_user_account():
+        """Remove a user account from the DB"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
@@ -777,6 +802,7 @@ def create_app(testing=False):
 
     @app.route("/add_equipment", methods=["POST"])
     def add_equipment():
+        """Add a new equipment to the DB"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -787,6 +813,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Invalid session"}), 401
         admin_name = session["name"]
 
+        # Add the new equip, filling out all params
         if request.content_type and "multipart/form-data" in request.content_type:
             form_data = request.form
             year_val = form_data["year"] if "year" in form_data else ""
@@ -814,6 +841,7 @@ def create_app(testing=False):
             new_equip = Equipment()
             new_equip.fill_from_json(equip_data)
             db.add_equipment(new_equip)
+            # Attach any images/reports (if any)
             if "images" in request.files:
                 for file in request.files.getlist("images"):
                     if file.filename:
@@ -838,7 +866,7 @@ def create_app(testing=False):
             new_equip = Equipment()
             new_equip.fill_from_json(equip_data)
             db.add_equipment(new_equip)
-
+        # Log the new equipment added
         db.add_log(
             user_id=admin_name,
             action="ADD_EQUIPMENT",
@@ -849,6 +877,7 @@ def create_app(testing=False):
 
     @app.route("/upload_equipment_file", methods=["POST"])
     def upload_equipment_file():
+        """Add a new image or report to an equipment item"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -857,11 +886,16 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
+        
+        # Get the equipment to attatch file(s) to
         equipment_id = ObjectId(request.form["equipment_id"])
         file_type = request.form["file_type"]
         file = request.files["file"] if "file" in request.files else None
+        
         if not file:
             return jsonify({"result": False, "message": "No file provided"})
+        
+        # Add the file
         if file_type == "image":
             file_id, err = db.add_equipment_image(equipment_id, file)
         elif file_type == "report":
@@ -874,6 +908,7 @@ def create_app(testing=False):
 
     @app.route("/get_equipment_image/<equipment_id>/<image_id>", methods=["GET"])
     def get_equipment_image(equipment_id, image_id):
+        """Display the selected image in a new tab"""
         equipment = db.get_equipment_by_id(ObjectId(equipment_id))
         if not equipment or not equipment.images or image_id not in equipment.images:
             return jsonify({"result": False, "message": "Not found"}), 404
@@ -884,6 +919,7 @@ def create_app(testing=False):
 
     @app.route("/get_equipment_report/<equipment_id>/<report_id>", methods=["GET"])
     def get_equipment_report(equipment_id, report_id):
+        """Display the selected report in a new tab"""
         equipment = db.get_equipment_by_id(ObjectId(equipment_id))
         if not equipment or not equipment.reports or report_id not in equipment.reports:
             return jsonify({"result": False, "message": "Not found"}), 404
@@ -894,6 +930,7 @@ def create_app(testing=False):
 
     @app.route("/set_equipment_display_image", methods=["POST"])
     def set_equipment_display_image():
+        """The default display image on the equipment card components"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -911,6 +948,7 @@ def create_app(testing=False):
 
     @app.route("/remove_equipment_file", methods=["POST"])
     def remove_equipment_file():
+        """Remove a file from an equipment item"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -919,10 +957,14 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
+        
+        # Get the equip item to remove a file from
         data = request.json
         equipment_id = ObjectId(data["equipment_id"])
         file_id = data["file_id"]
         file_type = data["file_type"]
+
+        # Remove the file
         if file_type == "image":
             ok = db.remove_equipment_image(equipment_id, file_id)
         elif file_type == "report":
@@ -935,6 +977,8 @@ def create_app(testing=False):
 
     @app.route("/upload_profile_image", methods=["POST"])
     def upload_profile_image():
+        """Add a new user profile image. Visible on their profile 
+        page and the user management card components"""
         file = request.files["file"] if "file" in request.files else None
         if not file:
             return jsonify({"result": False, "message": "No file provided"})
@@ -946,6 +990,7 @@ def create_app(testing=False):
 
     @app.route("/get_profile_image/<user_id>", methods=["GET"])
     def get_profile_image(user_id):
+        """Find the user's profile image to display"""
         img_id = db.get_profile_image_id(ObjectId(user_id))
         if not img_id:
             return jsonify({"result": False, "message": "No profile image"}), 404
@@ -962,6 +1007,7 @@ def create_app(testing=False):
 
     @app.route("/delete_profile_image", methods=["POST"])
     def delete_profile_image():
+        """Delete the user's current profile image"""
         user_id = ObjectId(session["id"])
         if db.delete_profile_picture(user_id):
             return jsonify({"result": True})
@@ -969,6 +1015,7 @@ def create_app(testing=False):
 
     @app.route("/change_equipment_info", methods=["POST"])
     def change_equipment_info():
+        """Update the equipment fields after an Equipment Edit"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -977,11 +1024,14 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
+        
+        # Get the equipment to update
         equipment_info = request.json["equipment"]
         try:
             for key in equipment_info.keys():
                 if key == "id":
                     continue
+                # Update each field that was changed
                 db.update_equipment_field(
                     equip_id=ObjectId(equipment_info["id"]),
                     field_name=key,
@@ -995,6 +1045,7 @@ def create_app(testing=False):
 
     @app.route("/get_profile_info", methods=["GET"])
     def get_profile_equipment():
+        """Fetch the user's stored profile info from the DB"""
         try:
             user = db.get_user_by_id(user_id=ObjectId(session["id"]))
             return jsonify({"result": True, "user": user.to_dict()})
@@ -1003,6 +1054,7 @@ def create_app(testing=False):
 
     @app.route("/save_new_profile_info", methods=["POST"])
     def save_new_profile_info():
+        """Save the user's changes to their profile info"""
         try:
             data = request.json
             db.set_user_name(
@@ -1265,6 +1317,7 @@ def create_app(testing=False):
 
     @app.route("/delete_equipment", methods=["POST"])
     def delete_equipment():
+        """Delete equipment items from the DB"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -1276,6 +1329,7 @@ def create_app(testing=False):
         try:
             admin_name = session["name"]
 
+            # Get the equipment item to delete
             data = request.json
             equipment_id = ObjectId(data["equipment_id"])
             equip = db.get_equipment_by_id(equipment_id)
@@ -1365,6 +1419,8 @@ def create_app(testing=False):
 
     @app.route("/add_bulk_equipment", methods=["POST"])
     def add_bulk_equipment():
+        """Allow multiple equipment to be added to the DB. Info is
+        parsed from an excel file (.xlsx or .xls)"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"})
         try:
@@ -1374,20 +1430,21 @@ def create_app(testing=False):
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
+            # The user will select the excel file to add equip from
             if "file" not in request.files:
                 return jsonify({"result": False, "message": "Please select a file"})
             file = request.files["file"]
-            if ".xlsx" not in file.filename or ".xls" not in file.filename:
-                print(file)
+            if not (file.filename.endswith(".xlsx") or file.filename.endswith(".xls")):
                 return jsonify(
                     {
                         "result": False,
                         "message": "Please select an excel file that ends with '.xlsx' or '.xls'",
                     }
                 )
-            # TODO: Ask tyler what he wants manditory to impliment
+            # TODO: Ask tyler what he wants mandatory to implement
             df = pd.read_excel(file)
             df = df.iloc[:, 0:11]
+            # Read all required table fields and create new equipment items
             for i, row in df.iterrows():
                 # if i == 0:  # skip the head
                 #     continue

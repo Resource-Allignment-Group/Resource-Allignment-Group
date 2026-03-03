@@ -6,6 +6,8 @@ from pathlib import Path
 import tempfile
 import os
 
+# The scheduling class for monthly report generation
+
 # Runs in the background to keep track of when monthly reports should be generated
 class ReportScheduler:
     def __init__(self, db, notification_manager, report_generator):
@@ -65,14 +67,14 @@ class ReportScheduler:
         except Exception:
             return False
 
-    # Checks to see if it is time to generate the report every minute
     def _run_loop(self):
+        """Checks to see if it is time to generate the report every minute"""
         while self.running:
             schedule.run_pending()
             time.sleep(60)
 
-    # Creates the background thread that will be used to check date/time
     def start(self):
+        """Creates the background thread that will be used to check date/time"""
         # Start the scheduler, check every day at 09:00am
         if self.running: return
         schedule.clear()
@@ -81,26 +83,27 @@ class ReportScheduler:
         self.thread = threading.Thread(target=self._run_loop, daemon=True)
         self.thread.start()
 
-    # Checks to see if today is the first of the month
-    # If it is, generate the monthly report
     def _check_calendar_day(self):
+        """Checks to see if today is the first of the month"""
+        # If it is, generate the monthly report
         if datetime.now().day == 1:
             self.generate_and_send()
 
-    # Stops the background thread
     def stop(self):
+        """Stops the background thread"""
         self.running = False
         schedule.clear()
 
 # Global instance management
 _scheduler = None
-# Start the scheduler instance
+
 def init_scheduler(db, notification_manager, report_generator):
+    """Start the scheduler instance"""
     global _scheduler
     _scheduler = ReportScheduler(db, notification_manager, report_generator)
     _scheduler.start()
     return _scheduler
 
-# Get the active scheduler instance
 def get_scheduler():
+    """Get the active scheduler instance"""
     return _scheduler

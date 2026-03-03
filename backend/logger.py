@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
 
+# The base logging class
+# Used to log core system interaction for admin monthly reports
 
 class SystemLogger:
     def __init__(self, filename="system_logs.txt"):

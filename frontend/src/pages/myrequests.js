@@ -6,12 +6,16 @@ import MyRequestsCard from "../components/myRequestsCard";
 import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
 
+// Shows all equip requests the user has made
+// Includes if they are pending, approved, declined
+
 function MyRequests({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [requests, setRequests] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 
+	// Load all of the user's requests
 	useEffect(() => {
 		const fillRequests = async () => {
 			try {

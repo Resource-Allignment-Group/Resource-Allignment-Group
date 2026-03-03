@@ -1,21 +1,26 @@
+// Used on the notifications page
+// Card component for each notification
+
 import "../styles/notificationCard.css";
 import { useState } from "react";
 import { MdPerson } from "react-icons/md";
 import { API_BASE } from "../config";
 import { FaTractor } from "react-icons/fa";
 
+// Notification card info for an equipment request
 function NewRequestNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
 
+	// When approved/denied, resolve the notif
 	const handleApproveClick = () => {
 		setStatus("approved");
 		onApprove(notification);
 	};
-
 	const handleRejectClick = () => {
 		setStatus("rejected");
 		onReject(notification);
 	};
+
 	const equipmentImageUrl =
 		notification.equipment_id && notification.equipment_display_image_id
 			? `http://${API_BASE}:5000/get_equipment_image/${notification.equipment_id}/${notification.equipment_display_image_id}`
@@ -77,6 +82,7 @@ function NewRequestNotification({ notification, onApprove, onReject }) {
 	);
 }
 
+// Notification card info for new account creation
 function NewAccountNotification({ notification, onApprove, onReject }) {
 	const [status, setStatus] = useState(null);
 
@@ -84,7 +90,6 @@ function NewAccountNotification({ notification, onApprove, onReject }) {
 		setStatus("approved");
 		onApprove(notification);
 	};
-
 	const handleRejectClick = () => {
 		setStatus("rejected");
 		onReject(notification);
@@ -139,6 +144,7 @@ function NewAccountNotification({ notification, onApprove, onReject }) {
 	);
 }
 
+// Notification card info for generic data
 function InformNotification({ notification, onDismiss }) {
 	return (
 		<div className="notification-card">
@@ -168,6 +174,7 @@ function InformNotification({ notification, onDismiss }) {
 	);
 }
 
+// Establishes the unique notif cards
 export default function NotificationCard({
 	notification,
 	onApprove,

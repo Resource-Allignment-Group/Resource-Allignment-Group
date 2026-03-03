@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MdArrowBack } from "react-icons/md";
 
 // This component is used across all pages
+// Holds search bar and filtering options
 
 function Sidebar({
 	isOpen,

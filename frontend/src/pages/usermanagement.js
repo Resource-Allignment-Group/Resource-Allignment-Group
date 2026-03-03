@@ -8,6 +8,8 @@ import { useSidebar } from "../SidebarContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Authentication";
 
+// Page for admins to manage user accounts and see equipment checkouts
+
 function UserManagement({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
@@ -16,6 +18,7 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 	const { logout } = useAuth();
 	const navigate = useNavigate();
 
+	// Load all users in system
 	useEffect(() => {
 		const GetUsersInfo = async () => {
 			try {
@@ -40,6 +43,7 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 		GetUsersInfo();
 	}, []);
 
+	// Admins can delete user accounts
 	const handleDeleteUser = async (userToDelete) => {
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/delete_user_account`, {
@@ -49,6 +53,7 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 				body: JSON.stringify({ user: userToDelete }),
 			});
 			const data = await res.json();
+			// Admin deletes their own account
 			if (data.result) {
 				if (data.self_deleted) {
 					alert("You have deleted your own account. Logging out.");
@@ -60,9 +65,8 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 						prevUsers.filter((u) => u.id !== userToDelete.id),
 					);
 				}
-			}
-			else{
-				alert(data.message)
+			} else {
+				alert(data.message);
 			}
 		} catch (error) {
 			alert("There Were Problems Deleting The User");

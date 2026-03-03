@@ -145,21 +145,6 @@
 	border-radius: 50%;
 }
 
-/* .picture-buttons {
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-}
-
-.change-picture-btn {
-	cursor: pointer;
-}
-
-.remove-picture-btn {
-	background: transparent;
-	color: #c00;
-} */
-
 .picture-buttons {
 	display: flex;
 	gap: 10px;

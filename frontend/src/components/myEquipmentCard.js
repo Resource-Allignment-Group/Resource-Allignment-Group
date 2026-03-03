@@ -1,5 +1,6 @@
 // This component is used on the My Equipment page
 // Shows equipment currently checked out to the user
+
 import "../styles/myequipment.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useState } from "react";

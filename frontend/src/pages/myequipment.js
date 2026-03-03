@@ -6,12 +6,15 @@ import Sidebar from "../components/sidebar";
 import MyEquipmentCard from "../components/myEquipmentCard";
 import { useSidebar } from "../SidebarContext";
 
+// Shows all equipment currently checked out by the user
+
 function MyEquipment({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);
 	const [equipment, setEquipment] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 
+	// Load all of the equip checked out by user
 	const fillEquipment = async () => {
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/get_user_equipment`, {

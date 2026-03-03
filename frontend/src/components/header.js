@@ -1,3 +1,6 @@
+// A component shared accross all pages
+// Ability to switch between pages and open sidebar
+
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { MdDensityMedium } from "react-icons/md";
@@ -13,11 +16,13 @@ function Header({
 	setNotificationsNum,
 	activeTab = null,
 }) {
+	// Authentication route for user roles
 	const { role } = useAuth();
 	const isAdmin = role === "a";
 	const isSuperintendent = role === "s";
 
 	const navigate = useNavigate();
+	// Will update notification page when switching pages as well
 	useEffect(() => {
 		const fetchUserInfo = async () => {
 			try {
