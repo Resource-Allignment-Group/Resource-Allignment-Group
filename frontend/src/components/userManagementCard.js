@@ -12,6 +12,7 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 	const isAdmin = currentUserRole === "a";
 	const [role, setRole] = useState(user.role);
 
+	// Allow admins to change the user's role
 	const ChangeRole = async (new_role) => {
 		try {
 			setRole(new_role);
@@ -24,15 +25,15 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 			const data = await res.json();
 			if (data.result) {
 				alert("User's Role Was Successfully Updated");
-			}
-			else{
-				alert(data.message || "Something Went Wrong")
+			} else {
+				alert(data.message || "Something Went Wrong");
 			}
 		} catch (error) {
 			alert("There Were Problems Changing The User's Role");
 		}
 	};
 
+	// Admins can delete user accounts from the DB
 	const DeleteUser = async () => {
 		const confirmDelete = window.confirm(
 			`Are you sure you want to delete "${user.name}"? `,
@@ -90,7 +91,11 @@ function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 				{!isAdmin && (
 					<div className="user-role-section">
 						<span className="role-display">
-							{role === "a" ? "Admin" : role === "s" ? "Superintendent" : "User"}
+							{role === "a"
+								? "Admin"
+								: role === "s"
+									? "Superintendent"
+									: "User"}
 						</span>
 					</div>
 				)}

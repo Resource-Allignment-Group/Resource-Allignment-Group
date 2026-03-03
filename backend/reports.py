@@ -5,12 +5,13 @@ import tempfile
 import os
 from bson.objectid import ObjectId
 
+# Route(s) related to downloading monthly reports
+
 def setup_report_routes(app, report_generator):
     
-    # Route used to manually dowload a monthly report 
-    # from the admin dashboard page
     @app.route('/download_monthly_report', methods=['GET'])
     def download_report():
+        """Allow admins to manually download a monthly report from the Dashboard"""
         if "id" not in session:
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:

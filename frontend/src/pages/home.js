@@ -1,13 +1,12 @@
 import "../styles/default.css";
 import { useState, useEffect, useCallback } from "react";
-
-// Import componets that will make up the home page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import HomeEquipmentCard from "../components/homeEquipmentCard";
 import { API_BASE } from "../config";
 import { useSidebar } from "../SidebarContext";
 import { useAuth } from "../Authentication";
+
 function Home({ num_of_notifications, setNumNotifications }) {
 	const { role } = useAuth();
 	const isAdmin = role === "a";

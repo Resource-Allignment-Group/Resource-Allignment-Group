@@ -33,6 +33,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 	const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 	const ALLOWED_REPORT_TYPES = ["application/pdf"];
 
+	// Fetches the in-use options for the form fields for easy lookup
 	useEffect(() => {
 		if (!isOpen) return;
 
@@ -55,11 +56,13 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 
 	if (!isOpen) return null;
 
+	// Fill out the form fields
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
+	// Ensure all uploaded files (images/reports) aren't huge and are of the correct type
 	const validateFiles = () => {
 		for (const file of images) {
 			if (file.size > MAX_IMAGE_SIZE) {
@@ -84,6 +87,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 		return true;
 	};
 
+	// Submitting the form for adding equipment
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (!validateFiles()) return;
@@ -91,6 +95,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 
 		try {
 			let res;
+			// 2 cases for adding equipment with/without images/reports
 			if (images.length > 0 || reports.length > 0) {
 				const payload = new FormData();
 				Object.entries(formData).forEach(([key, value]) => {
@@ -115,6 +120,7 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 					}),
 				});
 			}
+			// Output error and success info
 			const data = await res.json();
 			if (!data.result) {
 				alert(data.message || "Failed to submit equipment");

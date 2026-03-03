@@ -26,6 +26,7 @@ function Login() {
 		}
 	};
 
+	// Allow the user to reset password if forgotten
 	const ForgotPassword = async (e) => {
 		if (e) e.preventDefault();
 		try {

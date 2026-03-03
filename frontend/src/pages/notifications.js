@@ -11,6 +11,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 	const [notifications, setNotifications] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 
+	// Load all of the user's notifications
 	useEffect(() => {
 		const fillNotification = async () => {
 			try {
@@ -35,8 +36,11 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 		fillNotification();
 	}, []);
 
+	// For notifications where an admin decision is needed
+	// E.g. equip checkout, account creation
 	const handleNotification = async (notification, result) => {
 		try {
+			// Calc for notification red bubble
 			const prevNotifications = notifications;
 			setNotifications((prev) =>
 				prev.filter((n) => n._id !== notification._id),
@@ -77,6 +81,7 @@ function Notifications({ num_of_notifications, setNumNotifications }) {
 		}
 	};
 
+	// Allow users to clear notifs and remove from DB
 	const handleDismiss = async (notificationToRemove) => {
 		try {
 			// Update UI first for instant feedback

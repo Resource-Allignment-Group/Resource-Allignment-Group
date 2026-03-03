@@ -1,6 +1,7 @@
 from uuid import UUID
 from bson import ObjectId
 
+# The base equipment class
 
 class Equipment:
     def __init__(

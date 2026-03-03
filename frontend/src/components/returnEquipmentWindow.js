@@ -1,3 +1,6 @@
+// Used on the MyEquipment page
+// A short user form to detail equipment usage upon return
+
 import { useState } from "react";
 import "../styles/returnequipment.css";
 import { API_BASE } from "../config";
@@ -24,6 +27,7 @@ function ReturnEquipmentModal({ isOpen, onClose, equipment, onSuccess }) {
 		}
 	};
 
+	// Form submission
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setSubmitting(true);

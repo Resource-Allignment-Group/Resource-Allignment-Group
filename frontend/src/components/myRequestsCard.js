@@ -1,5 +1,6 @@
 // This component is used on the My Requests page
 // Shows the user's pending, approved, or denied equipment requests
+
 import "../styles/myrequests.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { API_BASE } from "../config";

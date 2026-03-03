@@ -1,4 +1,6 @@
-// This component is currently used on the home page
+// Used on the home page
+// Is the card modal to show equipment details
+
 import "../styles/home.css";
 import { MdArrowForwardIos } from "react-icons/md";
 import { useAuth } from "../Authentication";
@@ -41,6 +43,7 @@ function HomeEquipmentCard({
 				? `http://${API_BASE}:5000/get_equipment_image/${equipment.id}/${equipment.images[0]}`
 				: null;
 
+	// Current equipment status matched to its unique styling in CSS
 	function getEquipmentStatus({ checked_out, damaged, unavailable }) {
 		if (unavailable)
 			return { label: "Unavailable", className: "status-unavailable" };
@@ -50,6 +53,7 @@ function HomeEquipmentCard({
 		return { label: "Available", className: "status-available" };
 	}
 
+	// Handles user checking out equipment + edge cases
 	const handleCheckOut = async () => {
 		if (equipment.unavailable) {
 			alert("This equipment is currently unavailble and can't be checked out.");
@@ -76,10 +80,12 @@ function HomeEquipmentCard({
 		}
 	};
 
+	// Triggers equip deletion
 	const handleDelete = () => {
 		onDelete(equipment.id, equipment.name);
 	};
 
+	// Allow admins to attach files to the equipment
 	const handleFileUpload = async (e, fileType) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
@@ -122,6 +128,7 @@ function HomeEquipmentCard({
 		}
 	};
 
+	// Admins can also set the display image based on images attached to that equipment
 	const handleSetDisplayImage = async (imageId) => {
 		try {
 			const res = await fetch(
@@ -144,6 +151,7 @@ function HomeEquipmentCard({
 		}
 	};
 
+	// Removes files from the equipment
 	const handleRemoveFile = async (fileId, fileType) => {
 		if (!window.confirm(`Remove this ${fileType}?`)) return;
 		try {
@@ -165,6 +173,7 @@ function HomeEquipmentCard({
 		}
 	};
 
+	// Allows admins to edit equip form fields
 	const handleEquipmentEdit = () => {
 		setIsEditing(false);
 		onEdit(editedEquipment);

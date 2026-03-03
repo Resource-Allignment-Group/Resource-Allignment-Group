@@ -21,6 +21,8 @@ import AdminRoute from "./AdminRoute";
 import AdminOrSuperintendentRoute from "./AdminOrSuperintendentRoute";
 import { useState } from "react";
 
+// Specific protection on specific routes within the app
+
 function App() {
 	const [num_of_notifications, setNumNotifications] = useState(0);
 

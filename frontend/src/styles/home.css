@@ -14,6 +14,7 @@ This will hold the equipment card items */
 	color: #777;
 }
 
+/* Row with equipment status: checked out, available, etc */
 .status-row {
 	display: flex;
 	align-items: center;
@@ -189,6 +190,7 @@ mark them as unavailable or available in the database */
 	background-color: #082e58;
 }
 
+/* Defualt text display */
 .no-results {
 	color: white;
 	font-size: 16px;
@@ -239,11 +241,23 @@ mark them as unavailable or available in the database */
 	min-height: 200px;
 }
 
-/* Attachments always stacked vertically */
+/* Two independent columns: left = attachments, right = action buttons */
+.card-footer {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
+}
+
+/* Left column: attachments label, chips, then upload buttons */
 .attachments-section {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 8px;
+	flex: 1;
 	margin-bottom: 12px;
 }
 
@@ -322,97 +336,7 @@ mark them as unavailable or available in the database */
 	color: #900;
 }
 
-/* Two independent columns: left = attachments, right = action buttons */
-.card-footer {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: flex-start;
-	gap: 20px;
-	padding-top: 20px;
-	border-top: 1px solid #ddd;
-}
-
-/* Left column: attachments label, chips, then upload buttons */
-.attachments-section {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	flex: 1;
-}
-
-.attachments-label {
-	font-weight: 600;
-	font-size: 14px;
-	color: #333;
-}
-
-.attachments-none {
-	font-size: 14px;
-	color: #888;
-}
-
-.attachments-chips {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	align-items: center;
-}
-
-.attachment-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	background-color: #f0f4f8;
-	border: 1px solid #082e58;
-	border-radius: 4px;
-	padding: 4px 10px;
-	font-size: 13px;
-	height: 28px;
-	box-sizing: border-box;
-}
-
-.attachment-chip-name {
-	font-weight: 500;
-	color: #082e58;
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	white-space: nowrap;
-}
-
-.display-badge {
-	background-color: #082e58;
-	color: white;
-	font-size: 10px;
-	padding: 1px 5px;
-	border-radius: 3px;
-	font-weight: 500;
-}
-
-.chip-action-btn {
-	background: none;
-	border: none;
-	cursor: pointer;
-	font-size: 12px;
-	color: #1976d2;
-	text-decoration: underline;
-	padding: 0;
-	line-height: 1;
-	white-space: nowrap;
-}
-
-.chip-action-btn:hover {
-	color: #0d47a1;
-}
-.chip-action-btn--danger {
-	color: #c00;
-}
-.chip-action-btn--danger:hover {
-	color: #900;
-}
-
-/* Upload buttons below attachment icons */
+/* Upload buttons below attachment chips */
 .upload-buttons {
 	display: flex;
 	gap: 10px;

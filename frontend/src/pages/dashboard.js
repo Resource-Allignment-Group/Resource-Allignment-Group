@@ -3,11 +3,13 @@ import "../styles/dashboard.css";
 import * as XLSX from "xlsx";
 import { useState, useEffect } from "react";
 import { API_BASE } from "../config";
-// Import componets that will make up the dashboard page
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import AddEquipmentModal from "../components/addEquipmentWindow";
 import { useSidebar } from "../SidebarContext";
+
+// Displays status of equipment in the DB and allows admins
+// to generate reports and add equipment to the DB
 
 function Dashboard({ num_of_notifications, setNumNotifications }) {
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
@@ -20,7 +22,7 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 	const [receiveReports, setReceiveReports] = useState(true);
 	const [isLoading, setIsLoading] = useState(true);
 
-	// USed to allow admins to manually download monthly reports
+	// Used to allow admins to manually download monthly reports
 	const downloadReport = () => {
 		const downloadUrl = `http://${API_BASE}:5000/download_monthly_report`;
 		const link = document.createElement("a");
@@ -31,6 +33,7 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 		link.remove();
 	};
 
+	// Blank form format for bulk equip uploads
 	const generateTemplate = () => {
 		const headers = [
 			"Name",
@@ -41,14 +44,15 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 			"Year",
 			"Use",
 			"Replacement Cost",
-			"Description"
+			"Description",
 		];
 		const sheet = XLSX.utils.aoa_to_sheet([headers]);
 		const book = XLSX.utils.book_new();
 		XLSX.utils.book_append_sheet(book, sheet, "Template");
 		XLSX.writeFile(book, "Bulk Equipment Upload Template.xlsx");
-	}
+	};
 
+	// Loads all of the dashboard statistics
 	useEffect(() => {
 		const GetDashboardInfo = async () => {
 			try {
@@ -91,50 +95,31 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 			setReceiveReports(!newValue);
 		}
 	};
-	const openFilePicker = async () => {
-		const input = document.createElement("input");
-		input.type = "file";
-		// input.style.display = "none";
-		document.body.appendChild(input);
 
-		//create a promise that will stall program until the file is selecteds
-		const file = await new Promise((resolve, reject) => {
-			input.onchange = () => {
-			if (input.files.length === 0) {
-				reject("No file selected");
-			} else {
-				resolve(input.files[0]);
-			}
-			document.body.removeChild(input);
-			};
-
-			input.click();
-		});
+	// Handles the form input for bulk equip upload
+	const handleBulkFileChange = async (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
 
 		const formData = new FormData();
 		formData.append("file", file);
-		console.log(formData)
-		try{
+
+		try {
 			const res = await fetch(`http://${API_BASE}:5000/add_bulk_equipment`, {
 				method: "POST",
 				credentials: "include",
 				body: formData,
 			});
-			
-			const data = await res.json()
-			if (data.result){
-				//if we decide we want more front end logic
-				alert(data.message)
-			}
-			else{
-				alert(data.message)
-			}
-		}
-		catch (error) {
+			const data = await res.json();
+			alert(data.message);
+		} catch (error) {
 			console.error("Error uploading file:", error);
-			throw error;
+			alert("Error uploading file");
+		} finally {
+			e.target.value = "";
 		}
-	}
+	};
+
 	return (
 		<div className="home-container">
 			{/* Sidebar is a separate component */}
@@ -211,12 +196,16 @@ function Dashboard({ num_of_notifications, setNumNotifications }) {
 										>
 											Add Equipment
 										</button>
-										<button
-											className="action-button"
-											onClick={() => openFilePicker()}
-										>
+										<input
+											type="file"
+											id="bulk-file-input"
+											style={{ display: "none" }}
+											accept=".xlsx,.xls"
+											onChange={handleBulkFileChange}
+										/>
+										<label htmlFor="bulk-file-input" className="action-button">
 											Add Multiple Equipment
-										</button>
+										</label>
 										<button
 											className="action-button"
 											onClick={() => generateTemplate()}

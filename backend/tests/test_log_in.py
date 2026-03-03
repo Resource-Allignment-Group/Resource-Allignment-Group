@@ -2,6 +2,8 @@ import pytest
 from flask import session
 from bson.objectid import ObjectId
 
+# Tests related to user registration, authentication, deletion
+
 def test_register(client):
     with client.session_transaction() as sess:
         sess['id'] = str(ObjectId())

@@ -2,6 +2,9 @@ import pytest
 from bson import ObjectId
 from database import DatabaseManager
 
+# Tests that validate routes/functions that interact with the equipment
+# class, IDs, metadata, notifications, etc.
+
 ### Test the sidebar filters -----------------------------------------
 
 

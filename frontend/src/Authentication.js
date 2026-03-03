@@ -2,11 +2,14 @@ import { useEffect, createContext, useContext, useState } from "react";
 import { API_BASE } from "./config";
 const AuthContext = createContext(null);
 
+// Performs actions that require certain user permissions
+
 export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [role, setRole] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 
+	// Validate the user's session
 	useEffect(() => {
 		const checkSession = async () => {
 			try {
@@ -43,6 +46,7 @@ export const AuthProvider = ({ children }) => {
 		checkSession();
 	}, []);
 
+	// Authenticate the user's login attempt
 	const login = async (email, password) => {
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/authenticate`, {
@@ -66,6 +70,7 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
+	// Logout the user and adjust session
 	const logout = async () => {
 		try {
 			await fetch(`http://${API_BASE}:5000/logout`, {

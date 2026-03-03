@@ -1,5 +1,4 @@
-import pytest
-
+# Tests all of the application endpoints
 
 def test_user_information(login_user):
     res = login_user.get("/get_user_info")

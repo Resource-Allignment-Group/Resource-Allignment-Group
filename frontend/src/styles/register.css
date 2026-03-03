@@ -6,6 +6,7 @@
 	width: 100%;
 }
 
+/* Image display */
 .image-side {
 	flex: 1;
 	min-width: 0;
@@ -18,6 +19,7 @@
 	object-fit: cover;
 }
 
+/* Blue form field for register */
 .register-side {
 	flex-basis: 35%;
 	background-color: #042b59;

@@ -8,9 +8,9 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 
-# Formats and builds monthly reports from existing log files
-# The monthly reports are not stored in the backend or Oracle volume
-# They are either immediately emailed to the admin(s) or downloaded
+# The main report generation class
+
+# Formats/builds monthly reports from existing log files
 class ReportGenerator:
     def __init__(self, db, log_file_path=None):
         self.db = db
@@ -20,10 +20,10 @@ class ReportGenerator:
         self.log_file_path = Path(log_file_path)
         self.styles = getSampleStyleSheet()
 
-    # Parse the system_logs.txt file for system interactions
     def parse_logs(self, start_date, end_date):
+        """Parse the system_logs.txt file for system interactions"""
         entries = []
-        
+
         if not self.log_file_path.exists():
             return entries
         
@@ -52,8 +52,8 @@ class ReportGenerator:
                     continue
         return entries
     
-    # Generates a summary for the cover page of the monthly report
     def generate_stats(self, entries):
+        """Generates a summary for the cover page of the monthly report"""
         stats = {
             'total': len(entries),
             'unique_users': len(set(e['user_id'] for e in entries if e['user_id'])),
@@ -63,8 +63,8 @@ class ReportGenerator:
             stats['by_action'][entry['action']] += 1
         return stats
     
-    # Convert the log actions into more informative text
     def map_actions(self, action):
+        """Convert the log actions into more informative text"""
         action_vals = {
             "CHECK_OUT": "Equipment Checkout",
             "CHECK_IN": "Equipment Return",
@@ -76,8 +76,8 @@ class ReportGenerator:
         }
         return action_vals.get(action, action.replace("_", " ").title())
 
-    # Displays text based on the logged action
     def get_detailed_info(self, entry):
+        """Displays text based on the logged action"""
         action = entry['action']
         details = entry['details']
         # Output role in human readible format
@@ -90,9 +90,8 @@ class ReportGenerator:
 
         return details
 
-    # Generates the monthly report with all relevant data
-    # The start and end of the reporting period is also displayed
     def generate_report(self, start_date, end_date, output_path):
+        """Generates the monthly report with all relevant data"""
         # Retrieve logs and statistics from existing file
         entries = self.parse_logs(start_date, end_date)
         stats = self.generate_stats(entries)
@@ -193,10 +192,8 @@ class ReportGenerator:
         doc.build(story)
         return output_path
 
-    # Delete all old log entries from the system_logs.txt file every 60 days
-    # This is so that even the day after the monthly report is generated,
-    # the admin can still generate a report with the data from the month prior
     def clear_old_logs(self, days_to_keep=60):
+        """Delete all old log entries from the system_logs.txt file every 60 days"""
         if not self.log_file_path.exists():
             return
         

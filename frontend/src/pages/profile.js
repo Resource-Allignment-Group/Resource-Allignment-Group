@@ -26,6 +26,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 	const [profileImageUrl, setProfileImageUrl] = useState(null);
 	const [uploadingImage, setUploadingImage] = useState(false);
 
+	// Load user profile info
 	useEffect(() => {
 		const fetchProfile = async () => {
 			try {
@@ -37,11 +38,13 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 
 				if (!res.ok) throw new Error("Failed to fetch profile");
 
+				// Clean the data
 				const data = await res.json();
 				const user_info = data["user"];
 				const fname = user_info.name.split(" ")[0];
 				const lname = user_info.name.split(" ")[1];
 
+				// Display the user's info
 				setProfile({
 					fname: fname,
 					lname: lname,
@@ -67,6 +70,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 		fetchProfile();
 	}, []);
 
+	// If the user updates and saves their info
 	const handleSave = async () => {
 		try {
 			const res = await fetch(`http://${API_BASE}:5000/save_new_profile_info`, {
@@ -81,12 +85,12 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 			if (!res.ok) throw new Error("Failed to save profile");
 
 			alert("Profile updated successfully");
-			
 		} catch {
 			alert("Error saving profile changes");
 		}
 	};
 
+	// User removes their existing profile image
 	const handleDeleteProfileImage = async () => {
 		if (!window.confirm("Remove your profile picture?")) return;
 		try {
@@ -105,6 +109,7 @@ function Profile({ num_of_notifications, setNumNotifications }) {
 		}
 	};
 
+	// User uploads a profile image
 	const handleProfileImageUpload = async (e) => {
 		const file = e.target.files?.[0];
 		if (!file) return;

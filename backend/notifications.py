@@ -10,6 +10,7 @@ from typing import Literal
 from email.mime.application import MIMEApplication
 from pathlib import Path
 
+# The base notification class
 
 class Notification:
     def __init__(
@@ -59,6 +60,7 @@ class Notification:
             "status": self.status,
         }
 
+# The base notification manager class
 
 class Notification_Manager:
     def __init__(self, db):
@@ -70,6 +72,7 @@ class Notification_Manager:
         self.email_password = os.environ.get("EMAIL_PASSWORD")
 
     def send_email(self, message: str, receiver: str, subject: str, attachments=None):
+        """Creates the necessary form to send an email to someone"""
         msg = MIMEMultipart()
         msg["From"] = self.email_address
         msg["To"] = receiver
@@ -104,6 +107,7 @@ class Notification_Manager:
             raise Exception(e)
 
     def send_forgot_password_email(self, email: str, link: str):
+        """Specific email format for reseting a password"""
         msg = MIMEMultipart()
         msg["From"] = self.email_address
         msg["To"] = email
@@ -126,6 +130,7 @@ class Notification_Manager:
             raise Exception(e)
 
     def send_account_approval_message(self, new_user: User):
+        """Notifies admins when a user attempts to create a new account"""
         message = f"{new_user.name} is attempting to make a new account"
         for admin in self.db.get_administrators():
             new_note = Notification(
@@ -144,6 +149,7 @@ class Notification_Manager:
     def send_equipment_request(
         self, id: ObjectId, sender: User, equip_name: str, equipment_id: ObjectId
     ):
+        """Notifies admins when a user wants to checkout an equip item"""
         message = f"{sender.name} wants to sign out {equip_name}"
         try:
             for admin in self.db.get_administrators():
@@ -166,6 +172,7 @@ class Notification_Manager:
     def send_inform_notification(
         self, sender, receiver, message="", equipment_id=None, id=None
     ):
+        """General notifications containing module-specific info"""
         if id is None:
             id = ObjectId()
 
