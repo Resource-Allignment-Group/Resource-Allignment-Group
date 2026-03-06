@@ -44,7 +44,9 @@ class DatabaseManager:
         _backend_dir = Path(__file__).resolve().parent
         self.images_db = _backend_dir / "large_files_db" / "images"
         self.reports_db = _backend_dir / "large_files_db" / "reports"
-        self.profile_images_db = self.images_db  # profile images stored in same images folder
+        self.profile_images_db = (
+            self.images_db
+        )  # profile images stored in same images folder
         self.images_db.mkdir(parents=True, exist_ok=True)
         self.reports_db.mkdir(parents=True, exist_ok=True)
         self.ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
@@ -194,9 +196,9 @@ class DatabaseManager:
             if user.checked_out_equipment:
                 self.equipment_db.update_many(
                     {"_id": {"$in": user.checked_out_equipment}},
-                    {"$set": {"checked_out": False}}
-                ) 
-                
+                    {"$set": {"checked_out": False}},
+                )
+
             # Check to see if regular account deleting or account registration denied
             if reason == "DENIED":
                 log_details = "Registration Request Denied by Admin"
@@ -443,7 +445,8 @@ class DatabaseManager:
 
             # Delete all notifications referencing this equipment
             notification_ids = [
-                n["_id"] for n in self.notifications_db.find(
+                n["_id"]
+                for n in self.notifications_db.find(
                     {"equipment_id": equipment_id}, {"_id": 1}
                 )
             ]
@@ -530,7 +533,7 @@ class DatabaseManager:
             return equip_list
         except Exception as e:
             raise e
-            
+
     def get_image(self, uuid: str):
         if not (self.images_db / uuid).exists():
             return f"{uuid} image does not exist"
@@ -911,7 +914,7 @@ class DatabaseManager:
     # region Dashboard
 
     def get_dashboard_info(self):
-        """Get the number of equipment checked out, available, 
+        """Get the number of equipment checked out, available,
         damaged, and unavailable from the DB"""
         try:
             num_total = self.equipment_db.count_documents({})
@@ -955,9 +958,11 @@ class DatabaseManager:
         result = self.password_resets.update_one({"_id": id}, {"$set": {"used": used}})
         return result.modified_count > 0
 
-    #region Requests
-    
-    def cancel_pending_requests_for_equipment(self, equipment_ids: list, exclude_notification_id: ObjectId = None):
+    # region Requests
+
+    def cancel_pending_requests_for_equipment(
+        self, equipment_ids: list, exclude_notification_id: ObjectId = None
+    ):
         """
         Cancels pending equipment requests for equipment that have been
         assigned to someone else, deleted, marked unavailable, etc based on a list of equip IDs

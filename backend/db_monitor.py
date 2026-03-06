@@ -13,7 +13,7 @@ MAX_STORAGE_BYTES = (
     512 * 1024 * 1024
 )  # this is equal to 512MB which is the limit of our mongo storage
 PERCENTAGE_OF_DB = 0.9
-ONE_WEEK_AGO = datetime.now(timezone.utc) - timedelta(weeks=1)
+
 
 # Different app fields to keep track of for db size
 def get_size_and_count(db):
@@ -22,7 +22,8 @@ def get_size_and_count(db):
     equip_size = db.db.command("collStats", "equipment")["size"]
     user_size = db.db.command("collStats", "users")["size"]
     pass_size = db.db.command("collStats", "password_resets")["size"]
-    return (note_size + equip_size + user_size +pass_size), count
+    return (note_size + equip_size + user_size + pass_size), count
+
 
 def monitor():
     print("Starting monitor...")
@@ -40,12 +41,18 @@ def monitor():
                 if (
                     size > MAX_STORAGE_BYTES * PERCENTAGE_OF_DB
                 ):  # if it is above 80% full
-                    
                     collection = db.notifications_db
-                    res = collection.delete_many({"read": True, "date": {"$lt": ONE_WEEK_AGO}})
+                    res = collection.delete_many(
+                        {
+                            "read": True,
+                            "date": {
+                                "$lt": datetime.now(timezone.utc) - timedelta(weeks=4)
+                            },
+                        }
+                    )
                     print(res.deleted_count)
                     time.sleep(CHECK_INTERVAL)
-                    
+
                     size = db.db.command("dbStats")["storageSize"]
                     if size > MAX_STORAGE_BYTES * PERCENTAGE_OF_DB:
                         print("DATABASE IS OVER SET LIMIT")
@@ -59,7 +66,7 @@ def monitor():
                                     "If this is not an option, please contact the capstone group in order to upgrade your database"
                                 ),
                             )
-                   
+
                     else:
                         print(
                             f"Deleted {res.deleted_count} notifications from the database"
@@ -69,7 +76,7 @@ def monitor():
                             nm.send_inform_notification(
                                 sender="System",
                                 receiver=user,
-                                message="All notifications that were unread and over a week old have been deleted to save database space",
+                                message="All notifications that were read and over a week old have been deleted to save database space",
                             )
             except Exception as e:
                 print("Monitor error", e)
