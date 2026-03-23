@@ -4,6 +4,7 @@ from pathlib import Path
 # The base logging class
 # Used to log core system interaction for admin monthly reports
 
+
 class SystemLogger:
     def __init__(self, filename="system_logs.txt"):
         _backend_dir = Path(__file__).resolve().parent
@@ -33,6 +34,3 @@ class SystemLogger:
         if details:
             message += f" [Details: {details}]"
         self.logger.info(message)
-
-    def log_error(self, message):
-        self.logger.error(message)

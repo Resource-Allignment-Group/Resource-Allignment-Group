@@ -15,11 +15,16 @@ from report_scheduler import init_scheduler
 from reports import setup_report_routes
 import pandas as pd
 
+# TODO: vulture leaving out venv
+# TODO: phone number class (datetime, idk ask chat or something)
+
 # Regex patterns to match valid registration parameters
 # This logic is in the frontend and backend, as it is good practice
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+# TODO: dont include whitespace
 PHONE_REGEX = re.compile(r"^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$")
 PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$")
+
 
 def create_app(testing=False):
     load_dotenv()
@@ -49,7 +54,7 @@ def create_app(testing=False):
 
     # Initialize monthly reports
     report_generator = ReportGenerator(db)
-    scheduler = init_scheduler(db, nm, report_generator)
+    init_scheduler(db, nm, report_generator)
     setup_report_routes(app, report_generator)
 
     # region LOGGING IN / REGISTERING
@@ -94,6 +99,7 @@ def create_app(testing=False):
         # TODO: make sure that this try and except actually works the way it should
         try:
             user = db.get_user_by_email(email=email)
+            # TODO: make 'Invalid Credentials' instead of specifically calling out email
             if not user:
                 return jsonify(
                     {"result": False, "message": "No account found with that email"}
@@ -174,7 +180,7 @@ def create_app(testing=False):
         if "user" not in session or "id" not in session:
             return jsonify({"result": False, "user": None, "role": None})
 
-        #Refresh role from DB so role changes take effect on refresh
+        # Refresh role from DB so role changes take effect on refresh
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
             if not user_obj:
@@ -339,7 +345,7 @@ def create_app(testing=False):
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
-        """Admin decisions for specific notification types. 
+        """Admin decisions for specific notification types.
         This involves the approve/deny cases for when a new account is registered ('a')
         or a user is requesting to checkout an equipment item ('r')."""
 
@@ -707,7 +713,12 @@ def create_app(testing=False):
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
             if not user_obj or user_obj.role not in ("a", "s"):
-                return jsonify({"result": False, "message": "Admin or Superintendent access required"}), 403
+                return jsonify(
+                    {
+                        "result": False,
+                        "message": "Admin or Superintendent access required",
+                    }
+                ), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
@@ -886,15 +897,15 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
-        
+
         # Get the equipment to attatch file(s) to
         equipment_id = ObjectId(request.form["equipment_id"])
         file_type = request.form["file_type"]
         file = request.files["file"] if "file" in request.files else None
-        
+
         if not file:
             return jsonify({"result": False, "message": "No file provided"})
-        
+
         # Add the file
         if file_type == "image":
             file_id, err = db.add_equipment_image(equipment_id, file)
@@ -957,7 +968,7 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
-        
+
         # Get the equip item to remove a file from
         data = request.json
         equipment_id = ObjectId(data["equipment_id"])
@@ -977,7 +988,7 @@ def create_app(testing=False):
 
     @app.route("/upload_profile_image", methods=["POST"])
     def upload_profile_image():
-        """Add a new user profile image. Visible on their profile 
+        """Add a new user profile image. Visible on their profile
         page and the user management card components"""
         file = request.files["file"] if "file" in request.files else None
         if not file:
@@ -1024,7 +1035,7 @@ def create_app(testing=False):
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
-        
+
         # Get the equipment to update
         equipment_info = request.json["equipment"]
         try:
