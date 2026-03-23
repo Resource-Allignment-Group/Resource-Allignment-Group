@@ -11,12 +11,14 @@ import os
 from datetime import datetime, timedelta, timezone
 
 # Helper funtions used for feature testing, db management, etc
-# TODO determine if some of these are still needed in production
+# TODO determine if some of these are still needed in production or move functions
+
 
 def generate_reset_token():
     token = secrets.token_urlsafe(32)
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     return token, token_hash
+
 
 def hash_password(password: str):
     password_bytes = password.encode("utf-8")
@@ -24,11 +26,13 @@ def hash_password(password: str):
     hashed_password = bcrypt.hashpw(password_bytes, salt)
     return hashed_password.decode("utf-8")
 
+
 def check_password(origional_password: str, hashed_password: str):
     """Validates the original password equals the hashed one"""
     origional_password_bytes = origional_password.encode("utf-8")
     hashed_password_bytes = hashed_password.encode("utf-8")
     return bcrypt.checkpw(origional_password_bytes, hashed_password_bytes)
+
 
 def insert_via_spreadsheet():
     db = DatabaseManager()
@@ -77,19 +81,22 @@ def insert_via_spreadsheet():
             equipment=equip,
         )
 
+
 def fill_database_with_notifications():
     load_dotenv()
     _client = MongoClient(os.environ.get("DATABASE_URI"))
     db = _client["RAM_DB"]
     for i in range(3000):
-        db["notifications"].insert_one({
-            "_id": ObjectId(),
-            "sender": ObjectId(),
-            "receiver": ObjectId(),
-            "body": "This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly",
-            "date": datetime.now(timezone.utc) - timedelta(weeks=2),
-            "type": "i",
-            "equipment_id": None,
-            "read": True,
-            "status": None
-        })
+        db["notifications"].insert_one(
+            {
+                "_id": ObjectId(),
+                "sender": ObjectId(),
+                "receiver": ObjectId(),
+                "body": "This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly, This is just a testing notification, if you see this please delete immediatly",
+                "date": datetime.now(timezone.utc) - timedelta(weeks=2),
+                "type": "i",
+                "equipment_id": None,
+                "read": True,
+                "status": None,
+            }
+        )
