@@ -19,6 +19,7 @@ function HomeEquipmentCard({
 	onRefresh,
 }) {
 	const { role } = useAuth();
+	// Role 'a' = admin
 	const isAdmin = role === "a";
 	const [editedEquipment, setEquipment] = useState({
 		id: equipment.id,

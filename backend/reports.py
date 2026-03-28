@@ -17,6 +17,7 @@ def setup_report_routes(app, report_generator):
         try:
             db = app.db
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:

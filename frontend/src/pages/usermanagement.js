@@ -101,7 +101,8 @@ function UserManagement({ num_of_notifications, setNumNotifications }) {
 						<div className="response-text">
 							<p>Loading User Directory...</p>
 						</div>
-					) : users.filter((item) => item.role !== "p").length > 0 ? (
+					) : // Don't include the pending accounts (p)
+					users.filter((item) => item.role !== "p").length > 0 ? (
 						users
 							.filter((item) => item.role !== "p")
 							.map((item) => (

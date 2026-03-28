@@ -11,6 +11,7 @@ const AdminOrSuperintendentRoute = ({ children }) => {
 				<p>Loading...</p>
 			</div>
 		);
+	// Role 'a' = admin, Role 's' = superintendent
 	return user && (role === "a" || role === "s") ? (
 		children
 	) : (

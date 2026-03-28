@@ -33,7 +33,7 @@ def check_password(origional_password: str, hashed_password: str):
     hashed_password_bytes = hashed_password.encode("utf-8")
     return bcrypt.checkpw(origional_password_bytes, hashed_password_bytes)
 
-
+# TODO: UNSUED CODE REMOVED WHEN NOT NEEDED
 def insert_via_spreadsheet():
     db = DatabaseManager()
     df = pd.read_excel(
@@ -81,7 +81,7 @@ def insert_via_spreadsheet():
             equipment=equip,
         )
 
-
+# TODO: UNSUED CODE REMOVED WHEN NOT NEEDED
 def fill_database_with_notifications():
     load_dotenv()
     _client = MongoClient(os.environ.get("DATABASE_URI"))

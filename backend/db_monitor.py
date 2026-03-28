@@ -40,7 +40,7 @@ def monitor():
 
                 if (
                     size > MAX_STORAGE_BYTES * PERCENTAGE_OF_DB
-                ):  # if it is above 80% full
+                ):  # if it is above 90% full
                     collection = db.notifications_db
                     res = collection.delete_many(
                         {
@@ -76,7 +76,7 @@ def monitor():
                             nm.send_inform_notification(
                                 sender="System",
                                 receiver=user,
-                                message="All notifications that were read and over a week old have been deleted to save database space",
+                                message="All notifications that were read and over a a few weeks old have been deleted to save database space",
                             )
             except Exception as e:
                 print("Monitor error", e)
