@@ -37,7 +37,7 @@ def seed_db(client):
         "password": hash_password("test_pass"),
         "name": "Test User",
         "phone": "3333333333",
-        "role": "u",
+        "role": "u",    # Role 'u' = user
         "position": None,
         "checked_out_equipment": [ObjectId("000000000000000000000002")],
         "inbox": [],
@@ -52,7 +52,7 @@ def seed_db(client):
         "name": "Test Admin",
         "phone": "1111111111",
         "position": None,
-        "role": "a",
+        "role": "a",    # Role 'a' = admin
         "checked_out_equipment": [],
         "inbox": [],
     }

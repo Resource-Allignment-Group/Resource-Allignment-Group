@@ -11,6 +11,7 @@ const AdminRoute = ({ children }) => {
 				<p>Loading...</p>
 			</div>
 		);
+	// Role 'a' = admin
 	return user && role === "a" ? children : <Navigate to="/home" />;
 };
 

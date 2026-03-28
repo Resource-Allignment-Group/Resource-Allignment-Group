@@ -23,14 +23,14 @@ class Notification:
         _type: str = None,
         equipment_id: ObjectId = None,
         read: bool = False,
-        status: Literal["a", "r", "p"] = None,
+        status: Literal["a", "r", "p"] = None, # a = approved, r = rejected, p = pending
     ):
         self.id = ObjectId(id)
         self.sender = ObjectId(sender)
         self.receiver = ObjectId(receiver)
         self.date = date
         self.body = body
-        self.type = _type
+        self.type = _type   # can be equipment request, account creation, or general info
         self.equipment_id = ObjectId(equipment_id)
         self.read = read
         self.status = status
@@ -41,10 +41,10 @@ class Notification:
         self.receiver = ObjectId(json_info.get("receiver"))
         self.date = json_info.get("date", "")
         self.body = json_info.get("body", "")
-        self.type = json_info.get("type", "i")
+        self.type = json_info.get("type", "i") # inform notifs (general information)
         self.equipment_id = ObjectId(json_info.get("equipment_id"))
         self.read = json_info.get("read", False)
-        self.status = json_info.get("status", "p")
+        self.status = json_info.get("status", "p") # pending notifs
 
     def to_dict(self, sender_name):
         return {  # need to convert to strings in order to make the json serializable
@@ -139,7 +139,7 @@ class Notification_Manager:
                 receiver=admin.id,
                 date=datetime.now(),
                 body=message,
-                _type="a",
+                _type="a",  # send notif to the admin accounts only (a = admin)
                 equipment_id=None,
                 read=False,
                 status=None,
@@ -159,10 +159,10 @@ class Notification_Manager:
                     receiver=admin.id,
                     date=datetime.now(),
                     body=message,
-                    _type="r",
+                    _type="r",  # type 'r' = an equipment request notif
                     equipment_id=equipment_id,
                     read=False,
-                    status="p",
+                    status="p", # status 'p' = a pending notif
                 )
                 self.db.send_notification(notification=new_note)
             return True
@@ -182,7 +182,7 @@ class Notification_Manager:
             receiver=receiver.id,
             date=datetime.now(),
             body=message,
-            _type="i",  # inform
+            _type="i",  # inform notif (general information)
             equipment_id=None,
             read=False,
             status=None,

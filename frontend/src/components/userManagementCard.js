@@ -9,6 +9,7 @@ import { useAuth } from "../Authentication";
 
 function UserManagementCard({ user, isExpanded, onToggle, onDelete }) {
 	const { role: currentUserRole } = useAuth();
+	// Role 'a' = admin
 	const isAdmin = currentUserRole === "a";
 	const [role, setRole] = useState(user.role);
 

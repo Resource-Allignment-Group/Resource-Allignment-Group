@@ -83,7 +83,7 @@ function MyRequestsCard({
 					<MdArrowForwardIos />
 				</button>
 
-				{/* The button for users to dismiss old equip requests approved/denied */}
+				{/* The button for users to dismiss old equip requests approved/rejected */}
 				{(notification.status === "a" || notification.status === "r") && (
 					<button
 						className="dismiss-button"

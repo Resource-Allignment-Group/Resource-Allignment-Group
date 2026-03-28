@@ -199,7 +199,7 @@ export default function NotificationCard({
 					onReject={onReject}
 				/>
 			);
-		case "i":
+		case "i": // general information notification
 			return (
 				<InformNotification notification={notification} onDismiss={onDismiss} />
 			);

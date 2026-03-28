@@ -18,6 +18,7 @@ function Header({
 }) {
 	// Authentication route for user roles
 	const { role } = useAuth();
+	// Role 'a' = admin, Role 's' = superintendent
 	const isAdmin = role === "a";
 	const isSuperintendent = role === "s";
 

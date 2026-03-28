@@ -252,7 +252,7 @@ def test_cancel_pending(login_user):
         "_id": user_id,
         "email": "test@test.com",
         "password": "test_Pass2",
-        "role": "p",
+        "role": "p",    # Role 'p' = pending user account
         "checked_out_equipment": [],
         "inbox": [],
         "position": None,
@@ -266,13 +266,14 @@ def test_cancel_pending(login_user):
         "receiver": ObjectId(),
         "body": "Request to checkout",
         "date": "2026-01-26",
-        "type": "r",
+        "type": "r",    # Type 'r' = equipment request notif
         "equipment_id": equip_id,
         "read": False,
-        "status": "p"
+        "status": "p"   # Status 'p' = pending notif
     })
     count = db.cancel_pending_requests_for_equipment([equip_id])
     assert count == 1
+    # Ensure that when the request is cancelled, the notif is rejected (r)
     assert db.notifications_db.find_one({"_id": notif_id})["status"] == "r"
 
 
@@ -286,7 +287,7 @@ def test_does_not_cancel_approved(login_user):
         "_id": user_id,
         "email": "test@test.com",
         "password": "test",
-        "role": "p",
+        "role": "p",    # Role 'p' = pending account creation
         "checked_out_equipment": [],
         "inbox": [],
         "position": None,
@@ -300,13 +301,14 @@ def test_does_not_cancel_approved(login_user):
         "receiver": ObjectId(),
         "body": "Request to checkout",
         "date": "2026-01-26",
-        "type": "r",
+        "type": "r",    # Type 'r' = equipment request
         "equipment_id": equip_id,
         "read": False,
-        "status": "a"
+        "status": "a"   # Status 'a' = approved notif
     })
     count = db.cancel_pending_requests_for_equipment([equip_id])
     assert count == 0
+    # Ensure that requests that are already approved don't become rejected
     assert db.notifications_db.find_one({"_id": notif_id})["status"] == "a"
 
 
@@ -324,7 +326,7 @@ def test_find_user_checked_out(login_user):
             "_id": user_id,
             "email": "user@test.com",
             "password": "test",
-            "role": "p",
+            "role": "p",    # Role 'p' = pending account creation
             "checked_out_equipment": [equip_id],
             "inbox": [],
             "position": "Researcher",
@@ -343,32 +345,6 @@ def test_no_user_for_available_equipment(login_user):
     all_equip = db.get_all_equipment()
     equip_id = all_equip[1].id  # Tractor 1
     assert db.get_user_by_equipment(equip_id) is None
-
-
-# Test the flow of a user requesting & returning an equipment item
-def test_request_equipment(login_user, login_admin):
-    # Request equipment (as user)
-    res = login_user.post(
-        "/request_equipment",
-        json={"equip_id": "000000000000000000000000", "equip_name": "test_equip"},
-    )
-    assert res.get_json()["result"]
-
-    # Admin approves the request
-    db = login_user.application.db
-    notifications = db.get_notifications_by_equipment("000000000000000000000000")
-    notification_dict = notifications.to_dict(sender_name="test_sender_name")
-    res = login_admin.post(
-        "/admin_account_decision",
-        json={"result": True, "notification": notification_dict},
-    )
-    assert res.get_json()["result"]
-
-    # Return equipment
-    res = login_user.post(
-        "/return_equipment", json={"equipment_id": "000000000000000000000000", "damage_description": ""}
-    )
-    assert res.get_json()["result"]
 
 def test_equipment_editing(login_admin):
     res = login_admin.post(

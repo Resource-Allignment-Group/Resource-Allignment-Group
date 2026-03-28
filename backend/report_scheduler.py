@@ -100,10 +100,8 @@ class ReportScheduler:
         if datetime.now().day == 1:
             self.generate_and_send()
 
-
 # Global instance management
 _scheduler = None
-
 
 def init_scheduler(db, notification_manager, report_generator):
     """Start the scheduler instance"""
