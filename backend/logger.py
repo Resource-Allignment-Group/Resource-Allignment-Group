@@ -6,12 +6,12 @@ from pathlib import Path
 
 
 class SystemLogger:
-    def __init__(self, filename="system_logs.txt"):
+    def __init__(self, filename="system_logs.txt", logger_name="RAM_System"):
         _backend_dir = Path(__file__).resolve().parent
         log_dir = _backend_dir / "large_files_db" / "reports"
         full_path = log_dir / filename
 
-        self.logger = logging.getLogger("RAM_System")
+        self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(logging.INFO)
 
         if not self.logger.handlers:

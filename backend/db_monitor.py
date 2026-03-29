@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 # A module that will check what remains of the databases storage
 # Notifies admins when getting full and deletes notifications from db as a preventative measure
+# (not tested because it runs an infinite thread)
 
 load_dotenv()
 
@@ -24,7 +25,7 @@ def get_size_and_count(db):
     pass_size = db.db.command("collStats", "password_resets")["size"]
     return (note_size + equip_size + user_size + pass_size), count
 
-
+# Tracks database storage limits
 def monitor():
     print("Starting monitor...")
     app = create_app()  # this is just a new creation of the app to track DB storage
