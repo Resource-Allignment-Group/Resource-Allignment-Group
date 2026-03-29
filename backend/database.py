@@ -28,7 +28,7 @@ class DatabaseManager:
         self.get_client()
         if testing:
             self.db = _client["TEST_RAM_DB"]
-            self.txt_logger = SystemLogger("test_log.txt")
+            self.txt_logger = SystemLogger("test_log.txt", logger_name="RAM_System_Test")
         else:
             self.db = _client["RAM_DB"]
             self.txt_logger = SystemLogger("system_logs.txt")
@@ -226,8 +226,11 @@ class DatabaseManager:
     def get_user_by_id(self, user_id: ObjectId) -> User:
         """Get a user based on their ID"""
         try:
+            result = self.users_db.find_one({"_id": user_id})
+            if result is None:
+                return None
             new_user = User()
-            new_user.fill_user_information(self.users_db.find_one({"_id": user_id}))
+            new_user.fill_user_information(result)
             return new_user
         except Exception as e:
             raise e

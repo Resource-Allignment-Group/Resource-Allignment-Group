@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from threading import Thread
 from main import create_app
 from helpers import hash_password
@@ -165,9 +166,31 @@ def login_admin(client, seed_db):
     return client
 
 # Clean the database after each test
+# @pytest.fixture(autouse=True)
+# def clean_db(client):
+#     db = client.application.db
+#     db.users_db.delete_many({})
+#     db.equipment_db.delete_many({})
+#     db.notifications_db.delete_many({})
+
 @pytest.fixture(autouse=True)
 def clean_db(client):
     db = client.application.db
+
+    # Snapshot existing files before the test runs
+    images_before = set(db.images_db.iterdir())
+    reports_before = set(db.reports_db.iterdir())
+
     db.users_db.delete_many({})
     db.equipment_db.delete_many({})
     db.notifications_db.delete_many({})
+
+    yield  # tests run here
+
+    # Only delete files that didn't exist before the test
+    for f in db.images_db.iterdir():
+        if f not in images_before:
+            f.unlink()
+    for f in db.reports_db.iterdir():
+        if f not in reports_before:
+            f.unlink()
