@@ -535,6 +535,8 @@ def create_app(testing=False):
                     db.get_user_by_equipment(ObjectId(id)) for id in checked_out_ids
                 ]
                 for user in users:
+                    if not user:
+                        continue
                     for equip_id in user.checked_out_equipment:
                         checkout_map[str(equip_id)] = user.email
 
