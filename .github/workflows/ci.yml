@@ -57,7 +57,7 @@ jobs:
         working-directory: backend
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: pytest tests/test_performance.py
+        run: pytest tests/test_performance.py --benchmark-save=none
 
       # ----- FRONTEND TESTS -----
       - name: Set up Node
