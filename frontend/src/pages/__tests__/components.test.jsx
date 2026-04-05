@@ -18,7 +18,6 @@ const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
 	...jest.requireActual("react-router-dom"),
 	useNavigate: () => mockNavigate,
-	useSearchParams: () => [new URLSearchParams("token=test-token-abc")],
 }));
 
 beforeEach(() => {
@@ -42,6 +41,111 @@ beforeEach(() => {
 			});
 		}
 		return Promise.reject(new Error(`Unhandled fetch: ${url}`));
+	});
+});
+
+// -----------------------------------------
+// ResetPassword
+// -----------------------------------------
+
+function renderResetPassword() {
+	// ResetPassword uses useSearchParams to read the token from the URL.
+	// MemoryRouter needs a Routes/Route setup for useSearchParams to work
+	return render(
+		<MemoryRouter initialEntries={["/reset-password?token=test-token-abc"]}>
+			<Routes>
+				<Route path="/reset-password" element={<ResetPassword />} />
+				<Route path="/login" element={<div>Login Page</div>} />
+			</Routes>
+		</MemoryRouter>,
+	);
+}
+
+describe("ResetPassword", () => {
+	test("renders heading and password input", () => {
+		renderResetPassword();
+		expect(screen.getByText("Reset Your Password")).toBeInTheDocument();
+		expect(screen.getByLabelText("New Password")).toBeInTheDocument();
+		expect(screen.getByText("Reset Password")).toBeInTheDocument();
+	});
+
+	test("shows error when submitted with empty password", async () => {
+		renderResetPassword();
+		fireEvent.click(screen.getByText("Reset Password"));
+		await waitFor(() =>
+			expect(
+				screen.getByText("Please enter a new password."),
+			).toBeInTheDocument(),
+		);
+	});
+
+	test("shows error on weak password", async () => {
+		renderResetPassword();
+		await userEvent.type(screen.getByLabelText("New Password"), "weak");
+		fireEvent.click(screen.getByText("Reset Password"));
+		await waitFor(() =>
+			expect(
+				screen.getByText(
+					"Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol (no spaces).",
+				),
+			).toBeInTheDocument(),
+		);
+	});
+
+	test("shows success message and redirects on valid reset", async () => {
+		global.fetch = jest.fn(() =>
+			Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ result: true }),
+			}),
+		);
+
+		renderResetPassword();
+		await userEvent.type(screen.getByLabelText("New Password"), "NewPass1!");
+		fireEvent.click(screen.getByText("Reset Password"));
+
+		await waitFor(() =>
+			expect(
+				screen.getByText(
+					"Password reset successfully! Redirecting to login...",
+				),
+			).toBeInTheDocument(),
+		);
+	});
+
+	test("shows error message on failed reset", async () => {
+		global.fetch = jest.fn(() =>
+			Promise.resolve({
+				ok: true,
+				json: () =>
+					Promise.resolve({
+						result: false,
+						message: "Invalid or expired token",
+					}),
+			}),
+		);
+
+		renderResetPassword();
+		await userEvent.type(screen.getByLabelText("New Password"), "NewPass1!");
+		fireEvent.click(screen.getByText("Reset Password"));
+
+		await waitFor(() =>
+			expect(screen.getByText("Invalid or expired token")).toBeInTheDocument(),
+		);
+	});
+
+	test("shows server error message on network failure", async () => {
+		global.fetch = jest.fn(() => Promise.reject(new Error("Network down")));
+
+		renderResetPassword();
+		await userEvent.type(screen.getByLabelText("New Password"), "NewPass1!");
+		fireEvent.click(screen.getByText("Reset Password"));
+
+		await waitFor(() =>
+			expect(
+				screen.getByText("Server error. Please try again later."),
+			).toBeInTheDocument(),
+		);
 	});
 });
 

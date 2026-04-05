@@ -145,20 +145,20 @@ The application uses a combination of testing frameworks for the frontent and ba
 To run all backend tests with coverage, execute the following command from the root directory of the project:
 
 ```
-pytest --cov=backend
+pytest backend/tests --benchmark-save=none
 ```
 
-This will run all tests in the backend module and generate a coverage report.
+This will run all tests in the backend module.
 
 # Frontend Tests
 
-To run the frontend tests, navigate to the frontend directory and run:
+To run all of the frontend tests, navigate to the frontend directory and run:
 
 ```
-npm test
+npm test -- --watchAll=false
 ```
 
-This will execute all React component and page tests using Jest and React Testing Library in an interactive watch mode.
+This will execute all React component and page tests using Jest and React Testing Library.
 
 ---
 
