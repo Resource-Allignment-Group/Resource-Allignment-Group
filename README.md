@@ -138,13 +138,27 @@ REACT_APP_BACKEND_API_BASE=url_for_api_access
 
 ## Testing
 
+The application uses a combination of testing frameworks for the frontent and backend directories. On the backend, testing is implemented with Python, using PyTest and psutil. These cover the unit, integration, and system testing of the backend endpoints and database interactions. On the frontend, testing is handled using Jest and React Testing Library for validating component rendering, user interactions, and application behavior in a simulated browser environment.
+
+# Backend Tests
+
 To run all backend tests with coverage, execute the following command from the root directory of the project:
 
 ```
-pytest --cov=backend
+pytest backend/tests --benchmark-save=none
 ```
 
-This will run all tests in the backend module and generate a coverage report.
+This will run all tests in the backend module.
+
+# Frontend Tests
+
+To run all of the frontend tests, navigate to the frontend directory and run:
+
+```
+npm test -- --watchAll=false
+```
+
+This will execute all React component and page tests using Jest and React Testing Library.
 
 ---
 

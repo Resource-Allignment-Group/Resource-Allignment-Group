@@ -2,6 +2,9 @@ import { screen } from "@testing-library/react";
 import Profile from "../profile";
 import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
+// Test all sections of the Profile page
+// This includes form inputs, buttons, and expected responses
+
 // Mock fetch and alert before the tests run
 beforeEach(() => {
 	global.fetch = jest.fn(() =>
