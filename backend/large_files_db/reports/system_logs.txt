@@ -84,3 +84,7 @@
 2026-03-03 09:21:16,079 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Big Dawg : test@gmail.com] [Details: s]
 2026-03-03 13:24:36,428 - INFO - [User: Head Huncho the best] [Action: DELETE_EQUIPMENT] [Target: ef] [Details: Admin Deleted Equipment]
 2026-03-03 13:24:51,237 - INFO - [User: Head Huncho the best] [Action: DELETE_EQUIPMENT] [Target: test1] [Details: Admin Deleted Equipment]
+2026-04-19 14:27:59,669 - INFO - [User: McKade Wing] [Action: CHECK_OUT] [Target: 10 ft Soil Bed Conditioner, International, None, 1991 (PLOT PREPERATION)] [Details: McKade Wing : mckade.wing@maine.edu]
+2026-04-19 14:28:16,655 - INFO - [User: McKade Wing] [Action: CHECK_IN] [Target: 10 ft Soil Bed Conditioner, International, None, 1991 (PLOT PREPERATION)] [Details: Item returned DAMAGED: Damage test]
+2026-04-19 14:30:00,631 - INFO - [User: McKade Wing] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
+2026-04-19 14:30:34,970 - INFO - [User: McKade Wing] [Action: DELETE_EQUIPMENT] [Target: Test] [Details: Admin Deleted Equipment]
