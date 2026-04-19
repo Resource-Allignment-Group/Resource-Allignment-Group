@@ -156,8 +156,11 @@ class ReportGenerator:
         cell_style.fontSize = 10
         cell_style.leading = 10
 
+        # Track rows that need special coloring
+        highlight_rows = []
+
         # Load parsed log data into the table
-        for entry in sorted(entries, key=lambda x: x['timestamp']):
+        for i, entry in enumerate(sorted(entries, key=lambda x: x['timestamp']), start=1):
             user_name = entry['user_id']
             action_name = self.map_actions(entry['action'])
             target_name = entry['target_id'] or "N/A"
@@ -172,9 +175,19 @@ class ReportGenerator:
                 Paragraph(report_text, cell_style)
             ])
 
+            # Highlight deleted users/equipment rows
+            if entry['action'] in ["DELETE_USER", "DELETE_EQUIPMENT"]:
+                highlight_rows.append((i, colors.lightyellow))
+
+            # Highlight damaged equipment on check-in
+            elif entry['action'] == "CHECK_IN" and entry['details']:
+                highlight_rows.append((i, colors.lightcoral))
+
         # Format the table
         lt = Table(column_name, colWidths=[.9*inch, 1.1*inch, 1.2*inch, 2.6*inch, 1.7*inch], hAlign='LEFT')
-        lt.setStyle(TableStyle([
+
+        # Base table styling
+        table_style = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.grey),
             ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
             ('GRID', (0,0), (-1,-1), 0.5, colors.silver),
@@ -185,12 +198,62 @@ class ReportGenerator:
             ('BOTTOMPADDING', (0,0), (-1,-1), 8),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
             ('FONTSIZE', (0,0), (-1,0), 10),
-        ]))
+        ])
+
+        # Apply conditional row coloring based on log actions
+        for row_idx, color in highlight_rows:
+            table_style.add('BACKGROUND', (0, row_idx), (-1, row_idx), color)
+
+        lt.setStyle(table_style)
         
         # Build the doc
         story.append(lt)
         doc.build(story)
         return output_path
+
+        # # Table of all log data
+        # story.append(Paragraph("Detailed Transaction Log", self.styles['Heading3']))
+        # story.append(Spacer(1, 0.1*inch))
+        # column_name = [['Time', 'User', 'Action', 'Target', 'Details']]
+        # cell_style = self.styles['Normal']
+        # cell_style.fontSize = 10
+        # cell_style.leading = 10
+
+        # # Load parsed log data into the table
+        # for entry in sorted(entries, key=lambda x: x['timestamp']):
+        #     user_name = entry['user_id']
+        #     action_name = self.map_actions(entry['action'])
+        #     target_name = entry['target_id'] or "N/A"
+            
+        #     report_text = self.get_detailed_info(entry)
+        #     # Format log entries into table rows
+        #     column_name.append([
+        #         Paragraph(entry['timestamp'].strftime('%m/%d %H:%M'), cell_style),
+        #         Paragraph(user_name, cell_style),
+        #         Paragraph(action_name, cell_style),
+        #         Paragraph(target_name, cell_style),
+        #         Paragraph(report_text, cell_style)
+        #     ])
+
+        # # Format the table
+        # lt = Table(column_name, colWidths=[.9*inch, 1.1*inch, 1.2*inch, 2.6*inch, 1.7*inch], hAlign='LEFT')
+        # lt.setStyle(TableStyle([
+        #     ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        #     ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        #     ('GRID', (0,0), (-1,-1), 0.5, colors.silver),
+        #     ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        #     ('LEFTPADDING', (0,0), (-1,-1), 6),
+        #     ('RIGHTPADDING', (0,0), (-1,-1), 6),
+        #     ('TOPPADDING', (0,0), (-1,-1), 6),
+        #     ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+        #     ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        #     ('FONTSIZE', (0,0), (-1,0), 10),
+        # ]))
+        
+        # # Build the doc
+        # story.append(lt)
+        # doc.build(story)
+        # return output_path
 
     def clear_old_logs(self, days_to_keep=60):
         """Delete all old log entries from the system_logs.txt file every 60 days"""

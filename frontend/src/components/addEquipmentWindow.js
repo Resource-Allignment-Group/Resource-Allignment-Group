@@ -294,9 +294,6 @@ function AddEquipmentModal({ isOpen, onClose, onSuccess }) {
 								onChange={handleChange}
 							/>
 						</label>
-						<button type="button" className="bulk-upload-button">
-							Bulk Upload Equipment
-						</button>
 						<div className="add-equipment-footer">
 							<button
 								className="add-equipment-submit"

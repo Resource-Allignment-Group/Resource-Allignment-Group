@@ -77,25 +77,6 @@
 	gap: 18px;
 }
 
-/* Bulk upload button */
-.bulk-upload-button {
-	padding: 12px 20px;
-	background-color: #e8e8e8;
-	color: #333;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	font-size: 14px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s;
-	margin-bottom: 10px;
-}
-
-.bulk-upload-button:hover {
-	background-color: #d0d0d0;
-	border-color: #999;
-}
-
 /* Form labels and inputs */
 .add-equipment-body label {
 	display: flex;
