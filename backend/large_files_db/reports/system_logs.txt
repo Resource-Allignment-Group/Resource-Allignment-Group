@@ -1,5 +1,4 @@
 2026-02-19 15:12:26,707 - INFO - [User: Mckade Wing] [Action: CHECK_IN] [Target: Bin Piller, Haines, None, 2003 (STORAGE)] [Details: Item returned DAMAGED: Explosion]
-2026-02-19 15:20:13,148 - INFO - [User: Head Huncho the best] [Action: UPDATE_ROLE] [Target: Mckade Wing : mckade.wing@maine.edu] [Details: a]
 2026-02-19 15:20:55,066 - INFO - [User: Head Huncho the best] [Action: ADD_EQUIPMENT] [Target: Test] [Details: Admin Added Equipment]
 2026-02-19 15:26:45,216 - INFO - [User: Mckade Wing] [Action: CHECK_OUT] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Mckade Wing : mckade.wing@maine.edu]
 2026-02-19 15:38:12,906 - INFO - [User: Mckade Wing] [Action: CHECK_IN] [Target: Seed Cutter, None, None, None (PROCESSING)] [Details: Item returned in good condition]
