@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -29,6 +29,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # ----- BACKEND TESTS -----
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -42,8 +43,23 @@ jobs:
         working-directory: backend
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: pytest
+        # Ignore the performace tests on typical pushes as
+        # they can take a little while to execute
+        run: pytest --ignore=tests/test_performance.py
 
+      # ----- PERFORMANCE/SYSTEM TESTS (only on pushes to main) -----
+      - name: Install performance dependencies
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pip install pytest-benchmark psutil
+
+      - name: Run performance tests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: backend
+        env:
+          PYTHONPATH: ${{ github.workspace }}/backend
+        run: pytest tests/test_performance.py --benchmark-save=none
+
+      # ----- FRONTEND TESTS -----
       - name: Set up Node
         uses: actions/setup-node@v4
         with:

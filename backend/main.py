@@ -15,11 +15,15 @@ from report_scheduler import init_scheduler
 from reports import setup_report_routes
 import pandas as pd
 
+# TODO: vulture leaving out venv
+# TODO: phone number class (datetime, idk ask chat or something)
+
 # Regex patterns to match valid registration parameters
 # This logic is in the frontend and backend, as it is good practice
 EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 PHONE_REGEX = re.compile(r"^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$")
-PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$")
+PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[^\s]{8,}$")
+
 
 def create_app(testing=False):
     load_dotenv()
@@ -49,7 +53,7 @@ def create_app(testing=False):
 
     # Initialize monthly reports
     report_generator = ReportGenerator(db)
-    scheduler = init_scheduler(db, nm, report_generator)
+    init_scheduler(db, nm, report_generator)
     setup_report_routes(app, report_generator)
 
     # region LOGGING IN / REGISTERING
@@ -91,18 +95,18 @@ def create_app(testing=False):
                 {"result": False, "message": "Email and password are required"}
             )
 
-        # TODO: make sure that this try and except actually works the way it should
         try:
             user = db.get_user_by_email(email=email)
             if not user:
                 return jsonify(
-                    {"result": False, "message": "No account found with that email"}
+                    {"result": False, "message": "Invalid Credentials"}
                 )
 
             hashed_passowrd = db.get_password_by_email(email=email)
             if check_password(
                 origional_password=password, hashed_password=hashed_passowrd
             ):
+                # 'p' means the account is pending, the user won't have access to the system
                 if user.role == "p":
                     return jsonify(
                         {
@@ -174,7 +178,7 @@ def create_app(testing=False):
         if "user" not in session or "id" not in session:
             return jsonify({"result": False, "user": None, "role": None})
 
-        #Refresh role from DB so role changes take effect on refresh
+        # Refresh role from DB so role changes take effect on refresh
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
             if not user_obj:
@@ -300,6 +304,7 @@ def create_app(testing=False):
             for note in notifications:
                 sender_name = sender_map.get(note.sender, "Unknown User")
                 note_dict = note.to_dict(sender_name=sender_name)
+                # type = 'r' means its an equipment request
                 if note.type == "r" and note.equipment_id:
                     equip = db.get_equipment_by_id(note.equipment_id)
                     if equip:
@@ -339,7 +344,7 @@ def create_app(testing=False):
 
     @app.route("/admin_account_decision", methods=["POST"])
     def account_decision():
-        """Admin decisions for specific notification types. 
+        """Admin decisions for specific notification types.
         This involves the approve/deny cases for when a new account is registered ('a')
         or a user is requesting to checkout an equipment item ('r')."""
 
@@ -347,6 +352,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -357,7 +363,7 @@ def create_app(testing=False):
         new_note.populate_from_json(json_info=note_info)
 
         match new_note.type:
-            # Account creation request
+            # 'a' = Account creation request
             case "a":
                 try:
                     # Adjust the unread notification number
@@ -377,6 +383,8 @@ def create_app(testing=False):
                         result_message = (
                             f"{target_user.email} has been added to the system"
                         )
+                        # The default role for new users is 'u'
+                        # grants basic access to the system
                         db.set_user_role(id=target_user.id, role="u")
                         db.add_log(
                             user_id=admin_name,
@@ -405,7 +413,7 @@ def create_app(testing=False):
                 except Exception as e:
                     return jsonify({"result": False, "message": str(e)})
 
-            # Equipment checkout request
+            # 'r' = Equipment checkout request
             case "r":
                 try:
                     # Adjust the unread notification number
@@ -426,6 +434,7 @@ def create_app(testing=False):
                         equipment = db.get_equipment_by_id(id=new_note.equipment_id)
 
                         # Approve the request and check out the equipment to the user
+                        # 'a' = set notification as approved
                         db.set_notification_status(id=new_note.id, status="a")
                         db.add_user_equipment(
                             user_id=ObjectId(new_note.sender),
@@ -489,6 +498,7 @@ def create_app(testing=False):
 
                     else:
                         # Deny the request and notify the user
+                        # 'r' = reject the notification
                         db.set_notification_status(id=new_note.id, status="r")
                         equipment = db.get_equipment_by_id(new_note.equipment_id)
                         equip_name = (
@@ -525,6 +535,8 @@ def create_app(testing=False):
                     db.get_user_by_equipment(ObjectId(id)) for id in checked_out_ids
                 ]
                 for user in users:
+                    if not user:
+                        continue
                     for equip_id in user.checked_out_equipment:
                         checkout_map[str(equip_id)] = user.email
 
@@ -674,6 +686,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -706,8 +719,14 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin, role 's' = superintendent
             if not user_obj or user_obj.role not in ("a", "s"):
-                return jsonify({"result": False, "message": "Admin or Superintendent access required"}), 403
+                return jsonify(
+                    {
+                        "result": False,
+                        "message": "Admin or Superintendent access required",
+                    }
+                ), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
         try:
@@ -742,6 +761,7 @@ def create_app(testing=False):
         try:
             # Find the specified user
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
             admin_name = session["name"]
@@ -768,6 +788,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"}), 401
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -807,6 +828,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -882,19 +904,20 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
-        
+
         # Get the equipment to attatch file(s) to
         equipment_id = ObjectId(request.form["equipment_id"])
         file_type = request.form["file_type"]
         file = request.files["file"] if "file" in request.files else None
-        
+
         if not file:
             return jsonify({"result": False, "message": "No file provided"})
-        
+
         # Add the file
         if file_type == "image":
             file_id, err = db.add_equipment_image(equipment_id, file)
@@ -935,6 +958,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -953,11 +977,12 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
-        
+
         # Get the equip item to remove a file from
         data = request.json
         equipment_id = ObjectId(data["equipment_id"])
@@ -977,7 +1002,7 @@ def create_app(testing=False):
 
     @app.route("/upload_profile_image", methods=["POST"])
     def upload_profile_image():
-        """Add a new user profile image. Visible on their profile 
+        """Add a new user profile image. Visible on their profile
         page and the user management card components"""
         file = request.files["file"] if "file" in request.files else None
         if not file:
@@ -1020,11 +1045,12 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
             return jsonify({"result": False, "message": "Invalid session"}), 401
-        
+
         # Get the equipment to update
         equipment_info = request.json["equipment"]
         try:
@@ -1081,6 +1107,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -1322,6 +1349,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -1397,6 +1425,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:
@@ -1425,6 +1454,7 @@ def create_app(testing=False):
             return jsonify({"result": False, "message": "Not logged in"})
         try:
             user_obj = db.get_user_by_id(ObjectId(session["id"]))
+            # Role 'a' = admin
             if not user_obj or user_obj.role != "a":
                 return jsonify({"result": False, "message": "Admin only"}), 403
         except Exception:

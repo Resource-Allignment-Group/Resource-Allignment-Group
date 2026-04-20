@@ -12,9 +12,23 @@ function ResetPassword() {
 	const [message, setMessage] = useState(""); // for error/success messages
 	const navigate = useNavigate();
 
+	// Password validation
+	const PASSWORD_REGEX =
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[^\s]{8,}$/;
+
+	const isValidPassword = (password) => PASSWORD_REGEX.test(password);
+
 	const submit = async () => {
 		if (!password) {
 			setMessage("Please enter a new password.");
+			return;
+		}
+
+		// Ensure valid password before acceptance
+		if (!isValidPassword(password)) {
+			setMessage(
+				"Password must be at least 8 characters and include uppercase, lowercase, a number, and a symbol (no spaces).",
+			);
 			return;
 		}
 
@@ -26,7 +40,7 @@ function ResetPassword() {
 			});
 
 			const data = await res.json();
-
+			// Result messages
 			if (data.result) {
 				setMessage("Password reset successfully! Redirecting to login...");
 				setTimeout(() => navigate("/login"), 1500);

@@ -210,3 +210,4 @@ __marimo__/
 docker-compose
 .env.prod
 docker-compose.yaml
+backend/large_files_db/reports/system_logs.txt

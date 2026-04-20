@@ -9,6 +9,7 @@ import { useAuth } from "../Authentication";
 
 function Home({ num_of_notifications, setNumNotifications }) {
 	const { role } = useAuth();
+	// Role 'a' = admin
 	const isAdmin = role === "a";
 	const { sidebarOpen, openSidebar, closeSidebar } = useSidebar();
 	const [expandedCard, setExpandedCard] = useState(null);

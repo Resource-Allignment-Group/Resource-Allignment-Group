@@ -13,13 +13,13 @@ function Register() {
 
 	// Frontend regex cases to check user-input, for quick error handling
 	// These exist more extensively in the backend to ensure proper formats
-	const isValidEmail = (email) => EMAIL_REGEX.test(email);
-	const isValidPhone = (phone) => PHONE_REGEX.test(phone);
-	const isValidPassword = (password) => PASSWORD_REGEX.test(password);
 	const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	const PHONE_REGEX = /^(\+1\s?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}$/;
 	const PASSWORD_REGEX =
-		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[^\s]{8,}$/;
+	const isValidEmail = (email) => EMAIL_REGEX.test(email);
+	const isValidPhone = (phone) => PHONE_REGEX.test(phone);
+	const isValidPassword = (password) => PASSWORD_REGEX.test(password);
 
 	const handleRegister = async (e) => {
 		if (e) e.preventDefault();
@@ -114,6 +114,15 @@ function Register() {
 					<button type="submit" onClick={handleRegister}>
 						Sign Up
 					</button>
+					<div className="form-links">
+						<button
+							type="button"
+							className="link-button"
+							onClick={() => navigate("/login")}
+						>
+							Back to Login
+						</button>
+					</div>
 				</form>
 			</div>
 		</div>

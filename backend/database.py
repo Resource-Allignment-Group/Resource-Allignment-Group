@@ -28,7 +28,7 @@ class DatabaseManager:
         self.get_client()
         if testing:
             self.db = _client["TEST_RAM_DB"]
-            self.txt_logger = SystemLogger("test_log.txt")
+            self.txt_logger = SystemLogger("test_log.txt", logger_name="RAM_System_Test")
         else:
             self.db = _client["RAM_DB"]
             self.txt_logger = SystemLogger("system_logs.txt")
@@ -73,32 +73,12 @@ class DatabaseManager:
 
     # region Setters
 
-    def set_notfication_sender(self, id: ObjectId, sender: ObjectId):
-        self.notifications_db.update_one({"_id": id}, {"$set": {"sender": sender}})
-
-    def set_notfication_receiver(self, id: ObjectId, receiver: ObjectId):
-        self.notifications_db.update_one({"_id": id}, {"$set": {"receiver": receiver}})
-
-    def set_notfication_result(self, id: ObjectId, result: str):
-        self.notifications_db.update_one({"_id": id}, {"$set": {"result": result}})
-
     def set_notification_read(self, id: ObjectId, read: bool):
         self.notifications_db.update_one({"_id": id}, {"$set": {"read": read}})
 
+    # Set status to a = approved, r = rejected, p = pending
     def set_notification_status(self, id: ObjectId, status: Literal["a", "r", "p"]):
         self.notifications_db.update_one({"_id": id}, {"$set": {"status": status}})
-
-    def set_notification_body(self, id: ObjectId, body: str):
-        self.notifications_db.update_one({"_id": id}, {"$set": {"body": body}})
-
-    def set_request_active(self, id: ObjectId, active: bool):
-        self.requests_db.update_one({"_id": id}, {"$set": {"active": active}})
-
-    def set_request_equipment(self, id: ObjectId, equipment_id: ObjectId):
-        self.requests_db.update_one({"_id": id}, {"$set": {"equipment": equipment_id}})
-
-    def set_request_user(self, id: ObjectId, user_id: ObjectId):
-        self.requests_db.update_one({"_id": id}, {"$set": {"user": user_id}})
 
     def set_user_password(self, id: ObjectId, password: str):
         self.users_db.update_one({"_id": id}, {"$set": {"password": password}})
@@ -121,15 +101,6 @@ class DatabaseManager:
 
     def set_user_department(self, id: ObjectId, new_department: str):
         self.users_db.update_one({"_id": id}, {"$set": {"department": new_department}})
-
-    def set_equipment_year(self, id: ObjectId, year: int):
-        self.equipment_db.update_one({"_id": id}, {"$set": {"year": year}})
-
-    def set_equipment_name(self, id: ObjectId, name: str):
-        self.equipment_db.update_one({"_id": id}, {"$set": {"name": name}})
-
-    def set_equipment_class(self, id: ObjectId, _class: str):
-        self.equipment_db.update_one({"_id": id}, {"$set": {"class": _class}})
 
     def set_equipment_checked_out(self, id: ObjectId, checked_out: bool):
         self.equipment_db.update_one(
@@ -222,6 +193,7 @@ class DatabaseManager:
     def get_administrators(self):
         """Fetch all admins from the DB"""
         try:
+            # Users with 'a' role = admin
             cursor = self.users_db.find({"role": "a"})
             user_list = []
 
@@ -254,8 +226,11 @@ class DatabaseManager:
     def get_user_by_id(self, user_id: ObjectId) -> User:
         """Get a user based on their ID"""
         try:
+            result = self.users_db.find_one({"_id": user_id})
+            if result is None:
+                return None
             new_user = User()
-            new_user.fill_user_information(self.users_db.find_one({"_id": user_id}))
+            new_user.fill_user_information(result)
             return new_user
         except Exception as e:
             raise e
@@ -275,6 +250,9 @@ class DatabaseManager:
             ):  # Checks to make sure email does not already exist
                 return {"result": False, "message": f"Email {email} already exists"}
 
+            # The 'p' role signifies that the user account is pending
+            # they will not be granted access to the system until approved
+            # Afterwards, their role will be updated to 'u' = user for general system access
             result = self.users_db.insert_one(
                 {
                     "password": password,
@@ -530,7 +508,9 @@ class DatabaseManager:
             return equip_list
         except Exception as e:
             raise e
-            
+
+    # region Large Files
+
     def get_image(self, uuid: str):
         if not (self.images_db / uuid).exists():
             return f"{uuid} image does not exist"
@@ -771,18 +751,6 @@ class DatabaseManager:
         except Exception as e:
             raise e
 
-    def get_notifications_by_equipment(self, equip_id):
-        """Get a notification based on an equipment ID"""
-        try:
-            note_info = self.notifications_db.find_one(
-                {"equipment_id": ObjectId(equip_id)}
-            )
-            note = Notification()
-            note.populate_from_json(json_info=note_info)
-            return note
-        except Exception as e:
-            raise e
-
     def delete_notification(self, note_id):
         """Delete a notification from the DB based on ID"""
         self.notifications_db.delete_one({"_id": ObjectId(note_id)})
@@ -812,6 +780,7 @@ class DatabaseManager:
         EX: An equip is approved to a usr, all notifs requesting that same equip are removed"""
         if not notification_ids:
             return 0
+        # Role 'a' = admin
         result = self.users_db.update_many(
             {"role": "a"}, {"$pullAll": {"inbox": notification_ids}}
         )
@@ -892,6 +861,7 @@ class DatabaseManager:
         try:
             # Get the user
             user = self.get_user_by_id(user_id=user_id)
+            # All notifs of type 'r' are equipment request notifs
             requests = self.notifications_db.find({"type": "r", "sender": user.id})
             request_list = []
             equipment_list = []
@@ -943,7 +913,7 @@ class DatabaseManager:
                     "used": False,
                 }
             )
-            link = f"http://${os.environ.get('REACT_APP_API_BASE')}:3000/reset-password?token={token}"
+            link = f"http://{os.environ.get('REACT_APP_BACKEND_API_BASE')}:3000/reset-password?token={token}"
             return link
         except Exception as e:
             raise e
@@ -967,7 +937,7 @@ class DatabaseManager:
         try:
             query = {
                 "equipment_id": {"$in": equipment_ids},
-                "type": "r",
+                "type": "r",    # Only equipment requests
                 "status": "p",  # Only pending
             }
 
@@ -975,6 +945,7 @@ class DatabaseManager:
             if exclude_notification_id is not None:
                 query["_id"] = {"$ne": exclude_notification_id}
 
+            # All notifs with status 'r' means that they were rejected
             result = self.notifications_db.update_many(query, {"$set": {"status": "r"}})
             return result.modified_count
         except Exception as e:
@@ -990,7 +961,7 @@ class DatabaseManager:
         try:
             query = {
                 "equipment_id": {"$in": equipment_ids},
-                "type": "r",
+                "type": "r",    # Equipment Requests
                 "status": "p",  # Pending
             }
 
